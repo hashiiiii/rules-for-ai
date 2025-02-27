@@ -1,65 +1,61 @@
-# Rules for AI
+# 🤖 Rules for AI
 
 Documentation ([English](https://github.com/hashiiiii/rules-for-ai/blob/main/README.md), [日本語](https://github.com/hashiiiii/rules-for-ai/blob/main/README_JA.md))
 
-## Overview
+## 📋 Overview
 
-A collection of rules and guidelines to enhance AI assistant interactions for developers. Designed for use with Windsurf, Cursor, and other AI-powered coding assistants.
+A collection of rules and guidelines to enhance AI assistant interactions for developers. Designed for use with Windsurf, Cursor, and other AI-powered coding assistants. The global settings use predefined global_rules.md, and workspace-specific customizations are set in .windsurfrules / .cursorrules. These are automatically updated through interactive conversations with the AI assistant.
 
-## Key Features
+## ✨ Key Features
 
-- Optimized AI Interactions: Guidelines for getting the most out of AI coding assistants
-- Cross-Language Support: Available in English and Japanese
-- Task-Oriented Shortcuts: Pre-defined aliases for common development tasks
-- Problem-Solving Framework: Structured approach to tackling coding challenges
-- Language-Specific Guidelines: Best practices for TypeScript/JavaScript, Python, and database operations
+- 🔄 **Interactive Setup**: Interactively tune .windsurfrules / .cursorrules
+- 📝 **High-Quality Common Configuration**: Predefined high-quality global_rules.md
+- ⚡ **Task-Oriented Shortcuts**: Pre-defined aliases for common development tasks
 
-## Quick Start
+## 🚀 Quick Start
 
 1. Clone this repository:
 ```bash
 git clone https://github.com/hashiiiii/rules-for-ai.git
 ```
 
-2. Use the rule files with your AI-powered IDE:
-   - `.windsurfrules` - For Windsurf IDE
-   - `.cursorrules` - For Cursor IDE
+2. Open any workspace in your IDE and set up the rule files:
+   - `.windsurfrules` / `global_rules.md` - For Windsurf IDE
+   - `.cursorrules` / `global_rules.md` - For Cursor IDE
    
-3. Customize the rules to fit your development style
+3. Run the setup command:
+   - Enter `/setup` command in write mode
 
-## What's Included
+4. Verify that .windsurfrules / .cursorrules have been updated:
+   - If no updates occur, ask the AI assistant to update them in write mode
 
-### Rule Files
-- `.windsurfrules` - English rules for Windsurf
-- `.windsurfrules_JA` - Japanese rules for Windsurf
-- `.cursorrules` - English rules for Cursor
-- `.cursorrules_JA` - Japanese rules for Cursor
+## ⚙️ Setting Up .windsurfrules / .cursorrules
 
-### Shortcut Aliases
+The `.windsurfrules` / `.cursorrules` files provide an interactive setup process to customize the AI assistant's behavior to your specific needs.
 
-The rules include helpful aliases that activate specific AI behaviors:
+## 🔧 Customization
 
-- `/ask` - Consultation mode for policy decisions
-- `/plan` - Generate detailed work plans
-- `/debug` - Systematic debugging approach
-- `/review` - Code quality review
-- `/refactor` - Readability and maintainability improvements
-- `/optimize` - Performance optimization suggestions
-- `/test` - Testing strategies
-- `/doc` - Documentation assistance
-- `/schema` - Database/type schema design
-- `/arch` - Architecture design
-- `/cmt` - Code commenting
-- `/log` - Logging best practices
+After completing the initial `/setup`, you can further adjust your settings.
+Use `/adjust` to fine-tune the current configuration.
 
-## Customization
+## 🔍 Available Shortcuts
 
-You can customize these rules by editing the corresponding files to match your preferences and workflow:
+The following shortcuts are available:
 
-1. Fork this repository
-2. Modify the rule files
-3. Use your customized rules in your AI-powered IDE
+- `/setup`   : Starts the setup process
+- `/adjust`  : Fine-tunes the current configuration
+- `/plan`    : Generate detailed work plans
+- `/debug`   : Systematic debugging approach
+- `/review`  : Code quality review
+- `/refactor`: Readability and maintainability improvements
+- `/optimize`: Performance optimization suggestions
+- `/test`    : Testing strategies
+- `/doc`     : Documentation assistance
+- `/arch`    : Architecture design
+- `/cmt`     : Code commenting
+- `/mvp`     : Build a Minimum Viable Product
+- `/help`    : Display available shortcuts
 
-## License
+## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.

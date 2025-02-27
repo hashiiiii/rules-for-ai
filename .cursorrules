@@ -1,0 +1,84 @@
+# Workspace Setup File
+
+This file serves as a setup configuration for you and the AI assistant in this workspace.
+During the initial conversation, interactive customization will be conducted, and content tailored to your specific needs will be added to this file as differences.
+
+# Important Notes
+- The settings in this file are designed not to conflict with the content of `global_rules.md`.
+- The interactive setup process will be completed in a maximum of 10 exchanges.
+- The interactive setup process MUST be executed. Skipping is absolutely not allowed.
+- The AI assistant MUST collect answers to all questions from the user and save them in this configuration file.
+- If the setup process is interrupted, it must be resumed and completed.
+
+# Interactive Setup Process - Common Question Items
+
+Upon initial startup, the AI assistant will ask you about the following items:
+
+1. Purpose of this workspace: What project you are working on or intend to work on
+=== START ===
+The results of question 1 will be recorded here.
+=== END ===
+
+2. Technology stack: Languages, frameworks, tools you are using, or if undecided, requirements related to your needs
+=== START ===
+The results of question 2 will be recorded here.
+=== END ===
+
+3. Communication style: Desired level of detail, format, and technical terminology in responses
+=== START ===
+The results of question 3 will be recorded here.
+=== END ===
+
+4. Specific requirements: Special requirements regarding code quality, performance, security, etc.
+=== START ===
+The results of question 4 will be recorded here.
+=== END ===
+
+5. Workflow: Your development workflow or preferred working method
+=== START ===
+The results of question 5 will be recorded here.
+=== END ===
+
+# Interactive Setup Process - Customizable Items
+
+Based on exchanges 1-5, additional questions 6-10 will be asked to achieve goals with higher precision.
+Delete unnecessary lines. For example, if sufficient results are obtained after 9 exchanges, comment out line 10.
+
+Example:
+
+```
+// 10. Customizable item: Customizable question (replace this line with the additional question once determined)
+// === START ===
+// The results of question 10 will be recorded here.
+// === END ===
+```
+
+6. Customizable item: Customizable question (replace this line with the additional question once determined)
+=== START ===
+The results of question 6 will be recorded here.
+=== END ===
+
+7. Customizable item: Customizable question (replace this line with the additional question once determined)
+=== START ===
+The results of question 7 will be recorded here.
+=== END ===
+
+8. Customizable item: Customizable question (replace this line with the additional question once determined)
+=== START ===
+The results of question 8 will be recorded here.
+=== END ===
+
+9. Customizable item: Customizable question (replace this line with the additional question once determined)
+=== START ===
+The results of question 9 will be recorded here.
+=== END ===
+
+10. Customizable item: Customizable question (replace this line with the additional question once determined)
+=== START ===
+The results of question 10 will be recorded here.
+=== END ===
+
+# Additional Shortcuts
+
+- `/setup` : Starts the setup process. If you say you want to interrupt, it will interrupt and revert to the content before setup.
+- `/adjust`: Fine-tunes the current content of .cursorrules through up to 5 additional exchanges.

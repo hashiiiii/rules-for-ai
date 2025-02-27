@@ -1,82 +1,84 @@
-# ワークスペースセットアップファイル
+# Workspace Setup File
 
-このファイルは、このワークスペースにおけるあなたとAIアシスタントのセットアップファイルです。
-最初の会話でインタラクティブにカスタマイズを行い、あなたの具体的なニーズに合わせた内容をこのファイルに差分として追加します。
+This file serves as a setup configuration for you and the AI assistant in this workspace.
+During the initial conversation, interactive customization will be conducted, and content tailored to your specific needs will be added to this file as differences.
 
-# 注意事項
-- このファイルの設定は `global_rules.md` の内容と競合しないように設計してください。
-- インタラクティブセットアッププロセスは最大 10 回のやり取りで完了します。
+# Important Notes
+- The settings in this file are designed not to conflict with the content of `global_rules.md`.
+- The interactive setup process will be completed in a maximum of 10 exchanges.
+- The interactive setup process MUST be executed. Skipping is absolutely not allowed.
+- The AI assistant MUST collect answers to all questions from the user and save them in this configuration file.
+- If the setup process is interrupted, it must be resumed and completed.
 
-# インタラクティブセットアッププロセス - 共通質問項目
+# Interactive Setup Process - Common Question Items
 
-初回起動時、AIアシスタントは以下の項目についてあなたに質問します:
+Upon initial startup, the AI assistant will ask you about the following items:
 
-1. このワークスペースの目的: どのようなプロジェクトに取り組んでいるのか、または取り組もうとしているのか
-=== ここから ===
-1 のヒアリング結果を以下に記載します。
-=== ここまで ===
+1. Purpose of this workspace: What project you are working on or intend to work on
+=== START ===
+The results of question 1 will be recorded here.
+=== END ===
 
-2. 技術スタック: 使用している言語、フレームワーク、ツール、未決定なのであればあなたのニーズに関する要件
-=== ここから ===
-2 のヒアリング結果を以下に記載します。
-=== ここまで ===
+2. Technology stack: Languages, frameworks, tools you are using, or if undecided, requirements related to your needs
+=== START ===
+The results of question 2 will be recorded here.
+=== END ===
 
-3. コミュニケーションスタイル: 希望する応答の詳細度、形式、専門用語レベル
-=== ここから ===
-3 のヒアリング結果を以下に記載します。
-=== ここまで ===
+3. Communication style: Desired level of detail, format, and technical terminology in responses
+=== START ===
+The results of question 3 will be recorded here.
+=== END ===
 
-4. 特定の要件: コード品質、パフォーマンス、セキュリティなどに関する特別な要件
-=== ここから ===
-4 のヒアリング結果を以下に記載します。
-=== ここまで ===
+4. Specific requirements: Special requirements regarding code quality, performance, security, etc.
+=== START ===
+The results of question 4 will be recorded here.
+=== END ===
 
-5. ワークフロー: あなたの開発ワークフローや好みの作業方法
-=== ここから ===
-5 のヒアリング結果を以下に記載します。
-=== ここまで ===
+5. Workflow: Your development workflow or preferred working method
+=== START ===
+The results of question 5 will be recorded here.
+=== END ===
 
-# インタラクティブセットアッププロセス - カスタマイズ可能な項目
+# Interactive Setup Process - Customizable Items
 
-1 ~ 5 のやりとりを踏まえて、より高精度で目的を達成するための追加質問を 6 ~ max 10 まで行います。
-不要になった行は削除してください。例えば 9 までヒアリングしたところで純分な結果が得られた場合は 10 をコメントアウトしてください。
+Based on exchanges 1-5, additional questions 6-10 will be asked to achieve goals with higher precision.
+Delete unnecessary lines. For example, if sufficient results are obtained after 9 exchanges, comment out line 10.
 
-例:
+Example:
 
 ```
-// 10. カスタマイズ可能な項目: カスタマイズ可能な質問(追加質問が決まったらこの行を書き換えてください)
-// === ここから ===
-// 10 のヒアリング結果を以下に記載します。
-// === ここまで ===
+// 10. Customizable item: Customizable question (replace this line with the additional question once determined)
+// === START ===
+// The results of question 10 will be recorded here.
+// === END ===
 ```
 
-6. カスタマイズ可能な項目: カスタマイズ可能な質問(追加質問が決まったらこの行を書き換えてください)
-=== ここから ===
-6 のヒアリング結果を以下に記載します。
-=== ここまで ===
+6. Customizable item: Customizable question (replace this line with the additional question once determined)
+=== START ===
+The results of question 6 will be recorded here.
+=== END ===
 
-7. カスタマイズ可能な項目: カスタマイズ可能な質問(追加質問が決まったらこの行を書き換えてください)
-=== ここから ===
-7 のヒアリング結果を以下に記載します。
-=== ここまで ===
+7. Customizable item: Customizable question (replace this line with the additional question once determined)
+=== START ===
+The results of question 7 will be recorded here.
+=== END ===
 
-8. カスタマイズ可能な項目: カスタマイズ可能な質問(追加質問が決まったらこの行を書き換えてください)
-=== ここから ===
-8 のヒアリング結果を以下に記載します。
-=== ここまで ===
+8. Customizable item: Customizable question (replace this line with the additional question once determined)
+=== START ===
+The results of question 8 will be recorded here.
+=== END ===
 
-9. カスタマイズ可能な項目: カスタマイズ可能な質問(追加質問が決まったらこの行を書き換えてください)
-=== ここから ===
-9 のヒアリング結果を以下に記載します。
-=== ここまで ===
+9. Customizable item: Customizable question (replace this line with the additional question once determined)
+=== START ===
+The results of question 9 will be recorded here.
+=== END ===
 
-10. カスタマイズ可能な項目: カスタマイズ可能な質問(追加質問が決まったらこの行を書き換えてください)
-=== ここから ===
-10 のヒアリング結果を以下に記載します。
-=== ここまで ===
+10. Customizable item: Customizable question (replace this line with the additional question once determined)
+=== START ===
+The results of question 10 will be recorded here.
+=== END ===
 
+# Additional Shortcuts
 
-# 追加ショートカット
-
-- `/setup`     : セットアッププロセスを開始します。途中で中断したいと言われたら中断して setup 前の内容に revert します。
-- `/adjust`    : 追加で最大 5 回までのやり取りを通じて現在の .windsurfrules の内容をファインチューニングします。
+- `/setup` : Starts the setup process. If you say you want to interrupt, it will interrupt and revert to the content before setup.
+- `/adjust`: Fine-tunes the current content of .windsurfrules through up to 5 additional exchanges.
