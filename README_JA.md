@@ -42,19 +42,19 @@ git clone https://github.com/hashiiiii/rules-for-ai.git
 
 以下のショートカットが利用可能です:
 
-- 🛠️ `/setup`   : セットアッププロセスを開始します
-- 🔄 `/adjust`  : 現在の構成を微調整します
-- 📋 `/plan`    : 詳細な作業計画の作成
-- 🐞 `/debug`   : 体系的なデバッグアプローチ
-- 🔍 `/review`  : コード品質レビュー
-- 📦 `/refactor`: 可読性と保守性の向上
-- ⚡ `/optimize`: パフォーマンス最適化の提案
-- 🧪 `/test`    : テスト戦略
-- 📚 `/doc`     : ドキュメント作成の支援
-- 🏗️ `/arch`    : アーキテクチャ設計
-- 💬 `/cmt`     : コードコメント
-- 🚀 `/mvp`     : MVP (Minimum Viable Product) を構築
-- ❓ `/help`    : 利用可能なショートカットを表示
+- `/setup`   : セットアッププロセスを開始します
+- `/adjust`  : 現在の構成を微調整します
+- `/plan`    : 詳細な作業計画の作成
+- `/debug`   : 体系的なデバッグアプローチ
+- `/review`  : コード品質レビュー
+- `/refactor`: 可読性と保守性の向上
+- `/optimize`: パフォーマンス最適化の提案
+- `/test`    : テスト戦略
+- `/doc`     : ドキュメント作成の支援
+- `/arch`    : アーキテクチャ設計
+- `/cmt`     : コードコメント
+- `/mvp`     : MVP (Minimum Viable Product) を構築
+- `/help`    : 利用可能なショートカットを表示
 
 ## 📄 ライセンス
 
