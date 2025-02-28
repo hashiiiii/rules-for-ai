@@ -24,6 +24,7 @@ git clone https://github.com/hashiiiii/rules-for-ai.git
    - `.cursorrules` / `global_rules.md` - Cursor IDE 用
    
 3. セットアップコマンドの実行
+   - ※ global_rules.md で十分な場合は以降の手順は不要
    - `/setup` コマンドを write モードで実行
 
 4. .windsurfrules / .cursorrules が更新されたことを確認する

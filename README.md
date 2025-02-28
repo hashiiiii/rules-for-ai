@@ -24,6 +24,7 @@ git clone https://github.com/hashiiiii/rules-for-ai.git
    - `.cursorrules` / `global_rules.md` - For Cursor IDE
    
 3. Run the setup command:
+   - Note: If global_rules.md is sufficient for your needs, the following steps are not necessary
    - Enter `/setup` command in write mode
 
 4. Verify that .windsurfrules / .cursorrules have been updated:
