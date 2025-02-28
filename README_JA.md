@@ -11,10 +11,12 @@
 > windsurf
 > - global: global_rules.md
 > - local: .windsurfrules
+> - docs: https://docs.codeium.com/windsurf/memories#windsurfrules
 >
 > cursor
 > - global: .cursorrules
 > - local: project_rules.mdc
+> - docs: https://docs.cursor.com/context/rules-for-ai
 >
 
 ## ✨ 主な機能
