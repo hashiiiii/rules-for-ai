@@ -6,6 +6,17 @@ Documentation ([English](https://github.com/hashiiiii/rules-for-ai/blob/main/REA
 
 A collection of rules and guidelines to enhance AI assistant interactions for developers. Designed for use with Windsurf, Cursor, and other AI-powered coding assistants. The global settings use predefined global_rules.md, and workspace-specific customizations are set in .windsurfrules / .cursorrules. These are automatically updated through interactive conversations with the AI assistant.
 
+> [!WARNING]
+>
+> windsurf
+> - global: global_rules.md
+> - local: .windsurfrules
+>
+> cursor
+> - global: .cursorrules
+> - local: project_rules.mdc
+>
+
 ## ✨ Key Features
 
 - 🔄 **Interactive Setup**: Interactively tune .windsurfrules / .cursorrules
@@ -21,18 +32,18 @@ git clone https://github.com/hashiiiii/rules-for-ai.git
 
 2. Open any workspace in your IDE and set up the rule files:
    - `.windsurfrules` / `global_rules.md` - For Windsurf IDE
-   - `.cursorrules` / `global_rules.md` - For Cursor IDE
+   - `project_rules.mdc` / `.cursorrules` - For Cursor IDE
    
 3. Run the setup command:
-   - Note: If global_rules.md is sufficient for your needs, the following steps are not necessary
+   - Note: If global_rules.md / .cursorrules is sufficient for your needs, the following steps are not necessary
    - Enter `/setup` command in write mode
 
-4. Verify that .windsurfrules / .cursorrules have been updated:
+4. Verify that .windsurfrules / project_rules.mdc have been updated:
    - If no updates occur, ask the AI assistant to update them in write mode
 
-## ⚙️ Setting Up .windsurfrules / .cursorrules
+## ⚙️ Setting Up .windsurfrules / project_rules.mdc
 
-The `.windsurfrules` / `.cursorrules` files provide an interactive setup process to customize the AI assistant's behavior to your specific needs.
+The `.windsurfrules` / `project_rules.mdc` files provide an interactive setup process to customize the AI assistant's behavior to your specific needs.
 
 ## 🔧 Customization
 
