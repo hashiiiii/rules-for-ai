@@ -14,7 +14,6 @@ During the initial conversation, interactive customization will be conducted, an
 - The interactive setup process MUST be executed. Skipping is absolutely not allowed.
 - The AI assistant MUST collect answers to all questions from the user and save them in this configuration file.
 - If the setup process is interrupted, it must be resumed and completed.
-- When the setup process is interrupted or completed, please `cp -r` the `cursor/local/project_rules_JA.mdc` to `.cursor/rules/airule_JA.mdc`.
 
 # Interactive Setup Process - Common Question Items
 
