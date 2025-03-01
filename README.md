@@ -4,7 +4,10 @@ Documentation ([English](https://github.com/hashiiiii/rules-for-ai/blob/main/REA
 
 ## 📋 Overview
 
-A collection of rules and guidelines to enhance AI assistant interactions for developers. Designed for use with Windsurf, Cursor, and other AI-powered coding assistants. The global settings use predefined global_rules.md, and workspace-specific customizations are set in .windsurfrules / .cursorrules. These are automatically updated through interactive conversations with the AI assistant.
+This is a ruleset to enhance AI assistants integrated in Windsurf and Cursor.
+For global settings, use the predefined windsurf: global_rules.md / cursor: .cursorrules.
+For workspace-specific settings, use windsurf: .windsurfrules / cursor: project_rules.mdc.
+These are automatically updated through interactive dialogue with the AI assistant.
 
 > [!WARNING]
 >
@@ -21,55 +24,48 @@ A collection of rules and guidelines to enhance AI assistant interactions for de
 
 ## ✨ Key Features
 
-- 🔄 **Interactive Setup**: Interactively tune .windsurfrules / .cursorrules
-- 📝 **High-Quality Common Configuration**: Predefined high-quality global_rules.md
-- ⚡ **Task-Oriented Shortcuts**: Pre-defined aliases for common development tasks
+- 🔄 **Interactive Setup**: Interactively tune .windsurfrules / project_rules.mdc
+- 📝 **High-Quality Common Configuration Files**: Pre-defined high-quality global_rules.md / .cursorrules
+- ⚡ **Task-Oriented Shortcuts**: Shortcuts that can be used universally for each task
 
 ## 🚀 Quick Start
 
-1. Clone this repository:
+1. Clone the repository:
 ```bash
 git clone https://github.com/hashiiiii/rules-for-ai.git
 ```
 
-2. Open any workspace in your IDE and set up the rule files:
+2. Open any workspace in your IDE and set up the rules files:
    - `.windsurfrules` / `global_rules.md` - For Windsurf IDE
    - `project_rules.mdc` / `.cursorrules` - For Cursor IDE
-   
-3. Run the setup command:
-   - Note: If global_rules.md / .cursorrules is sufficient for your needs, the following steps are not necessary
-   - Enter `/setup` command in write mode
 
-4. Verify that .windsurfrules / project_rules.mdc have been updated:
-   - If no updates occur, ask the AI assistant to update them in write mode
+> [!IMPORTANT]
+>
+> If global settings are sufficient, migration steps are not necessary.
+>
 
-## ⚙️ Setting Up .windsurfrules / project_rules.mdc
+3. Run the setup command
+   - Execute the `/setup` command in write mode
 
-The `.windsurfrules` / `project_rules.mdc` files provide an interactive setup process to customize the AI assistant's behavior to your specific needs.
-
-## 🔧 Customization
-
-After completing the initial `/setup`, you can further adjust your settings.
-Use `/adjust` to fine-tune the current configuration.
+4. Verify that .windsurfrules / project_rules.mdc has been updated
+   - If no updates occur, please ask the AI assistant to update in write mode
 
 ## 🔍 Available Shortcuts
 
-The following shortcuts are available:
-
-- `/setup`   : Starts the setup process
-- `/adjust`  : Fine-tunes the current configuration
-- `/plan`    : Generate detailed work plans
+- `/setup`   : Start the setup process
+- `/adjust`  : Fine-tune the current workspace configuration file
+- `/plan`    : Create a detailed work plan
 - `/debug`   : Systematic debugging approach
 - `/review`  : Code quality review
-- `/refactor`: Readability and maintainability improvements
+- `/refactor`: Improve readability and maintainability
 - `/optimize`: Performance optimization suggestions
-- `/test`    : Testing strategies
+- `/test`    : Testing strategy
 - `/doc`     : Documentation assistance
 - `/arch`    : Architecture design
-- `/cmt`     : Code commenting
-- `/mvp`     : Build a Minimum Viable Product
+- `/cmt`     : Code comments
+- `/mvp`     : Build an MVP (Minimum Viable Product)
 - `/help`    : Display available shortcuts
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+This project is provided under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
