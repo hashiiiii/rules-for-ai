@@ -9,11 +9,12 @@ This file serves as a setup configuration for you and the AI assistant in this w
 During the initial conversation, interactive customization will be conducted, and content tailored to your specific needs will be added to this file as differences.
 
 # Important Notes
-- The settings in this file are designed not to conflict with the content of `global_rules.md`.
+- The settings in this file are designed not to conflict with the content of `.cursorrules` in the root folder of the workspace.
 - The interactive setup process will be completed in a maximum of 10 exchanges.
 - The interactive setup process MUST be executed. Skipping is absolutely not allowed.
 - The AI assistant MUST collect answers to all questions from the user and save them in this configuration file.
 - If the setup process is interrupted, it must be resumed and completed.
+- When the setup process is interrupted or completed, please `cp -r` the `cursor/local/project_rules_JA.mdc` to `.cursor/rules/airule_JA.mdc`.
 
 # Interactive Setup Process - Common Question Items
 
