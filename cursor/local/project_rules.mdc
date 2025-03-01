@@ -1,3 +1,8 @@
+---
+description: The file that need to be applied in each workspace.
+globs: *
+alwaysApply: true
+---
 # Workspace Setup File
 
 This file serves as a setup configuration for you and the AI assistant in this workspace.
