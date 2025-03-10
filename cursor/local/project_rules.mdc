@@ -9,11 +9,8 @@ This file serves as a setup configuration for you and the AI assistant in this w
 During the initial conversation, interactive customization will be conducted, and content tailored to your specific needs will be added to this file as differences.
 
 # Important Notes
-- The settings in this file are designed not to conflict with the content of `.cursorrules` in the root folder of the workspace.
+- The settings in this file are designed not to conflict with the content of `.cursorrules / .cursorrules_JA` in the root folder of the workspace.
 - The interactive setup process will be completed in a maximum of 10 exchanges.
-- The interactive setup process MUST be executed. Skipping is absolutely not allowed.
-- The AI assistant MUST collect answers to all questions from the user and save them in this configuration file.
-- If the setup process is interrupted, it must be resumed and completed.
 
 # Interactive Setup Process - Common Question Items
 
@@ -47,16 +44,6 @@ The results of question 5 will be recorded here.
 # Interactive Setup Process - Customizable Items
 
 Based on exchanges 1-5, additional questions 6-10 will be asked to achieve goals with higher precision.
-Delete unnecessary lines. For example, if sufficient results are obtained after 9 exchanges, comment out line 10.
-
-Example:
-
-```
-// 10. Customizable item: Customizable question (replace this line with the additional question once determined)
-// === START ===
-// The results of question 10 will be recorded here.
-// === END ===
-```
 
 6. Customizable item: Customizable question (replace this line with the additional question once determined)
 === START ===
@@ -86,4 +73,14 @@ The results of question 10 will be recorded here.
 # Additional Shortcuts
 
 - `/setup` : Starts the setup process. If you say you want to interrupt, it will interrupt and revert to the content before setup.
-- `/adjust`: Fine-tunes the current content of .cursorrules through up to 5 additional exchanges.
+- `/adjust`: Fine-tunes the current content of .cursor/rules/project_rules.mdc through up to 5 additional exchanges. Follow the procedure in the '## Update Procedure' section.
+- `/store` : Updates the file based on the answers obtained through the setup process. Check the '## Update Procedure' section for the procedure.
+
+## Update Procedure
+How to update using the store command:
+- Create a copy of the existing .config/rules/project_rules.mdc as .config/rules/project_rules.mdc.backup.
+- Create a copy of the existing .config/rules/project_rules.mdc as project_rules.mdc.temp.
+- Delete the existing .config/rules/project_rules.mdc.
+- Write the answers obtained through the setup process to project_rules.mdc.temp.
+- Rename project_rules.mdc.temp to project_rules.mdc.
+- Move project_rules.mdc to .cursor/rules/project_rules.mdc.
