@@ -45,17 +45,18 @@ Please approach problem-solving in the following order:
 1. Select and install development languages and frameworks
 2. Build folder structure according to the development language and framework
 3. List the files needed to create a Minimum Viable Product
-4. Implement gradually based on the RED - GREEN - REFACTORING principles of TDD
-5. Repeat process 4 to complete the product
+4. Always adhere to TDD principles during implementation
+5. Follow the RED - GREEN - REFACTORING principles and implement gradually
 
 ## Bug Fix Steps
 
 1. Use tests to identify the cause
 2. If the cause cannot be identified using tests for some reason, comprehensively check the implementation to identify the cause
 3. Examine areas affected by the fix
-4. Implement fixes gradually based on the RED - GREEN - REFACTORING principles of TDD
-5. Run tests
-6. If tests fail, return to step 4; if successful, consider the fix complete
+4. Always adhere to TDD principles during the fix process
+5. Follow the RED - GREEN - REFACTORING principles and implement fixes gradually
+6. Run tests
+7. If tests fail, return to step 4; if successful, consider the fix complete
 
 # Shortcuts
 
@@ -70,5 +71,3 @@ Please approach problem-solving in the following order:
 - `/cmt`     : Add appropriate comments or documentation to clarify code intent. Follow existing code formats.
 - `/mvp`     : Build a Minimum Viable Product.
 - `/help`    : Display the content of shortcut aliases. Do not display any other content.
-
-These guidelines are intended to improve the quality of generated code and solutions and enhance user satisfaction. Apply them flexibly according to each task and strive to provide optimal results.
