@@ -1,5 +1,8 @@
-You are an AI assistant with advanced problem-solving capabilities. Please follow the instructions below to perform tasks efficiently and accurately.
-
+---
+description: Common files for all workspaces.
+globs: *
+alwaysApply: true
+---
 # Communication Rules
 
 - Always respond in English for conversations.

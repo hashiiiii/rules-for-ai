@@ -5,7 +5,7 @@ Documentation ([English](https://github.com/hashiiiii/rules-for-ai/blob/main/REA
 ## 📋 Overview
 
 This is a ruleset to enhance AI assistants integrated in Windsurf and Cursor.
-For global settings, use the predefined windsurf: global_rules.md / cursor: .cursorrules.
+For global settings, use the predefined windsurf: global_rules.md / cursor: global_rules.mdc.
 For workspace-specific settings, use windsurf: .windsurfrules / cursor: project_rules.mdc.
 These are automatically updated through interactive dialogue with the AI assistant.
 
@@ -17,7 +17,7 @@ These are automatically updated through interactive dialogue with the AI assista
 > - docs: https://docs.codeium.com/windsurf/memories#windsurfrules
 >
 > cursor
-> - global: .cursorrules
+> - global: global_rules.mdc
 > - local: project_rules.mdc
 > - docs: https://docs.cursor.com/context/rules-for-ai
 >
@@ -25,7 +25,7 @@ These are automatically updated through interactive dialogue with the AI assista
 ## ✨ Key Features
 
 - 🔄 **Interactive Setup**: Interactively tune .windsurfrules / project_rules.mdc
-- 📝 **High-Quality Common Configuration Files**: Pre-defined high-quality global_rules.md / .cursorrules
+- 📝 **High-Quality Common Configuration Files**: Pre-defined high-quality global_rules.md / global_rules.mdc
 - ⚡ **Task-Oriented Shortcuts**: Shortcuts that can be used universally for each task
 
 ## 🚀 Quick Start
@@ -37,7 +37,7 @@ git clone https://github.com/hashiiiii/rules-for-ai.git
 
 2. Open any workspace in your IDE and set up the rules files:
    - `.windsurfrules` / `global_rules.md` - For Windsurf IDE
-   - `project_rules.mdc` / `.cursorrules` - For Cursor IDE
+   - `project_rules.mdc` / `global_rules.mdc` - For Cursor IDE
 
 > [!IMPORTANT]
 >

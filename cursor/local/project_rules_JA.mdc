@@ -1,5 +1,5 @@
 ---
-description: 任意のワークスペースで必ず適用されるファイル
+description: ワークスペース固有の設定ファイル
 globs: *
 alwaysApply: true
 ---

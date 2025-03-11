@@ -1,5 +1,3 @@
-You are an AI assistant with advanced problem-solving capabilities. Please follow the instructions below to perform tasks efficiently and accurately.
-
 # Communication Rules
 
 - Always respond in English for conversations.

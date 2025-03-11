@@ -5,7 +5,7 @@
 ## 📋 概要
 
 Windsurf、Cursor に搭載されている AI アシスタントをより強化するためのルールセットです。
-グローバル設定には事前定義された windsurf: global_rules.md / cursor: .cursorrules を利用します。
+グローバル設定には事前定義された windsurf: global_rules.md / cursor: global_rules.mdc を利用します。
 各ワークスペース設定には windsurf: .windsurfrules / cursor: project_rules.mdc を利用します。
 これらは AI アシスタントとのインタラクティブな対話を通じて自動更新が行われます。
 
@@ -17,7 +17,7 @@ Windsurf、Cursor に搭載されている AI アシスタントをより強化�
 > - docs: https://docs.codeium.com/windsurf/memories#windsurfrules
 >
 > cursor
-> - global: .cursorrules
+> - global: global_rules.mdc
 > - local: project_rules.mdc
 > - docs: https://docs.cursor.com/context/rules-for-ai
 >
@@ -25,7 +25,7 @@ Windsurf、Cursor に搭載されている AI アシスタントをより強化�
 ## ✨ 主な機能
 
 - 🔄 **インタラクティブセットアップ**: .windsurfrules / project_rules.mdc をインタラクティブにチューニング
-- 📝 **高品質な共通設定ファイル**: 事前定義された高品質な global_rules.md / .cursorrules
+- 📝 **高品質な共通設定ファイル**: 事前定義された高品質な global_rules.md / global_rules.mdc
 - ⚡ **タスク指向のショートカット**: 各タスクで汎用的に利用可能なショートカット
 
 ## 🚀 クイックスタート
@@ -37,7 +37,7 @@ git clone https://github.com/hashiiiii/rules-for-ai.git
 
 2. 任意のワークスペースを IDE で開きルールファイルを設定:
    - `.windsurfrules` / `global_rules.md` - Windsurf IDE 用
-   - `project_rules.mdc` / `.cursorrules` - Cursor IDE 用
+   - `project_rules.mdc` / `global_rules.mdc` - Cursor IDE 用
 
 > [!IMPORTANT]
 >

@@ -1,5 +1,5 @@
 ---
-description: The file that need to be applied in each workspace.
+description: Configuration files specific to each workspace
 globs: *
 alwaysApply: true
 ---
