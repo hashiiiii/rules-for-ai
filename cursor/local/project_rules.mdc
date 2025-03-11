@@ -78,7 +78,7 @@ The results of question 10 will be recorded here.
 
 ## Update Procedure
 How to update using the store command:
-- Create a copy of the existing .config/rules/project_rules.mdc as .config/rules/project_rules.mdc.backup.
+- Create a copy of the existing .config/rules/project_rules.mdc as .config/rules/project_rules.mdc.YYYYMMDD_HHMMSS.backup.
 - Create a copy of the existing .config/rules/project_rules.mdc as project_rules.mdc.temp.
 - Delete the existing .config/rules/project_rules.mdc.
 - Write the answers obtained through the setup process to project_rules.mdc.temp.

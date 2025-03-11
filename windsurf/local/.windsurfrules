@@ -73,7 +73,7 @@ The results of question 10 will be recorded here.
 
 ## Update Procedure
 How to update using the store command:
-- Create a copy of the existing .windsurfrules as .windsurfrules.backup.
+- Create a copy of the existing .windsurfrules as .windsurfrules.YYYYMMDD_HHMMSS.backup.
 - Create a copy of the existing .windsurfrules as .windsurfrules.temp.
 - Delete the existing .windsurfrules.
 - Write the answers obtained through the setup process to .windsurfrules.temp.

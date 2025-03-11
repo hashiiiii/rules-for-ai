@@ -74,7 +74,7 @@
 
 ## 更新手順
 store コマンドによってどのように更新するかを書きます。
-- 既存の .windsurfrules のコピーを .windsurfrules.backup として作成します。
+- 既存の .windsurfrules のコピーを .windsurfrules.YYYYMMDD_HHMMSS.backup として作成します。
 - 既存の .windsurfrules のコピーを .windsurfrules.temp として作成します。
 - 既存の .windsurfrules を削除します。
 - .windsurfrules.temp に setup プロセスによって得られた回答を書き込みます。

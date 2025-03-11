@@ -79,7 +79,7 @@ alwaysApply: true
 
 ## 更新手順
 store コマンドによってどのように更新するかを書きます。
-- 既存の .config/rules/project_rules.mdc のコピーを .config/rules/project_rules.mdc.backup として作成します。
+- 既存の .config/rules/project_rules.mdc のコピーを .config/rules/project_rules.mdc.YYYYMMDD_HHMMSS.backup として作成します。
 - 既存の .config/rules/project_rules.mdc のコピーを project_rules.mdc.temp として作成します。
 - 既存の .config/rules/project_rules.mdc を削除します。
 - project_rules.mdc.temp に setup プロセスによって得られた回答を書き込みます。
