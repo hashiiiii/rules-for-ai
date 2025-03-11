@@ -45,10 +45,10 @@ git clone https://github.com/hashiiiii/rules-for-ai.git
 >
 
 3. セットアップコマンドの実行
-   - `/setup` コマンドを write モードで実行
+   - `/setup` コマンドを実行
 
-4. .windsurfrules / project_rules.mdc が更新されたことを確認する
-   - 更新が行われない場合は、write モードで AI アシスタントに更新を依頼してください
+4. 保存コマンドの実行
+   - `/store` コマンドを実行
 
 ## 🔍 利用可能なショートカット
 

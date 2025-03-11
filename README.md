@@ -45,10 +45,10 @@ git clone https://github.com/hashiiiii/rules-for-ai.git
 >
 
 3. Run the setup command
-   - Execute the `/setup` command in write mode
+   - Execute the `/setup` command
 
-4. Verify that .windsurfrules / project_rules.mdc has been updated
-   - If no updates occur, please ask the AI assistant to update in write mode
+4. Run the save command
+   - Execute the `/store` command
 
 ## 🔍 Available Shortcuts
 
