@@ -54,6 +54,7 @@ git clone https://github.com/hashiiiii/rules-for-ai.git
 
 - `/setup`   : セットアッププロセスを開始します
 - `/adjust`  : 現在のワークスペース設定ファイルを微調整します
+- `/store`   : セットアッププロセスによって得られた回答をもとにファイルを更新します
 - `/plan`    : 詳細な作業計画の作成
 - `/debug`   : 体系的なデバッグアプローチ
 - `/review`  : コード品質レビュー
