@@ -1,4 +1,5 @@
 # 🤖 Rules for AI
+<img src="https://img.shields.io/badge/LICENSE-MIT-green">
 
 Documentation ([English](https://github.com/hashiiiii/rules-for-ai/blob/main/README.md), [日本語](https://github.com/hashiiiii/rules-for-ai/blob/main/README_JA.md))
 
