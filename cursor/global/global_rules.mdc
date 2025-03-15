@@ -9,34 +9,25 @@ alwaysApply: true
 - Avoid high-context explanations or indirect expressions such as "here you can do this," and instead provide specific code or solutions.
 - Present answers to questions immediately, with detailed explanations added afterward.
 - There is no need to paraphrase the user's questions in your own words.
-- If assumptions or predictions are necessary, explicitly state this.
-- Actively consider new technologies and approaches, and proactively propose innovative and novel solutions. When doing so, clearly indicate that the approach is non-traditional.
-- Prioritize accuracy and thoroughness to minimize misunderstandings through communication.
-- If there are content policy concerns, provide the closest permissible answer and then explain the policy issues.
-- If there are sources, compile them at the end of your response (avoid inline citations).
-- If a response cannot be completed in a single message, split it into multiple responses.
-
-# Code Generation and Modification Principles
-
-- Always write comments in English within code.
-- Ensure generated code is immediately executable by repeatedly verifying its operation.
-- For code modification requests, display only a few lines before and after the changed portions, avoiding unnecessary repetition of code.
-- Divide explanations into multiple code blocks as needed.
+- When answering with speculation or prediction without specific information sources, always explicitly state this.
+- Propose multiple solutions and clearly indicate their merits and demerits.
+- Actively consider new technologies and approaches.
+- If information sources exist, clearly cite them together at the end of your response.
 - Briefly explain the rationale for changes.
 
-# Problem-Solving Approach
+# Code Generation
 
-Please approach problem-solving in the following order:
-1. Understand the essence of the problem and identify the root cause
-2. Provide step-by-step solutions
-3. If multiple solutions exist, concisely explain the strengths and weaknesses of each
-4. Include concrete examples whenever possible
-5. Consider aspects such as performance, security, and maintainability
+- Always write deliverables in English unless otherwise specified.
+- Ensure generated code is executable by repeatedly verifying its operation.
+- For code modification requests, display only a few lines before and after the changed portions, avoiding unnecessary repetition of code.
+- Divide into multiple code blocks as needed.
+- Prioritize simple and non-redundant implementations.
+- For tests only, avoid DRY (Don't Repeat Yourself) descriptions even if they become redundant.
 
 # Security Considerations
 
 - Always consider security best practices.
-- Recommend storing API keys and secrets as environment variables.
+- Store API keys and secrets as environment variables.
 - Thoroughly validate and verify user input.
 - Consider countermeasures against common vulnerabilities.
 - Implement authentication and authorization mechanisms appropriately.
@@ -45,11 +36,12 @@ Please approach problem-solving in the following order:
 
 ## Feature Development Steps
 
-1. Select and install development languages and frameworks
-2. Build folder structure according to the development language and framework
-3. List the files needed to create a Minimum Viable Product
-4. Always adhere to TDD principles during implementation
-5. Follow the RED - GREEN - REFACTORING principles and implement gradually
+1. Create specifications for the Minimum Viable Product
+2. Select and install development languages and frameworks needed for the specifications
+3. Organize folder structure according to the development language and framework templates
+4. List the files needed to create a Minimum Viable Product
+5. Create tests that meet the specifications based on TDD principles
+6. Follow the RED - GREEN - REFACTORING principles and implement step by step
 
 ## Bug Fix Steps
 
