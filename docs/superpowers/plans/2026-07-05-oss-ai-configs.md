@@ -525,3 +525,19 @@ Expected: model list prints (cursor-agent starts and reads its config without er
 - [ ] **Step 4: Report to the user**
 
 Summarize: what moved, both branch names, and that pushing/merging (and the interactive checks — statusline rendering, skills visible in a real session) are theirs to do.
+
+---
+
+## Deviations (recorded after execution)
+
+1. `claude/settings.json` ships `"model": "claude-fable-5"`, not this plan's
+   inline snapshot `"claude-fable-5[1m]"` — the dotfiles original is a live
+   file and changed after the plan was written; Task 2 Step 4's "exactly one
+   changed line pair" verification governs.
+2. Task 8's `agent --list-models` is a typo: the installed binary is
+   `cursor-agent`. `cursor-agent --list-models` was run and passed.
+3. The final whole-branch review found the README's manual install block
+   (mandated verbatim by Task 5) failed on machines without `~/.claude` /
+   `~/.cursor` and silently mis-linked when `~/.claude/skills` already
+   existed as a real directory; the README was amended after review
+   (`mkdir -p` line plus an existing-target caution).

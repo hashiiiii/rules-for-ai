@@ -32,6 +32,7 @@ mise dotfiles apply
 Without mise, create the symlinks manually:
 
 ```bash
+mkdir -p ~/.claude ~/.cursor
 ln -s "$PWD/AGENTS.md"                    ~/.claude/CLAUDE.md
 ln -s "$PWD/claude/settings.json"         ~/.claude/settings.json
 ln -s "$PWD/claude/statusline-command.sh" ~/.claude/statusline-command.sh
@@ -39,6 +40,10 @@ ln -s "$PWD/skills"                       ~/.claude/skills
 ln -s "$PWD/skills"                       ~/.cursor/skills
 ln -s "$PWD/cursor/mcp.json"              ~/.cursor/mcp.json
 ```
+
+If a target already exists (for example a real `~/.claude/skills` directory),
+move it aside first — `ln -s` pointing into an existing directory silently
+creates a nested link instead of replacing it.
 
 ## Notes
 
