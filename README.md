@@ -1,73 +1,56 @@
-# 🤖 Rules for AI
+# Rules for AI
+
 <img src="https://img.shields.io/badge/LICENSE-MIT-green">
 
-Documentation ([English](https://github.com/hashiiiii/rules-for-ai/blob/main/README.md), [日本語](https://github.com/hashiiiii/rules-for-ai/blob/main/README_JA.md))
+My real-world configuration for AI coding agents — Claude Code and Cursor CLI
+(cursor-agent) — published as is, under MIT.
 
-## 📋 Overview
+This repository is the single source of truth: files here are symlinked into
+`~/.claude` and `~/.cursor` by [mise](https://mise.jdx.dev)'s experimental
+`dotfiles` feature.
 
-This is a ruleset to enhance AI assistants integrated in Windsurf and Cursor.
-For global settings, use the predefined windsurf: global_rules.md / cursor: global_rules.mdc.
-For workspace-specific settings, use windsurf: .windsurfrules / cursor: project_rules.mdc.
-These are automatically updated through interactive dialogue with the AI assistant.
+## Layout
 
-> [!WARNING]
->
-> windsurf
-> - global: global_rules.md
-> - local: .windsurfrules
-> - docs: https://docs.codeium.com/windsurf/memories#windsurfrules
->
-> cursor
-> - global: global_rules.mdc
-> - local: project_rules.mdc
-> - docs: https://docs.cursor.com/context/rules-for-ai
->
+| Path | Deploys to | Purpose |
+|------|------------|---------|
+| `AGENTS.md` | `~/.claude/CLAUDE.md` | Behavioral principles shared by all agents |
+| `claude/settings.json` | `~/.claude/settings.json` | Claude Code settings (model, permissions, hooks, plugins) |
+| `claude/statusline-command.sh` | `~/.claude/statusline-command.sh` | Claude Code status line script |
+| `skills/` | `~/.claude/skills`, `~/.cursor/skills` | Agent Skills (`SKILL.md`), one source for both harnesses |
+| `cursor/mcp.json` | `~/.cursor/mcp.json` | cursor-agent global MCP servers (secret-free) |
 
-## ✨ Key Features
+## Install
 
-- 🔄 **Interactive Setup**: Interactively tune .windsurfrules / project_rules.mdc
-- 📝 **High-Quality Common Configuration Files**: Pre-defined high-quality global_rules.md / global_rules.mdc
-- ⚡ **Task-Oriented Shortcuts**: Shortcuts that can be used universally for each task
+With [mise](https://mise.jdx.dev):
 
-## 🚀 Quick Start
-
-1. Clone the repository:
 ```bash
 git clone https://github.com/hashiiiii/rules-for-ai.git
+cd rules-for-ai
+mise dotfiles apply
 ```
 
-2. Open any workspace in your IDE and set up the rules files:
-   - `.windsurfrules` / `global_rules.md` - For Windsurf IDE
-   - `project_rules.mdc` / `global_rules.mdc` - For Cursor IDE
+Without mise, create the symlinks manually:
 
-> [!IMPORTANT]
->
-> If global settings are sufficient, migration steps are not necessary.
->
+```bash
+ln -s "$PWD/AGENTS.md"                    ~/.claude/CLAUDE.md
+ln -s "$PWD/claude/settings.json"         ~/.claude/settings.json
+ln -s "$PWD/claude/statusline-command.sh" ~/.claude/statusline-command.sh
+ln -s "$PWD/skills"                       ~/.claude/skills
+ln -s "$PWD/skills"                       ~/.cursor/skills
+ln -s "$PWD/cursor/mcp.json"              ~/.cursor/mcp.json
+```
 
-3. Run the setup command
-   - Execute the `/setup` command
+## Notes
 
-4. Run the save command
-   - Execute the `/store` command
+- **Cursor CLI has no global rules.** It reads `AGENTS.md` / `CLAUDE.md` at
+  the project root only, so copy `AGENTS.md` (plus a `CLAUDE.md -> AGENTS.md`
+  symlink) into each project. Claude Code picks the same content up globally
+  via `~/.claude/CLAUDE.md`.
+- **Skills are cross-harness.** Agent Skills (`SKILL.md`) are read by both
+  Claude Code and cursor-agent; `skills/` feeds both through two symlinks.
+- **No secrets.** `cursor/mcp.json` must stay token-free; anything secret
+  belongs in environment variables or untracked local files.
 
-## 🔍 Available Shortcuts
+## License
 
-- `/setup`   : Start the setup process
-- `/adjust`  : Fine-tune the current workspace configuration file
-- `/store`   : Update the file based on the answers obtained through the setup process
-- `/plan`    : Create a detailed work plan
-- `/debug`   : Systematic debugging approach
-- `/review`  : Code quality review
-- `/refactor`: Improve readability and maintainability
-- `/optimize`: Performance optimization suggestions
-- `/test`    : Testing strategy
-- `/doc`     : Documentation assistance
-- `/arch`    : Architecture design
-- `/cmt`     : Code comments
-- `/mvp`     : Build an MVP (Minimum Viable Product)
-- `/help`    : Display available shortcuts
-
-## 📄 License
-
-This project is provided under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+[MIT](LICENSE.md)
