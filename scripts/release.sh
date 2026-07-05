@@ -10,6 +10,10 @@ case "$new" in
     *) printf 'not a semver version: %s\n' "$new" >&2; exit 1 ;;
 esac
 
+# Refuse to run with a dirty index: git commit would sweep staged
+# unrelated changes into the release commit and push them.
+git diff --cached --quiet || { printf 'index not empty; commit or unstage first\n' >&2; exit 1; }
+
 for manifest in .claude-plugin/plugin.json .codex-plugin/plugin.json .cursor-plugin/plugin.json; do
     sed -i.bak "s/\"version\"[[:space:]]*:[[:space:]]*\"[^\"]*\"/\"version\": \"$new\"/" "$manifest"
     rm -f "$manifest.bak"

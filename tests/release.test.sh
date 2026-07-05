@@ -41,6 +41,18 @@ fi
 printf 'PASS: check-versions rejects a mismatch\n'
 git checkout -- .cursor-plugin/plugin.json
 
+# A dirty index must abort the release: git commit would sweep staged
+# unrelated files into the release commit and push them.
+printf 'unrelated\n' > unrelated.txt
+git add unrelated.txt
+if scripts/release.sh 0.9.9 > /dev/null 2>&1; then
+    printf 'FAIL: release accepted a dirty index\n'
+    exit 1
+fi
+printf 'PASS: release refuses a dirty index\n'
+git rm -q --cached unrelated.txt
+rm -f unrelated.txt
+
 # Act: a real release.
 scripts/release.sh 0.2.0
 
