@@ -14,7 +14,7 @@ set -u
 
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)}"
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$PWD}"
-USER_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/rules-for-ai/LOCALE.md"
+USER_CONFIG="${XDG_CONFIG_HOME:-${HOME:-}/.config}/rules-for-ai/LOCALE.md"
 
 PROJECT_LOCALE="$PROJECT_DIR/LOCALE.md"
 DEFAULT_LOCALE="$PLUGIN_ROOT/LOCALE.default.md"

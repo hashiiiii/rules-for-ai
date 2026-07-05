@@ -112,6 +112,21 @@ else
 fi
 rm -rf "$root"
 
+# Case 6: the hook must exit 0 even when HOME and XDG_CONFIG_HOME are
+# truly unset (not merely pointing at nonexistent paths).
+root=$(mktemp -d)
+env -u HOME -u XDG_CONFIG_HOME \
+    CLAUDE_PLUGIN_ROOT="$root/nope" CLAUDE_PROJECT_DIR="$root/nope" \
+    sh "$HOOK" > /dev/null 2>&1
+status=$?
+if [ "$status" -eq 0 ]; then
+    printf 'PASS: case 6: exit 0 with HOME and XDG_CONFIG_HOME unset\n'
+else
+    printf 'FAIL: case 6: exit status %s\n' "$status"
+    failures=$((failures + 1))
+fi
+rm -rf "$root"
+
 if [ "$failures" -gt 0 ]; then
     printf '%s test(s) failed\n' "$failures"
     exit 1
