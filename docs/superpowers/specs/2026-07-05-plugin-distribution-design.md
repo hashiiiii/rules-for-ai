@@ -2,6 +2,9 @@
 
 Date: 2026-07-05
 Status: Approved (brainstorming session)
+Revised: 2026-07-05 — dropped the project-level LOCALE layer; project
+language policy now lives in the consuming project's own instruction file
+(see "Locale resolution and onboarding")
 
 ## Background
 
@@ -45,7 +48,8 @@ makes updates a version bump, and keeps per-project opt-in.
 | Tool coverage | Claude Code, Codex, and Cursor from the first release |
 | Repo structure | Single repo, three thin manifests over one content tree |
 | Always-on rules | Best mechanism per tool (see table below) |
-| Locale storage | `~/.config/rules-for-ai/LOCALE.md` (user level), project `LOCALE.md` (project level), bundled `LOCALE.default.md` (fallback) |
+| Locale storage | `~/.config/rules-for-ai/LOCALE.md` (user level), bundled `LOCALE.default.md` (fallback); no project-level file |
+| Project-level overrides | Removed. A project-root `LOCALE.md` confuses collaborators who do not use the plugin, and keeping it private forces a `.gitignore` entry in the consuming repo. Project language policy is written as natural-language instructions in that project's `CLAUDE.md` / `AGENTS.md`, which override the resolved locale keys |
 | Locale onboarding | Auto-starts on the first Claude Code session when no user-level file exists |
 | Update policy | Explicit semver bumps; the three manifests stay in lockstep |
 | Skill names | Keep `hashiiiii-` prefix (`hashiiiii-git`, `hashiiiii-issues`, new `hashiiiii-locale`) |
@@ -76,7 +80,6 @@ rules-for-ai/
 │   └── ci.yml               # tests, shellcheck, drift and lockstep checks
 ├── AGENTS.md                # single source of truth for always-on rules
 ├── LOCALE.default.md        # bundled fallback (all en_US)
-├── LOCALE.md.example        # sample for project-root overrides
 └── README.md                # install/update/fork/submodule instructions
 ```
 
@@ -96,11 +99,11 @@ Component responsibilities:
 clear, compact):
 
 1. Read `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` (always-on rules).
-2. Resolve the locale table with row-level merge, higher layer wins per row:
-   a. `$CLAUDE_PROJECT_DIR/LOCALE.md` (project)
-   b. `~/.config/rules-for-ai/LOCALE.md` (user)
-   c. `${CLAUDE_PLUGIN_ROOT}/LOCALE.default.md` (bundled)
-3. If (b) does not exist, append an onboarding instruction: ask the user for
+2. Resolve the locale keys — the first existing file wins as a whole
+   (layers never merge):
+   a. `~/.config/rules-for-ai/LOCALE.md` (user)
+   b. `${CLAUDE_PLUGIN_ROOT}/LOCALE.default.md` (bundled)
+3. If (a) does not exist, append an onboarding instruction: ask the user for
    locale preferences at the start of the session and save them with the
    `hashiiiii-locale` skill.
 4. Emit always-on rules + the resolved locale table (+ onboarding
@@ -111,6 +114,19 @@ means "configured". When the user accepts the defaults, `hashiiiii-locale`
 writes the default table to that path anyway, so the choice is recorded and
 onboarding never fires again. No separate marker file.
 
+There is deliberately no project-level LOCALE layer. A project-root
+`LOCALE.md` is a bare key=value file whose purpose is opaque to
+collaborators who do not use the plugin, and keeping it private forces a
+`.gitignore` entry in the consuming repo — both outcomes pollute repos this
+plugin does not own. A project-specific language policy is an ordinary
+project instruction instead: written in natural language in that project's
+`CLAUDE.md` / `AGENTS.md` (e.g. "Write issues in English"), self-explanatory
+to every reader, and injected by every harness as top-priority instructions.
+The rules injected by this plugin state the precedence explicitly: project
+instructions override the resolved locale keys. A shell test asserts that a
+project-root `LOCALE.md` is ignored, so the removed layer cannot silently
+come back.
+
 `hashiiiii-locale` skill:
 
 - Interactive onboarding asks about each of the four artifacts individually
@@ -120,14 +136,15 @@ onboarding never fires again. No separate marker file.
   pairs (`issues=ja_JP comments=ja_JP logs=en_US test-logs=en_US`) set rows
   individually. Keys map to artifacts as: `issues` = Issues, `comments` =
   Code comments, `logs` = Log messages, `test-logs` = Test log messages.
-- Writes the user-level file by default; writes a project-root `LOCALE.md`
-  when the user asks for a project-specific override.
+- Writes only the user-level file. When the user asks for a
+  project-specific policy, the skill directs them to write it as plain
+  instructions in that project's `CLAUDE.md` / `AGENTS.md` instead.
 - Validates key names, creates `~/.config/rules-for-ai/` when missing, and
   writes atomically (temp file + `mv`).
 
 Codex and Cursor have no hook, so their path stays model-driven: the locale
 sections inside the skills (`hashiiiii-issues`, etc.) instruct the model to
-read the same three-layer chain. The guarantee is weaker (model-driven vs
+read the same two-layer chain. The guarantee is weaker (model-driven vs
 mechanical injection), but the resolution order is identical everywhere.
 Onboarding only exists on Claude Code; Codex/Cursor users run the
 `hashiiiii-locale` skill or create the file manually.
@@ -175,12 +192,12 @@ Onboarding only exists on Claude Code; Codex/Cursor users run the
 ## Error handling
 
 - `session-start.sh` never breaks session start: always exit 0.
-- A layer that fails to resolve (missing file, malformed table) is dropped
-  and resolution falls through to the next layer; the injected text carries
-  a one-line warning. The bundled default lives in the plugin cache, so the
-  chain always terminates.
-- The locale parser recognizes only the four fixed artifact rows; unknown
-  rows are ignored. Locale tags are passed through without strict
+- A missing layer falls through to the next; the first existing LOCALE
+  file wins as a whole (layers never merge). The bundled default lives in
+  the plugin cache, so the chain always terminates.
+- LOCALE files are machine-written by the hashiiiii-locale skill, so the
+  hook trusts the strict key=value format instead of validating it. Only
+  the four fixed keys are picked up; locale tags are passed through without
   validation — not breaking the session takes priority over catching typos.
 
 ## Testing
@@ -190,8 +207,8 @@ tests, test log messages in English.
 
 - Shell tests for `session-start.sh` against real temp directories with real
   locale files. Cases: no config at all (defaults + onboarding instruction),
-  user config only, project overriding user per row, malformed table
-  (warning + fallback).
+  user config only, a project-root `LOCALE.md` present but ignored
+  (regression guard for the removed project layer).
 - CI (GitHub Actions): run shell tests, shellcheck, `diff AGENTS.md
   rules/agents.md`, manifest version lockstep check.
 - End-to-end verification: add the repo as a local-path marketplace, install
@@ -210,6 +227,13 @@ tests, test log messages in English.
 3. Update the locale section of `hashiiiii-issues` to the same chain.
 4. Rewrite the README around: install per tool, receiving updates, forking,
    and the submodule alternative.
+5. Drop the project-level LOCALE layer (2026-07-05 revision): remove
+   `$CLAUDE_PROJECT_DIR/LOCALE.md` from the hook resolution and the skills,
+   delete `LOCALE.md.example`, drop the `LOCALE.md` entry from `.gitignore`,
+   add the "project instructions override locale keys" precedence line to
+   the Language section of `AGENTS.md` / `rules/agents.md`, rewrite the
+   README locale and submodule sections, and invert the project-layer shell
+   test into an ignored-file regression guard.
 
 ## Risks and open questions
 
