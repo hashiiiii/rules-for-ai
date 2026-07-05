@@ -1,8 +1,8 @@
 # Locale
 
-Fallback language settings. Agents read this file only when no project-root `LOCALE.md` and no user-level `LOCALE.md` exists — the first existing file wins as a whole; layers never merge.
+Fallback language settings. Agents read this file only when no user-level `LOCALE.md` exists — the first existing file wins as a whole; layers never merge.
 
-To override, place a `LOCALE.md` at your project root — copy `LOCALE.md.example` and edit it, keeping all four keys.
+To override, run the hashiiiii-locale skill or create `~/.config/rules-for-ai/LOCALE.md` manually, keeping all four keys.
 
 POSIX-style locale tags (e.g. `ja_JP`, `en_US`, `en_GB`).
 
