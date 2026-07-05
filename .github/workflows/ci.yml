@@ -8,7 +8,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: shellcheck
         run: shellcheck hooks/session-start.sh scripts/check-versions.sh scripts/release.sh tests/session-start.test.sh tests/release.test.sh
       - name: hook tests
