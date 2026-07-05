@@ -2,6 +2,8 @@
 
 Portable rules and skills for AI coding agents.
 
+Write your rules once and carry them across Claude Code, Codex, and Cursor as an installable, updatable plugin — no more copy-pasting the same instructions into every machine and repository. Language preferences for issues, comments, logs, and test logs are resolved per user and overridden per project. Use it as is, or fork it and swap in your own rules.
+
 ## Contents
 
 | Path | Purpose |
@@ -81,6 +83,8 @@ On Codex and Cursor, run `hashiiiii-locale` or create `~/.config/rules-for-ai/LO
 ## Fork and customize
 
 Fork, edit `AGENTS.md` and `skills/`, then install from your fork's URL instead of `hashiiiii/rules-for-ai`.
+
+Skills are namespaced `hashiiiii-*`. Rename them to your own prefix; `grep -rl 'hashiiiii-' .` lists every file to update.
 
 ## Manual setup (submodule)
 
