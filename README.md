@@ -27,7 +27,7 @@ Both harnesses read `AGENTS.md` / `CLAUDE.md` at the project root. Install skill
 
 Language settings (issues, code comments, logs) live in `LOCALE.md` at the project root. Without one, agents fall back to `LOCALE.default.md`, which defaults everything to English. Submodule users only need to commit a `LOCALE.md` at the project root — it lives outside the submodule, so `git submodule update` never touches it.
 
-Global setup (home directory) is handled by [dotfiles](https://github.com/hashiiiii/dotfiles).
+Machine-level settings (Claude Code `settings.json`, MCP servers) and global home-directory setup live in [dotfiles](https://github.com/hashiiiii/dotfiles), not here — this repository holds only what is portable across machines and projects.
 
 ## License
 
