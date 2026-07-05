@@ -1,10 +1,10 @@
 # Locale
 
-Copy to your project root and edit: `cp rules-for-ai/LOCALE.md.example LOCALE.md`
+Copy to your project root and edit: `cp LOCALE.md.example LOCALE.md`
 
 | Artifact | Language |
 |----------|----------|
-| Issues | ja |
-| Code comments | ja |
-| Log messages | en |
-| Test log messages | en |
+| Issues | ja_JP |
+| Code comments | ja_JP |
+| Log messages | en_US |
+| Test log messages | en_US |

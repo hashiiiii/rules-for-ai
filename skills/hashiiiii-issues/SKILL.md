@@ -12,10 +12,10 @@ Every issue body uses the same headings in the same order.
 Before drafting an issue:
 
 1. Read `./LOCALE.md` at the project root
-2. If missing, read `rules-for-ai/LOCALE.default.md` (or `./LOCALE.default.md` when not using a submodule)
+2. If missing, read `.rules-for-ai/LOCALE.default.md` (or `./LOCALE.default.md` when not using a submodule)
 3. Write the issue **title and body** in the language given by the `Issues` row
 
-Section headings (Background, Problem, ...) are always English — the template structure never changes. When `Issues` is `ja`, keep the English headings and write the prose under each heading in Japanese.
+Section headings (Background, Problem, ...) are always English — the template structure never changes. When `Issues` is `ja_JP`, keep the English headings and write the prose under each heading in Japanese.
 
 ## When to Use
 

@@ -13,7 +13,7 @@
 ## Language
 
 - Read `LOCALE.md` at the project root for language settings
-- If `LOCALE.md` is missing, read `rules-for-ai/LOCALE.default.md` (or the bundled `LOCALE.default.md` when not using a submodule)
+- If `LOCALE.md` is missing, read `.rules-for-ai/LOCALE.default.md` (or `./LOCALE.default.md` when not using a submodule)
 
 ## Git
 
@@ -21,4 +21,4 @@
 
 ## Issues
 
-- Follow the `hashiiiii-issues` skill when creating or managing issues
+- Follow the `hashiiiii-issues` skill when GitHub issues operations
