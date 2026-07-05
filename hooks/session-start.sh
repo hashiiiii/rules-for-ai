@@ -3,9 +3,12 @@
 #
 # Injects the always-on rules (AGENTS.md) and the locale keys into the
 # session context. The first existing LOCALE file wins as a whole:
-#   1. $CLAUDE_PROJECT_DIR/LOCALE.md            (project)
-#   2. $XDG_CONFIG_HOME/rules-for-ai/LOCALE.md  (user; ~/.config fallback)
-#   3. $CLAUDE_PLUGIN_ROOT/LOCALE.default.md    (bundled)
+#   1. $XDG_CONFIG_HOME/rules-for-ai/LOCALE.md  (user; ~/.config fallback)
+#   2. $CLAUDE_PLUGIN_ROOT/LOCALE.default.md    (bundled)
+#
+# There is deliberately no project-level layer: a project-root LOCALE.md
+# is ignored. Project language policy lives in the project's own
+# CLAUDE.md / AGENTS.md and overrides these keys.
 #
 # LOCALE files are machine-written by the hashiiiii-locale skill: strict
 # key=value lines, always all four keys (issues, comments, logs,
@@ -15,7 +18,6 @@
 set -u
 
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)}"
-PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$PWD}"
 USER_CONFIG="${XDG_CONFIG_HOME:-${HOME:-}/.config}/rules-for-ai/LOCALE.md"
 
 # Always-on rules from the single source of truth.
@@ -26,7 +28,7 @@ else
 fi
 
 locale_file=''
-for f in "$PROJECT_DIR/LOCALE.md" "$USER_CONFIG" "$PLUGIN_ROOT/LOCALE.default.md"; do
+for f in "$USER_CONFIG" "$PLUGIN_ROOT/LOCALE.default.md"; do
     if [ -f "$f" ]; then
         locale_file=$f
         break

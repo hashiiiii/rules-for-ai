@@ -6,8 +6,7 @@
 # pointing into it. No mocks or stubs; the hook reads real files.
 #
 # LOCALE files are machine-written by the hashiiiii-locale skill, so the
-# fixtures are complete (all four keys) except where a case exercises the
-# first-file-wins rule itself.
+# fixtures are complete (all four keys).
 set -u
 
 REPO="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
@@ -74,9 +73,11 @@ assert_contains "$out" 'logs=en_US' 'case 2: all four keys are injected'
 assert_not_contains "$out" 'No user-level locale preference' 'case 2: no onboarding when configured'
 rm -rf "$root"
 
-# Case 3: project file wins over user file, and it wins as a whole:
-# lower layers never fill in keys, they are only reached when the file
-# above them does not exist.
+# Case 3: a project-root LOCALE.md is ignored. The project layer was
+# removed on purpose: project language policy lives in the project's own
+# CLAUDE.md / AGENTS.md, not in a LOCALE file. This case is the
+# regression guard for that decision — the user file must win even when
+# a project file exists.
 root=$(new_fixture)
 mkdir -p "$root/config/rules-for-ai"
 cat > "$root/config/rules-for-ai/LOCALE.md" <<'EOF'
@@ -87,10 +88,13 @@ test-logs=ja_JP
 EOF
 cat > "$root/project/LOCALE.md" <<'EOF'
 issues=en_GB
+comments=en_GB
+logs=en_GB
+test-logs=en_GB
 EOF
 out=$(run_hook "$root")
-assert_contains "$out" 'issues=en_GB' 'case 3: project file wins over user file'
-assert_not_contains "$out" 'comments=ja_JP' 'case 3: layers do not merge'
+assert_contains "$out" 'issues=ja_JP' 'case 3: user file wins despite project file'
+assert_not_contains "$out" 'en_GB' 'case 3: project file is ignored'
 rm -rf "$root"
 
 # Case 4: the hook must exit 0 even when every input is missing.
