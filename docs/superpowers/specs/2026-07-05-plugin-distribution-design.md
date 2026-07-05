@@ -221,7 +221,7 @@ tests, test log messages in English.
    path fixes, `LOCALE.md` gitignore entry) as an independent commit before
    plugin work starts.
 2. Rewrite the Language section of `AGENTS.md` to the three-layer chain:
-   use a resolved locale keys when one is already in context (plugin path);
+   use resolved locale keys when they are already in context (plugin path);
    otherwise read project `LOCALE.md`, then
    `~/.config/rules-for-ai/LOCALE.md`, then `LOCALE.default.md`.
 3. Update the locale section of `hashiiiii-issues` to the same chain.
