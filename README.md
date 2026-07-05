@@ -92,7 +92,7 @@ Fork this repository, edit `AGENTS.md` and `skills/` to fit your team, then run 
 
 ## Manual alternative (submodule)
 
-**Recommended without a plugin manager:** add this repository as a submodule at `.rules-for-ai` (hidden — the project root only needs the symlinks below), and link at the project root. That gives you a place to customize `AGENTS.md` and `skills/` while still pulling upstream updates when you want them.
+**Recommended without a plugin manager:** fork this repository, add your fork as a submodule at `.rules-for-ai` (hidden — the project root only needs the symlinks below), and link at the project root. That gives you a place to customize `AGENTS.md` and `skills/` while still pulling upstream updates when you want them.
 
 ```bash
 # Fork https://github.com/hashiiiii/rules-for-ai on GitHub, then:
