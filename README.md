@@ -1,73 +1,48 @@
-# 🤖 Rules for AI
+# Rules for AI
+
 <img src="https://img.shields.io/badge/LICENSE-MIT-green">
 
-Documentation ([English](https://github.com/hashiiiii/rules-for-ai/blob/main/README.md), [日本語](https://github.com/hashiiiii/rules-for-ai/blob/main/README_JA.md))
+My real-world configuration for AI coding agents — Claude Code and Cursor CLI
+(cursor-agent) — packaged so any project can adopt it, under MIT.
 
-## 📋 Overview
+This repository deploys nothing by itself. Projects take it in by copy or
+`git submodule`; global (home-directory) deployment is handled by my
+[dotfiles](https://github.com/hashiiiii/dotfiles), which pins this repository
+as a submodule and symlinks it into `~/.claude` / `~/.cursor`.
 
-This is a ruleset to enhance AI assistants integrated in Windsurf and Cursor.
-For global settings, use the predefined windsurf: global_rules.md / cursor: global_rules.mdc.
-For workspace-specific settings, use windsurf: .windsurfrules / cursor: project_rules.mdc.
-These are automatically updated through interactive dialogue with the AI assistant.
+## Layout
 
-> [!WARNING]
->
-> windsurf
-> - global: global_rules.md
-> - local: .windsurfrules
-> - docs: https://docs.codeium.com/windsurf/memories#windsurfrules
->
-> cursor
-> - global: global_rules.mdc
-> - local: project_rules.mdc
-> - docs: https://docs.cursor.com/context/rules-for-ai
->
+| Path | Purpose |
+|------|---------|
+| `AGENTS.md` | Behavioral principles shared by all agents |
+| `claude/settings.json` | Claude Code settings (model, permissions, hooks, plugins) |
+| `claude/statusline-command.sh` | Claude Code status line script |
+| `skills/` | Agent Skills (`SKILL.md`), readable by both harnesses |
+| `cursor/mcp.json` | cursor-agent MCP servers (secret-free) |
 
-## ✨ Key Features
+## Using in a project
 
-- 🔄 **Interactive Setup**: Interactively tune .windsurfrules / project_rules.mdc
-- 📝 **High-Quality Common Configuration Files**: Pre-defined high-quality global_rules.md / global_rules.mdc
-- ⚡ **Task-Oriented Shortcuts**: Shortcuts that can be used universally for each task
+Copy the files you want, or add the repository as a submodule and link the
+rules to the project root:
 
-## 🚀 Quick Start
-
-1. Clone the repository:
 ```bash
-git clone https://github.com/hashiiiii/rules-for-ai.git
+git submodule add https://github.com/hashiiiii/rules-for-ai.git rules-for-ai
+ln -s rules-for-ai/AGENTS.md AGENTS.md
+ln -s AGENTS.md CLAUDE.md
 ```
 
-2. Open any workspace in your IDE and set up the rules files:
-   - `.windsurfrules` / `global_rules.md` - For Windsurf IDE
-   - `project_rules.mdc` / `global_rules.mdc` - For Cursor IDE
+Cursor CLI reads `AGENTS.md` / `CLAUDE.md` at the project root only, so the
+root-level links are what make the rules take effect; Claude Code reads the
+same files.
 
-> [!IMPORTANT]
->
-> If global settings are sufficient, migration steps are not necessary.
->
+## Notes
 
-3. Run the setup command
-   - Execute the `/setup` command
+- These are my live settings. Review `claude/settings.json` before adopting —
+  it reduces permission prompting and sets Japanese output, among other
+  personal choices.
+- `cursor/mcp.json` must stay token-free; anything secret belongs in
+  environment variables or untracked local files.
 
-4. Run the save command
-   - Execute the `/store` command
+## License
 
-## 🔍 Available Shortcuts
-
-- `/setup`   : Start the setup process
-- `/adjust`  : Fine-tune the current workspace configuration file
-- `/store`   : Update the file based on the answers obtained through the setup process
-- `/plan`    : Create a detailed work plan
-- `/debug`   : Systematic debugging approach
-- `/review`  : Code quality review
-- `/refactor`: Improve readability and maintainability
-- `/optimize`: Performance optimization suggestions
-- `/test`    : Testing strategy
-- `/doc`     : Documentation assistance
-- `/arch`    : Architecture design
-- `/cmt`     : Code comments
-- `/mvp`     : Build an MVP (Minimum Viable Product)
-- `/help`    : Display available shortcuts
-
-## 📄 License
-
-This project is provided under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+[MIT](LICENSE.md)
