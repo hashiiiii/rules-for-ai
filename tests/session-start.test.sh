@@ -127,6 +127,16 @@ else
 fi
 rm -rf "$root"
 
+# Case 7: whitespace-padded cells are trimmed, and CRLF line endings do
+# not leak a carriage return into the resolved value (a CRLF row without
+# a trailing pipe would otherwise inject "fr_FR\r").
+root=$(new_fixture)
+mkdir -p "$root/config/rules-for-ai"
+printf '| Artifact | Language |\r\n|----------|----------|\r\n|   Issues   |   fr_FR\r\n' > "$root/config/rules-for-ai/LOCALE.md"
+out=$(run_hook "$root")
+assert_contains "$out" '| Issues | fr_FR |' 'case 7: padded CRLF row resolves to a clean value'
+rm -rf "$root"
+
 if [ "$failures" -gt 0 ]; then
     printf '%s test(s) failed\n' "$failures"
     exit 1

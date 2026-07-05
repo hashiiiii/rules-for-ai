@@ -26,8 +26,8 @@ parse_locale_file() {
     awk -F'|' '
         NF >= 3 {
             key = $2; val = $3
-            gsub(/^[ \t]+/, "", key); gsub(/[ \t]+$/, "", key)
-            gsub(/^[ \t]+/, "", val); gsub(/[ \t]+$/, "", val)
+            gsub(/^[ \t\r]+/, "", key); gsub(/[ \t\r]+$/, "", key)
+            gsub(/^[ \t\r]+/, "", val); gsub(/[ \t\r]+$/, "", val)
             if (key != "Issues" && key != "Code comments" && \
                 key != "Log messages" && key != "Test log messages") next
             if (val == "" || val == "Language") next
