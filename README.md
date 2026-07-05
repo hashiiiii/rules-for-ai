@@ -87,18 +87,6 @@ Fork, edit `AGENTS.md` and `skills/`, then install from your fork's URL instead 
 
 Skills are namespaced `hashiiiii-*`. Rename them to your own prefix; `grep -rl 'hashiiiii-' .` lists every file to update.
 
-## Manual setup (submodule)
-
-```bash
-git submodule add https://github.com/${YOUR_USER}/rules-for-ai.git .rules-for-ai
-ln -s .rules-for-ai/AGENTS.md AGENTS.md
-ln -s AGENTS.md CLAUDE.md
-```
-
-Sync upstream: `cd .rules-for-ai && git fetch upstream && git merge upstream/main`
-
-Install skills from `skills/` into your agent's skills directory as needed.
-
 ## Releasing (maintainers)
 
 1. Bump `version` in all three plugin manifests in lockstep (CI enforces this)
