@@ -11,19 +11,19 @@ Every issue body uses the same headings in the same order.
 
 Before drafting an issue:
 
-1. Read `./LOCALE.md` at the project root
-2. If missing, read `rules-for-ai/LOCALE.default.md` (or `./LOCALE.default.md` when not using a submodule)
-3. Write the issue **title and body** in the language given by the `Issues` row
+1. Project instructions (`CLAUDE.md` / `AGENTS.md`) override resolved locale keys; follow them when they state a language for issues
+2. Otherwise use the resolved locale keys if they are already in context (plugin path)
+3. Otherwise read `~/.config/rules-for-ai/LOCALE.md`
+4. If missing, read the bundled `LOCALE.default.md`
+5. Write the issue **title and body** in the language given by the `issues` key
 
-Section headings (Background, Problem, ...) are always English — the template structure never changes. When `Issues` is `ja`, keep the English headings and write the prose under each heading in Japanese.
+Section headings (Background, Problem, ...) are always English — the template structure never changes. When `issues` is `ja_JP`, keep the English headings and write the prose under each heading in Japanese.
 
 ## When to Use
 
 - Before `gh issue create`
 - Before editing an issue body
 - When the user asks to draft an issue
-
-Not for PR descriptions, changelogs, or commit messages.
 
 ## Issue Body Template
 
