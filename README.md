@@ -8,7 +8,6 @@ Portable rules and skills for AI coding agents.
 |------|---------|
 | `AGENTS.md` | Shared behavioral principles |
 | `LOCALE.default.md` | Default language settings (fallback) |
-| `LOCALE.md.example` | Sample for project-root `LOCALE.md` |
 | `skills/hashiiiii-git/` | Git conventions |
 | `skills/hashiiiii-issues/` | GitHub issue body structure |
 | `skills/hashiiiii-locale/` | Locale setup and updates |
@@ -40,7 +39,7 @@ For a team project, commit this to the consuming repo's `.claude/settings.json` 
 }
 ```
 
-Once installed, a SessionStart hook injects `AGENTS.md` plus the resolved locale table into every session automatically — no extra step.
+Once installed, a SessionStart hook injects `AGENTS.md` plus the resolved locale keys into every session automatically — no extra step.
 
 ### Codex
 
@@ -68,17 +67,16 @@ If your setup does not support marketplace import, fall back to a local path: cl
 
 Language settings resolve as one file — the first existing layer wins as a whole:
 
-1. Project `LOCALE.md` (project root)
-2. `~/.config/rules-for-ai/LOCALE.md` (user level; respects `$XDG_CONFIG_HOME`)
-3. Bundled `LOCALE.default.md` (fallback, all `en_US`)
+1. `~/.config/rules-for-ai/LOCALE.md` (user level; respects `$XDG_CONFIG_HOME`)
+2. Bundled `LOCALE.default.md` (fallback, all `en_US`)
 
 Four artifacts are configurable independently: Issues, Code comments, Log messages, Test log messages. Each layer is a `LOCALE.md` file of `key=value` lines (`issues`, `comments`, `logs`, `test-logs`).
 
-On Claude Code, the SessionStart hook resolves and injects this table every session. If no user-level file exists yet, onboarding fires once: the agent asks which language to use for each artifact and saves the answer with the `hashiiiii-locale` skill (accepting the defaults still records the choice, so the prompt does not repeat).
+There is no project-level `LOCALE.md`. A project-specific language policy is an ordinary project instruction: write it in that project's `CLAUDE.md` / `AGENTS.md` (e.g. "Write issues in English") and it overrides the resolved keys — readable by every collaborator, no `.gitignore` entry needed.
 
-On Codex and Cursor, there is no hook, so resolution is model-driven: run the `hashiiiii-locale` skill, or create `~/.config/rules-for-ai/LOCALE.md` manually, following the same three-layer order.
+On Claude Code, the SessionStart hook resolves and injects these keys every session. If no user-level file exists yet, onboarding fires once: the agent asks which language to use for each artifact and saves the answer with the `hashiiiii-locale` skill (accepting the defaults still records the choice, so the prompt does not repeat).
 
-No per-project `LOCALE.md` is needed unless you want to override the user-level (or default) setting for that project.
+On Codex and Cursor, there is no hook, so resolution is model-driven: run the `hashiiiii-locale` skill, or create `~/.config/rules-for-ai/LOCALE.md` manually, following the same two-layer order.
 
 ## Receiving updates
 
@@ -99,7 +97,6 @@ Fork this repository, edit `AGENTS.md` and `skills/` to fit your team, then run 
 git submodule add https://github.com/${YOUR_USER}/rules-for-ai.git .rules-for-ai
 ln -s .rules-for-ai/AGENTS.md AGENTS.md
 ln -s AGENTS.md CLAUDE.md
-cp .rules-for-ai/LOCALE.md.example LOCALE.md   # optional; skip to use defaults
 ```
 
 To sync upstream changes into your fork:
@@ -116,7 +113,7 @@ git add .rules-for-ai && git commit -m "chore: update rules-for-ai submodule"
 
 Both harnesses read `AGENTS.md` / `CLAUDE.md` at the project root. Install skills from `skills/` into your agent's skills directory as needed.
 
-Language settings (issues, code comments, logs) live in `LOCALE.md` at the project root as `key=value` lines (see `LOCALE.md.example`). Without one, agents fall back through the user-level file and then `LOCALE.default.md`, which defaults everything to English. Commit `LOCALE.md` at the project root — it lives outside the submodule, so `git submodule update` never touches it.
+Language settings resolve the same two-layer chain as the plugin path: `~/.config/rules-for-ai/LOCALE.md`, then the bundled `LOCALE.default.md` (all English). For a project-specific language policy, add plain instructions to the project's `CLAUDE.md` / `AGENTS.md` (with the symlink setup above, that means your fork's `AGENTS.md`).
 
 ## Releasing (maintainers)
 
