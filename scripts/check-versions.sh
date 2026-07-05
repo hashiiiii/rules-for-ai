@@ -1,5 +1,6 @@
 #!/bin/sh
 # Verify the three plugin manifests carry the same version (lockstep).
+# Optional: scripts/check-versions.sh vX.Y.Z — also verify tag matches.
 set -eu
 
 # Minimal JSON "version" extraction; the manifests are flat objects we
@@ -16,4 +17,14 @@ if [ -z "$claude" ] || [ "$claude" != "$codex" ] || [ "$claude" != "$cursor" ]; 
     printf 'version mismatch: claude=%s codex=%s cursor=%s\n' "$claude" "$codex" "$cursor" >&2
     exit 1
 fi
+
+if [ $# -gt 0 ]; then
+    expected=$1
+    actual="v$claude"
+    if [ "$actual" != "$expected" ]; then
+        printf 'tag %s does not match manifest version %s\n' "$expected" "$claude" >&2
+        exit 1
+    fi
+fi
+
 printf 'versions in lockstep: %s\n' "$claude"
