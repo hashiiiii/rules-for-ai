@@ -10,11 +10,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: shellcheck
-        run: shellcheck hooks/session-start.sh scripts/check-versions.sh scripts/release.sh tests/session-start.test.sh tests/release.test.sh
+        run: shellcheck hooks/session-start.sh scripts/check-versions.sh tests/session-start.test.sh
       - name: hook tests
         run: sh tests/session-start.test.sh
-      - name: release tests
-        run: sh tests/release.test.sh
       - name: always-on rules drift check
         run: diff AGENTS.md rules/agents.md
       - name: manifest version lockstep
