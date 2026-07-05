@@ -10,15 +10,15 @@
 - Prioritize comments in tests
 - Never use mocks or stubs
 
-## 言語について
+## Language
 
-- 言語設定はプロジェクトルートの `LOCALE.md` を参照すること
-- `LOCALE.md` がない場合は `rules-for-ai/LOCALE.default.md` を参照すること（submodule 未使用時は同梱の `LOCALE.default.md`）
+- Read `LOCALE.md` at the project root for language settings
+- If `LOCALE.md` is missing, read `rules-for-ai/LOCALE.default.md` (or the bundled `LOCALE.default.md` when not using a submodule)
 
-## Git について
+## Git
 
-- git 操作を行うときは `hashiiiii-git` スキルを参照すること
+- Follow the `hashiiiii-git` skill for git operations
 
-## issues について
+## Issues
 
-- issues を作成・管理するときは `hashiiiii-issues` スキルを参照すること
+- Follow the `hashiiiii-issues` skill when creating or managing issues
