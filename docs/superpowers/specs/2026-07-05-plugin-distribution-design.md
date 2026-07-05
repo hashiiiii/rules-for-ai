@@ -138,7 +138,7 @@ Onboarding only exists on Claude Code; Codex/Cursor users run the
 |------|-----------|-----------|
 | Claude Code | SessionStart hook output injected into context | Mechanical |
 | Cursor | `rules/agents.md` auto-discovered as an always-applied rule | Mechanical |
-| Codex | No plugin injection mechanism confirmed. README documents a one-time append of the rules to `~/.codex/AGENTS.md`. First implementation task verifies Codex plugin hooks; if injection is possible, promote Codex to a hook-based path | Manual one-time (provisional) |
+| Codex | Verified 2026-07-05: injection is possible via a plugin-bundled SessionStart hook (see Risks and open questions); implementing it is a follow-up issue. Until then the README documents a one-time append of the rules to `~/.codex/AGENTS.md` | Manual one-time (hook promotion pending) |
 
 `rules/agents.md` is an exact byte-for-byte copy of `AGENTS.md`; CI runs
 `diff` to catch drift.
