@@ -1,25 +1,26 @@
 ---
 name: hashiiiii-locale
-description: Use when setting or changing rules-for-ai locale preferences, or when onboarding says no user-level locale is set. Writes the user-level or project-level LOCALE.md.
+description: Use when setting or changing rules-for-ai locale preferences, or when onboarding says no user-level locale is set. Writes the user-level LOCALE.md.
 ---
 
 # Locale Setup
 
-Manage the LOCALE files that rules-for-ai resolves at session start.
+Manage the user-level LOCALE file that rules-for-ai resolves at session start.
 
 ## Resolution order (first existing file wins)
 
-1. `LOCALE.md` at the project root
-2. `~/.config/rules-for-ai/LOCALE.md` (user level; respect `$XDG_CONFIG_HOME` when set)
-3. Bundled `LOCALE.default.md` (all `en_US`)
+1. `~/.config/rules-for-ai/LOCALE.md` (user level; respect `$XDG_CONFIG_HOME` when set)
+2. Bundled `LOCALE.default.md` (all `en_US`)
 
 The winning file is used as a whole; layers never merge. That is why every LOCALE file must carry all four keys.
+
+There is no project-level LOCALE file. A project-specific language policy is an ordinary project instruction: it belongs in that project's `CLAUDE.md` / `AGENTS.md` (e.g. "Write issues in English"), and project instructions override resolved locale keys.
 
 ## When to Use
 
 - When the session context says no user-level locale preference is set (onboarding)
 - When the user asks to change the language of issues, code comments, or logs
-- When the user wants a project-specific override
+- When the user wants a project-specific policy — do not write a LOCALE file; add the policy to that project's `CLAUDE.md` / `AGENTS.md` instead
 
 ## Arguments
 
@@ -39,7 +40,7 @@ Example: `issues=ja_JP comments=ja_JP logs=en_US test-logs=en_US`
 
 ## Writing the file
 
-Target `~/.config/rules-for-ai/LOCALE.md` by default (`$XDG_CONFIG_HOME/rules-for-ai/LOCALE.md` when `XDG_CONFIG_HOME` is set). Write a project-root `LOCALE.md` instead only when the user asks for a project-specific override.
+Always target `~/.config/rules-for-ai/LOCALE.md` (`$XDG_CONFIG_HOME/rules-for-ai/LOCALE.md` when `XDG_CONFIG_HOME` is set). Never write a LOCALE file into a project.
 
 1. Validate keys: only the four keys above exist; reject anything else
 2. Use POSIX-style tags (`ja_JP`, `en_US`, `en_GB`) as given; do not translate or normalize
@@ -65,7 +66,7 @@ Write the default file (all `en_US`) to the user-level path unchanged. The exist
 
 | Mistake | Fix |
 |---------|-----|
-| Writing the project file during onboarding | Onboarding targets the user-level path |
+| Writing a project-root `LOCALE.md` | The project layer does not exist; put project policy in that project's `CLAUDE.md` / `AGENTS.md` |
 | Leaving keys out | Always write all four keys |
 | Inventing keys like `commits` | Only the four keys in the table exist |
 | Spaces around `=` (`issues = ja_JP`) | Strict `issues=ja_JP` only |

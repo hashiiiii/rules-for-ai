@@ -11,9 +11,9 @@ Every issue body uses the same headings in the same order.
 
 Before drafting an issue:
 
-1. Use the resolved locale keys if they are already in context (plugin path)
-2. Otherwise read `./LOCALE.md` at the project root
-3. If missing, read `~/.config/rules-for-ai/LOCALE.md`
+1. Project instructions (`CLAUDE.md` / `AGENTS.md`) override resolved locale keys; follow them when they state a language for issues
+2. Otherwise use the resolved locale keys if they are already in context (plugin path)
+3. Otherwise read `~/.config/rules-for-ai/LOCALE.md`
 4. If missing, read the bundled `LOCALE.default.md`
 5. Write the issue **title and body** in the language given by the `issues` key
 
