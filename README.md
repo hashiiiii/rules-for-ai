@@ -119,11 +119,15 @@ Language settings resolve the same two-layer chain as the plugin path: `~/.confi
 
 ## Releasing (maintainers)
 
+1. Bump the `version` field in all three manifests (`.claude-plugin/plugin.json`, `.codex-plugin/plugin.json`, `.cursor-plugin/plugin.json`) in lockstep — CI fails on a partial bump — and merge that commit to `main`
+2. Tag and push:
+
 ```bash
-scripts/release.sh 0.2.0
+git tag v2.0.0
+git push origin v2.0.0
 ```
 
-Bumps the `version` field in all three manifests (`.claude-plugin/plugin.json`, `.codex-plugin/plugin.json`, `.cursor-plugin/plugin.json`) in lockstep, commits, tags `v0.2.0`, and pushes.
+The `release` workflow runs on the tag push, verifies the tag matches the manifest version, and creates the GitHub release with generated notes.
 
 Machine-level settings (Claude Code `settings.json`, MCP servers) and global home-directory setup live in [dotfiles](https://github.com/hashiiiii/dotfiles), not here — this repository holds only what is portable across machines and projects.
 

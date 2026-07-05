@@ -75,9 +75,10 @@ rules-for-ai/
 ├── rules/
 │   └── agents.md            # Cursor always-on rules (exact copy of AGENTS.md)
 ├── scripts/
-│   └── release.sh           # lockstep version bump + tag + push
+│   └── check-versions.sh    # manifest version lockstep check
 ├── .github/workflows/
-│   └── ci.yml               # tests, shellcheck, drift and lockstep checks
+│   ├── ci.yml               # tests, shellcheck, drift and lockstep checks
+│   └── release.yml          # tag push -> verify version, create release
 ├── AGENTS.md                # single source of truth for always-on rules
 ├── LOCALE.default.md        # bundled fallback (all en_US)
 └── README.md                # install/update/fork/submodule instructions
@@ -179,8 +180,10 @@ Onboarding only exists on Claude Code; Codex/Cursor users run the
 
 - The `version` fields in all three manifests are always identical
   (lockstep semver).
-- `scripts/release.sh` bumps all three manifests, creates `git tag vX.Y.Z`,
-  and pushes.
+- Releases are tag-driven (revised 2026-07-05, replacing the earlier
+  `scripts/release.sh` design): the maintainer bumps the three manifests,
+  merges, and pushes a `vX.Y.Z` tag; the `release` workflow verifies the
+  tag matches the manifest version and creates the GitHub release.
 - CI verifies the three versions match, so a partial bump fails fast.
 - Propagation: Claude Code checks at startup (auto-update is off by default
   for third-party marketplaces; users may enable it or run
