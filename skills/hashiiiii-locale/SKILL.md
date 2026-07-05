@@ -60,7 +60,7 @@ File format (exactly this shape):
 
 ## When the user accepts the defaults
 
-Write the default file (all `en_US`) to the user-level path unchanged. The existence of the file records the decision, so onboarding never fires again.
+Write all four keys as `en_US` to the user-level path, in the file format above. The existence of the file records the decision, so onboarding never fires again.
 
 ## Common Mistakes
 

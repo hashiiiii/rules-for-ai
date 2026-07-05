@@ -106,12 +106,12 @@ clear, compact):
 3. If (a) does not exist, append an onboarding instruction: ask the user for
    locale preferences at the start of the session and save them with the
    `hashiiiii-locale` skill.
-4. Emit always-on rules + the resolved locale table (+ onboarding
+4. Emit always-on rules + the resolved locale keys (+ onboarding
    instruction, when applicable) to stdout for context injection.
 
 State is a single file: the existence of `~/.config/rules-for-ai/LOCALE.md`
 means "configured". When the user accepts the defaults, `hashiiiii-locale`
-writes the default table to that path anyway, so the choice is recorded and
+writes the default keys to that path anyway, so the choice is recorded and
 onboarding never fires again. No separate marker file.
 
 There is deliberately no project-level LOCALE layer. A project-root
@@ -221,7 +221,7 @@ tests, test log messages in English.
    path fixes, `LOCALE.md` gitignore entry) as an independent commit before
    plugin work starts.
 2. Rewrite the Language section of `AGENTS.md` to the three-layer chain:
-   use a resolved locale table when one is already in context (plugin path);
+   use a resolved locale keys when one is already in context (plugin path);
    otherwise read project `LOCALE.md`, then
    `~/.config/rules-for-ai/LOCALE.md`, then `LOCALE.default.md`.
 3. Update the locale section of `hashiiiii-issues` to the same chain.

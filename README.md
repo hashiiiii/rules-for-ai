@@ -74,6 +74,8 @@ Four artifacts are configurable independently: Issues, Code comments, Log messag
 
 There is no project-level `LOCALE.md`. A project-specific language policy is an ordinary project instruction: write it in that project's `CLAUDE.md` / `AGENTS.md` (e.g. "Write issues in English") and it overrides the resolved keys — readable by every collaborator, no `.gitignore` entry needed.
 
+Migrating from 0.x: a project-root `LOCALE.md` is no longer read; delete it and state the policy in that project's `CLAUDE.md` / `AGENTS.md` instead.
+
 On Claude Code, the SessionStart hook resolves and injects these keys every session. If no user-level file exists yet, onboarding fires once: the agent asks which language to use for each artifact and saves the answer with the `hashiiiii-locale` skill (accepting the defaults still records the choice, so the prompt does not repeat).
 
 On Codex and Cursor, there is no hook, so resolution is model-driven: run the `hashiiiii-locale` skill, or create `~/.config/rules-for-ai/LOCALE.md` manually, following the same two-layer order.
