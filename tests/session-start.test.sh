@@ -49,12 +49,21 @@ run_hook() {
     sh "$HOOK"
 }
 
-# Case 1: nothing configured -> bundled defaults plus onboarding.
+# Case 1: nothing configured -> bundled defaults plus onboarding. A decoy
+# project file guards against the project layer sneaking back in as a
+# fallback between the user layer and the bundled default.
 root=$(new_fixture)
+cat > "$root/project/LOCALE.md" <<'EOF'
+issues=en_GB
+comments=en_GB
+logs=en_GB
+test-logs=en_GB
+EOF
 out=$(run_hook "$root")
 assert_contains "$out" '# AGENTS' 'case 1: always-on rules injected'
 assert_contains "$out" 'issues=en_US' 'case 1: bundled default resolves'
 assert_contains "$out" 'hashiiiii-locale' 'case 1: onboarding instruction present'
+assert_not_contains "$out" 'en_GB' 'case 1: project file is ignored without user file'
 rm -rf "$root"
 
 # Case 2: user config -> user file wins over the bundled default and
