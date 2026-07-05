@@ -21,7 +21,7 @@ Manage the LOCALE tables that rules-for-ai resolves at session start.
 
 ## Arguments
 
-- A single BCP 47 tag (`ja_JP`): apply it to all four artifacts
+- A single POSIX-style tag (`ja_JP`): apply it to all four artifacts
 - Key=value pairs, one per artifact:
 
 | Key | Artifact |
@@ -40,7 +40,7 @@ Example: `issues=ja_JP comments=ja_JP logs=en_US test-logs=en_US`
 Target `~/.config/rules-for-ai/LOCALE.md` by default (`$XDG_CONFIG_HOME/rules-for-ai/LOCALE.md` when `XDG_CONFIG_HOME` is set). Write a project-root `LOCALE.md` instead only when the user asks for a project-specific override.
 
 1. Validate keys: only the four keys above exist; reject anything else
-2. Use BCP 47 tags (`ja_JP`, `en_US`, `en_GB`) as given; do not translate or normalize
+2. Use POSIX-style tags (`ja_JP`, `en_US`, `en_GB`) as given; do not translate or normalize
 3. Create the target directory when missing
 4. Write atomically: write a temp file in the same directory, then `mv` it over the target
 5. Always write all four rows; fill unspecified rows from the currently resolved values

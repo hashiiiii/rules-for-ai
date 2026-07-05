@@ -53,14 +53,14 @@ Then install the plugin from `/plugins`.
 For always-on rules, Codex plugins do not yet ship a hook in this release, so run this one-time step per machine:
 
 ```bash
-cat AGENTS.md >> ~/.codex/AGENTS.md
+curl -fsSL https://raw.githubusercontent.com/hashiiiii/rules-for-ai/main/AGENTS.md >> ~/.codex/AGENTS.md
 ```
 
 (Verified 2026-07-05: a Codex plugin *can* inject always-on context at session start via a `SessionStart` hook, mechanically equivalent to Claude Code's — implementing that hook is a planned follow-up, not part of this release.)
 
 ### Cursor
 
-Import `https://github.com/hashiiiii/rules-for-ai` via a team marketplace. `rules/agents.md` is auto-discovered as an always-applied rule once imported.
+Import `https://github.com/hashiiiii/rules-for-ai` via a team marketplace. `rules/agents.md` is auto-discovered as an always-applied rule once imported (per Cursor's plugin docs; not yet verified against a real import).
 
 If your setup does not support marketplace import, fall back to a local path: clone the repo under `~/.cursor/plugins/local/`.
 
@@ -109,7 +109,7 @@ cd .rules-for-ai
 git remote add upstream https://github.com/hashiiiii/rules-for-ai.git   # once
 git fetch upstream && git merge upstream/main
 cd ..
-git add .rules-for-ai && git commit -m "Update rules-for-ai submodule"
+git add .rules-for-ai && git commit -m "chore: update rules-for-ai submodule"
 ```
 
 **Alternative:** copy the files you need into your project if you prefer not to use submodules.
