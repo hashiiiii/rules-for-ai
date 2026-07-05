@@ -1,4 +1,5 @@
 # Rules for AI
+<img src="https://img.shields.io/badge/LICENSE-MIT-green">
 
 Portable rules and skills for AI coding agents.
 
