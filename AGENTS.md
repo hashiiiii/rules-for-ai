@@ -21,4 +21,4 @@
 
 ## Issues
 
-- Follow the `hashiiiii-issues` skill when GitHub issues operations
+- Follow the `hashiiiii-issues` skill for GitHub issue operations

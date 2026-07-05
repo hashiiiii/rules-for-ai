@@ -1,6 +1,6 @@
 # Locale
 
-Copy to your project root and edit: `cp LOCALE.md.example LOCALE.md`
+Copy to your project root and edit: `cp .rules-for-ai/LOCALE.md.example LOCALE.md`
 
 | Artifact | Language |
 |----------|----------|
