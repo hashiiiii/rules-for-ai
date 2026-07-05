@@ -66,13 +66,13 @@ If your setup does not support marketplace import, fall back to a local path: cl
 
 ## Locale
 
-Language settings resolve per artifact, per row — the first layer with a value for that row wins:
+Language settings resolve as one file — the first existing layer wins as a whole:
 
 1. Project `LOCALE.md` (project root)
 2. `~/.config/rules-for-ai/LOCALE.md` (user level; respects `$XDG_CONFIG_HOME`)
 3. Bundled `LOCALE.default.md` (fallback, all `en_US`)
 
-Four artifacts are configurable independently: Issues, Code comments, Log messages, Test log messages.
+Four artifacts are configurable independently: Issues, Code comments, Log messages, Test log messages. Each layer is a `LOCALE.md` file of `key=value` lines (`issues`, `comments`, `logs`, `test-logs`).
 
 On Claude Code, the SessionStart hook resolves and injects this table every session. If no user-level file exists yet, onboarding fires once: the agent asks which language to use for each artifact and saves the answer with the `hashiiiii-locale` skill (accepting the defaults still records the choice, so the prompt does not repeat).
 
@@ -116,7 +116,7 @@ git add .rules-for-ai && git commit -m "chore: update rules-for-ai submodule"
 
 Both harnesses read `AGENTS.md` / `CLAUDE.md` at the project root. Install skills from `skills/` into your agent's skills directory as needed.
 
-Language settings (issues, code comments, logs) live in `LOCALE.md` at the project root. Without one, agents fall back to `LOCALE.default.md`, which defaults everything to English. Commit `LOCALE.md` at the project root — it lives outside the submodule, so `git submodule update` never touches it.
+Language settings (issues, code comments, logs) live in `LOCALE.md` at the project root as `key=value` lines (see `LOCALE.md.example`). Without one, agents fall back through the user-level file and then `LOCALE.default.md`, which defaults everything to English. Commit `LOCALE.md` at the project root — it lives outside the submodule, so `git submodule update` never touches it.
 
 ## Releasing (maintainers)
 

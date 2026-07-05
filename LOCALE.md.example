@@ -2,9 +2,9 @@
 
 Copy to your project root and edit: `cp .rules-for-ai/LOCALE.md.example LOCALE.md`
 
-| Artifact | Language |
-|----------|----------|
-| Issues | ja_JP |
-| Code comments | ja_JP |
-| Log messages | en_US |
-| Test log messages | en_US |
+Keep all four keys. The first existing LOCALE file wins as a whole, so a missing key does not fall back to another layer.
+
+issues=ja_JP
+comments=ja_JP
+logs=en_US
+test-logs=en_US

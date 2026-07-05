@@ -4,6 +4,10 @@
 # Each case builds a real directory layout under a temp root and runs the
 # hook with CLAUDE_PLUGIN_ROOT / CLAUDE_PROJECT_DIR / XDG_CONFIG_HOME
 # pointing into it. No mocks or stubs; the hook reads real files.
+#
+# LOCALE files are machine-written by the hashiiiii-locale skill, so the
+# fixtures are complete (all four keys) except where a case exercises the
+# first-file-wins rule itself.
 set -u
 
 REPO="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
@@ -46,73 +50,63 @@ run_hook() {
     sh "$HOOK"
 }
 
-# Case 1: nothing configured -> defaults everywhere plus onboarding.
+# Case 1: nothing configured -> bundled defaults plus onboarding.
 root=$(new_fixture)
 out=$(run_hook "$root")
 assert_contains "$out" '# AGENTS' 'case 1: always-on rules injected'
-assert_contains "$out" '| Issues | en_US |' 'case 1: Issues falls back to default'
+assert_contains "$out" 'issues=en_US' 'case 1: bundled default resolves'
 assert_contains "$out" 'hashiiiii-locale' 'case 1: onboarding instruction present'
 rm -rf "$root"
 
-# Case 2: user config only -> user rows win, missing rows fall back,
-# and onboarding stays quiet.
+# Case 2: user config -> user file wins over the bundled default and
+# onboarding stays quiet.
 root=$(new_fixture)
 mkdir -p "$root/config/rules-for-ai"
 cat > "$root/config/rules-for-ai/LOCALE.md" <<'EOF'
-| Artifact | Language |
-|----------|----------|
-| Issues | ja_JP |
+issues=ja_JP
+comments=ja_JP
+logs=en_US
+test-logs=en_US
 EOF
 out=$(run_hook "$root")
-assert_contains "$out" '| Issues | ja_JP |' 'case 2: user row overrides default'
-assert_contains "$out" '| Code comments | en_US |' 'case 2: missing rows fall back'
+assert_contains "$out" 'issues=ja_JP' 'case 2: user file wins over default'
+assert_contains "$out" 'logs=en_US' 'case 2: all four keys are injected'
 assert_not_contains "$out" 'No user-level locale preference' 'case 2: no onboarding when configured'
 rm -rf "$root"
 
-# Case 3: project row beats user row; untouched rows keep user values.
+# Case 3: project file wins over user file, and it wins as a whole:
+# lower layers never fill in keys, they are only reached when the file
+# above them does not exist.
 root=$(new_fixture)
 mkdir -p "$root/config/rules-for-ai"
 cat > "$root/config/rules-for-ai/LOCALE.md" <<'EOF'
-| Artifact | Language |
-|----------|----------|
-| Issues | ja_JP |
-| Code comments | ja_JP |
+issues=ja_JP
+comments=ja_JP
+logs=ja_JP
+test-logs=ja_JP
 EOF
 cat > "$root/project/LOCALE.md" <<'EOF'
-| Artifact | Language |
-|----------|----------|
-| Issues | en_GB |
+issues=en_GB
 EOF
 out=$(run_hook "$root")
-assert_contains "$out" '| Issues | en_GB |' 'case 3: project row wins over user row'
-assert_contains "$out" '| Code comments | ja_JP |' 'case 3: user row survives for other artifacts'
+assert_contains "$out" 'issues=en_GB' 'case 3: project file wins over user file'
+assert_not_contains "$out" 'comments=ja_JP' 'case 3: layers do not merge'
 rm -rf "$root"
 
-# Case 4: malformed user table -> warning, defaults, and the file still
-# counts as "configured" so onboarding must not fire.
-root=$(new_fixture)
-mkdir -p "$root/config/rules-for-ai"
-printf 'this is not a table\n' > "$root/config/rules-for-ai/LOCALE.md"
-out=$(run_hook "$root")
-assert_contains "$out" 'Warning: user LOCALE.md exists but has no recognizable locale rows' 'case 4: warning emitted'
-assert_contains "$out" '| Issues | en_US |' 'case 4: falls back to defaults'
-assert_not_contains "$out" 'No user-level locale preference' 'case 4: existing file counts as configured'
-rm -rf "$root"
-
-# Case 5: the hook must exit 0 even when every input is missing.
+# Case 4: the hook must exit 0 even when every input is missing.
 root=$(mktemp -d)
 CLAUDE_PLUGIN_ROOT="$root/nope" CLAUDE_PROJECT_DIR="$root/nope" \
 XDG_CONFIG_HOME="$root/nope" HOME="$root" sh "$HOOK" > /dev/null 2>&1
 status=$?
 if [ "$status" -eq 0 ]; then
-    printf 'PASS: case 5: exit 0 with nothing available\n'
+    printf 'PASS: case 4: exit 0 with nothing available\n'
 else
-    printf 'FAIL: case 5: exit status %s\n' "$status"
+    printf 'FAIL: case 4: exit status %s\n' "$status"
     failures=$((failures + 1))
 fi
 rm -rf "$root"
 
-# Case 6: the hook must exit 0 even when HOME and XDG_CONFIG_HOME are
+# Case 5: the hook must exit 0 even when HOME and XDG_CONFIG_HOME are
 # truly unset (not merely pointing at nonexistent paths).
 root=$(mktemp -d)
 env -u HOME -u XDG_CONFIG_HOME \
@@ -120,21 +114,11 @@ env -u HOME -u XDG_CONFIG_HOME \
     sh "$HOOK" > /dev/null 2>&1
 status=$?
 if [ "$status" -eq 0 ]; then
-    printf 'PASS: case 6: exit 0 with HOME and XDG_CONFIG_HOME unset\n'
+    printf 'PASS: case 5: exit 0 with HOME and XDG_CONFIG_HOME unset\n'
 else
-    printf 'FAIL: case 6: exit status %s\n' "$status"
+    printf 'FAIL: case 5: exit status %s\n' "$status"
     failures=$((failures + 1))
 fi
-rm -rf "$root"
-
-# Case 7: whitespace-padded cells are trimmed, and CRLF line endings do
-# not leak a carriage return into the resolved value (a CRLF row without
-# a trailing pipe would otherwise inject "fr_FR\r").
-root=$(new_fixture)
-mkdir -p "$root/config/rules-for-ai"
-printf '| Artifact | Language |\r\n|----------|----------|\r\n|   Issues   |   fr_FR\r\n' > "$root/config/rules-for-ai/LOCALE.md"
-out=$(run_hook "$root")
-assert_contains "$out" '| Issues | fr_FR |' 'case 7: padded CRLF row resolves to a clean value'
 rm -rf "$root"
 
 if [ "$failures" -gt 0 ]; then

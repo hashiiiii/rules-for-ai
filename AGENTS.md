@@ -12,7 +12,7 @@
 
 ## Language
 
-- If a resolved locale table is already in context (plugin path), follow it
+- If resolved locale keys are already in context (plugin path), follow them
 - Otherwise read `LOCALE.md` at the project root
 - If missing, read `~/.config/rules-for-ai/LOCALE.md`
 - If missing, read `.rules-for-ai/LOCALE.default.md` (or `./LOCALE.default.md` when not using a submodule)

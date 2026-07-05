@@ -1,14 +1,12 @@
 # Locale
 
-Fallback language settings. Agents read this file when the project root has no `LOCALE.md`.
+Fallback language settings. Agents read this file only when no project-root `LOCALE.md` and no user-level `LOCALE.md` exists — the first existing file wins as a whole; layers never merge.
 
-To override, place a `LOCALE.md` at your project root — copy `LOCALE.md.example` and edit it.
-`Language` uses POSIX-style locale tags (e.g. `ja_JP`, `en_US`, `en_GB`).
-Rows missing from `LOCALE.md` fall back to the values in this file.
+To override, place a `LOCALE.md` at your project root — copy `LOCALE.md.example` and edit it, keeping all four keys.
 
-| Artifact | Language |
-|----------|----------|
-| Issues | en_US |
-| Code comments | en_US |
-| Log messages | en_US |
-| Test log messages | en_US |
+POSIX-style locale tags (e.g. `ja_JP`, `en_US`, `en_GB`).
+
+issues=en_US
+comments=en_US
+logs=en_US
+test-logs=en_US
