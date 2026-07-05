@@ -213,9 +213,19 @@ tests, test log messages in English.
 
 ## Risks and open questions
 
-- Codex plugin hooks are unverified; until verified, Codex users need one
-  manual step for always-on rules. The implementation plan starts with this
-  verification.
+- Verified 2026-07-05: Codex plugins can inject always-on context at session
+  start. A plugin registers a `SessionStart` hook (via the `hooks` field in
+  `.codex-plugin/plugin.json`, or a bundled `hooks/hooks.json`) matched on
+  `source` values `startup`, `resume`, `clear`, `compact`; the hook's stdout,
+  or `hookSpecificOutput.additionalContext` in its JSON output, is added as
+  developer-visible context — mechanically equivalent to Claude Code's
+  SessionStart hook. Caveat: plugin-bundled hooks are "non-managed" and must
+  be reviewed and trusted once per hook hash via `/hooks` before Codex runs
+  them; a changed hook needs re-trust. Implementing this hook is a follow-up
+  issue, out of this plan's scope — the README's manual append to
+  `~/.codex/AGENTS.md` remains the confirmed path meanwhile. Sources:
+  https://developers.openai.com/codex/hooks and
+  https://developers.openai.com/codex/plugins/build.
 - Manifest schemas for Codex (`.codex-plugin/plugin.json`) and Cursor
   (`.cursor-plugin/plugin.json`) must be confirmed against current docs at
   implementation time; both are young formats and may have shifted.
