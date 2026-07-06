@@ -114,6 +114,59 @@ out=$(sh "$src/install.sh" cursor user /tmp 2>&1) && :
 assert_contains "$out" 'target-dir does not apply' 'case 1: user scope rejects target-dir'
 rm -rf "$src"
 
+# Case 2: cursor project install / update / uninstall. An unmanaged
+# file sits next to the managed ones to prove the installer never
+# touches anything it did not create.
+src=$(new_source_repo)
+tgt=$(new_target_repo)
+mkdir -p "$tgt/.cursor/rules"
+printf 'team rule\n' > "$tgt/.cursor/rules/team.mdc"
+sh "$src/install.sh" cursor project "$tgt" > /dev/null
+assert_file "$tgt/.cursor/rules/agents.mdc" 'case 2: rule copied'
+assert_file "$tgt/.cursor/skills/hashiiiii-git/SKILL.md" 'case 2: git skill copied'
+assert_file "$tgt/.cursor/skills/hashiiiii-issues/SKILL.md" 'case 2: issues skill copied'
+assert_no_file "$tgt/.cursor/skills/hashiiiii-locale" 'case 2: locale skill excluded'
+# Re-run is the update path: a changed source file must overwrite.
+printf 'changed\n' > "$src/rules/agents.mdc"
+sh "$src/install.sh" cursor project "$tgt" > /dev/null
+assert_contains "$(cat "$tgt/.cursor/rules/agents.mdc")" 'changed' 'case 2: re-run overwrites managed file'
+sh "$src/install.sh" --uninstall cursor project "$tgt" > /dev/null
+assert_no_file "$tgt/.cursor/rules/agents.mdc" 'case 2: uninstall removes rule'
+assert_no_file "$tgt/.cursor/skills" 'case 2: uninstall prunes empty skills dir'
+assert_file "$tgt/.cursor/rules/team.mdc" 'case 2: unmanaged file survives uninstall'
+rm -rf "$src" "$tgt"
+
+# Case 3: cursor local = project files + .git/info/exclude entries,
+# deduplicated on re-run and removed again on uninstall.
+src=$(new_source_repo)
+tgt=$(new_target_repo)
+sh "$src/install.sh" cursor local "$tgt" > /dev/null
+exclude="$tgt/.git/info/exclude"
+assert_contains "$(cat "$exclude")" '.cursor/rules/agents.mdc' 'case 3: exclude lists the rule'
+assert_contains "$(cat "$exclude")" '.cursor/skills/hashiiiii-git' 'case 3: exclude lists a skill'
+sh "$src/install.sh" cursor local "$tgt" > /dev/null
+dups=$(grep -cxF '.cursor/rules/agents.mdc' "$exclude")
+if [ "$dups" -eq 1 ]; then
+    printf 'PASS: case 3: re-run does not duplicate exclude entries\n'
+else
+    printf 'FAIL: case 3: exclude entry appears %s times\n' "$dups"; failures=$((failures + 1))
+fi
+sh "$src/install.sh" --uninstall cursor local "$tgt" > /dev/null
+assert_not_contains "$(cat "$exclude")" '.cursor/rules/agents.mdc' 'case 3: uninstall cleans exclude'
+assert_no_file "$tgt/.cursor" 'case 3: uninstall removes files'
+rm -rf "$src" "$tgt"
+
+# Case 4: local scope cannot hide an already-tracked file; the installer
+# must warn and point at project scope instead.
+src=$(new_source_repo)
+tgt=$(new_target_repo)
+sh "$src/install.sh" cursor project "$tgt" > /dev/null
+git_q -C "$tgt" add -A
+git_q -C "$tgt" commit --quiet -m 'adopt project scope'
+out=$(sh "$src/install.sh" cursor local "$tgt" 2>&1)
+assert_contains "$out" 'already tracked' 'case 4: tracked file warning'
+rm -rf "$src" "$tgt"
+
 if [ "$failures" -gt 0 ]; then
     printf '%s test(s) failed\n' "$failures"
     exit 1

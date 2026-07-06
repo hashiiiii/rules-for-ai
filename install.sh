@@ -122,8 +122,51 @@ claude_install() { die 'not implemented'; }
 claude_uninstall() { die 'not implemented'; }
 cursor_user_install() { die 'not implemented'; }
 cursor_user_uninstall() { die 'not implemented'; }
-cursor_project_install() { die 'not implemented'; }
-cursor_project_uninstall() { die 'not implemented'; }
+exclude_file() {
+    printf '%s/info/exclude' "$(git -C "$TARGET" rev-parse --absolute-git-dir)"
+}
+
+cursor_project_install() {
+    mkdir -p "$TARGET/.cursor/rules" "$TARGET/.cursor/skills"
+    cp "$ROOT/rules/agents.mdc" "$TARGET/.cursor/rules/agents.mdc"
+    for skill_dir in "$ROOT"/skills/*/; do
+        skill=$(basename "$skill_dir")
+        [ "$skill" = "$LOCALE_SKILL" ] && continue
+        rm -rf "${TARGET:?}/.cursor/skills/$skill"
+        cp -R "${skill_dir%/}" "$TARGET/.cursor/skills/$skill"
+    done
+    if [ "$SCOPE" = local ]; then
+        exclude=$(exclude_file)
+        mkdir -p "$(dirname -- "$exclude")"
+        [ -f "$exclude" ] || : > "$exclude"
+        managed_paths | while IFS= read -r path; do
+            if git -C "$TARGET" ls-files --error-unmatch "$path" > /dev/null 2>&1; then
+                printf 'warning: %s is already tracked; local scope cannot hide it -- use project scope\n' "$path" >&2
+            fi
+            grep -qxF "$path" "$exclude" || printf '%s\n' "$path" >> "$exclude"
+        done
+    fi
+    printf 'installed cursor files into %s (%s scope)\n' "$TARGET" "$SCOPE"
+}
+
+cursor_project_uninstall() {
+    managed_paths | while IFS= read -r path; do
+        rm -rf "${TARGET:?}/$path"
+    done
+    if [ "$SCOPE" = local ]; then
+        exclude=$(exclude_file)
+        if [ -f "$exclude" ]; then
+            patterns=$(mktemp)
+            kept=$(mktemp)
+            managed_paths > "$patterns"
+            grep -vxF -f "$patterns" "$exclude" > "$kept" || :
+            mv "$kept" "$exclude"
+            rm -f "$patterns"
+        fi
+    fi
+    rmdir "$TARGET/.cursor/skills" "$TARGET/.cursor/rules" "$TARGET/.cursor" 2> /dev/null || :
+    printf 'removed cursor files from %s (%s scope)\n' "$TARGET" "$SCOPE"
+}
 
 # --- dispatch --------------------------------------------------------------
 
