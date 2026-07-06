@@ -22,7 +22,7 @@ Write your rules once and carry them across Claude Code, Codex, and Cursor as an
 
 ```
 /plugin marketplace add hashiiiii/rules-for-ai
-/plugin install rules-for-ai@rules-for-ai
+/plugin install rules-for-ai@hashiiiii
 ```
 
 The SessionStart hook injects `AGENTS.md` and resolved locale keys each session.
@@ -32,11 +32,11 @@ To pin the plugin for a team repo, add to `.claude/settings.json`:
 ```json
 {
   "extraKnownMarketplaces": {
-    "rules-for-ai": {
+    "hashiiiii": {
       "source": { "source": "github", "repo": "hashiiiii/rules-for-ai" }
     }
   },
-  "enabledPlugins": { "rules-for-ai@rules-for-ai": true }
+  "enabledPlugins": { "rules-for-ai@hashiiiii": true }
 }
 ```
 
@@ -77,7 +77,7 @@ On Codex and Cursor, run `hashiiiii-locale` or create `~/.config/rules-for-ai/LO
 
 | Platform | Command |
 |----------|---------|
-| Claude Code | `/plugin marketplace update rules-for-ai` |
+| Claude Code | `/plugin marketplace update hashiiiii` |
 | Codex | `codex plugin marketplace upgrade` |
 | Cursor | Marketplace UI (auto-refresh is periodic) |
 
