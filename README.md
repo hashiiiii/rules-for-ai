@@ -13,21 +13,48 @@ Write your rules once and carry them across Claude Code and Cursor as an install
 | `LOCALE.default.md` | Default language settings |
 | `skills/` | Git, GitHub issues, and locale skills |
 | `hooks/` | SessionStart hook (Claude Code) |
+| `install.sh` | One-command installer for every platform × scope |
 | `rules/` | Cursor always-on rule (`.mdc`) |
 | `.claude-plugin/`, `.cursor-plugin/` | Plugin and marketplace manifests |
 
 ## Setup
 
-### Claude Code
+One script installs, updates, and uninstalls everything. Pick a platform (`claude` | `cursor`) and a scope:
 
+| Scope | Meaning |
+|-------|---------|
+| `user` | every project on this machine |
+| `project` | one repo, shared with your team via git |
+| `local` | one repo, just you, nothing committed |
+
+Without cloning (run inside the target repo for `project` / `local`):
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/hashiiiii/rules-for-ai/main/install.sh | sh -s -- claude user
+curl -fsSL https://raw.githubusercontent.com/hashiiiii/rules-for-ai/main/install.sh | sh -s -- cursor project
 ```
-/plugin marketplace add hashiiiii/rules-for-ai
-/plugin install rules-for-ai@hashiiiii
+
+From a clone:
+
+```sh
+./install.sh claude project path/to/repo
+./install.sh --uninstall cursor user
 ```
 
-The SessionStart hook injects `AGENTS.md` and resolved locale keys each session.
+Re-running an install is how you update. `--uninstall` removes exactly what install created.
 
-To pin the plugin for a team repo, add to `.claude/settings.json`:
+### Claude Code notes
+
+- Requires the `claude` CLI. Scopes map to `claude plugin ... --scope`: `user` writes `~/.claude/settings.json`, `project` writes the repo's `.claude/settings.json` (commit it — teammates only accept the trust prompt), `local` writes `.claude/settings.local.json` (gitignored).
+- The SessionStart hook injects `AGENTS.md` and resolved locale keys each session.
+- Installed at user scope but want it off in one repo? Add to that repo's `.claude/settings.json`:
+
+```json
+{ "enabledPlugins": { "rules-for-ai@hashiiiii": false } }
+```
+
+- Interactive alternative: `/plugin marketplace add hashiiiii/rules-for-ai` then `/plugin install rules-for-ai@hashiiiii`.
+- `install.sh claude project` writes the same pin block you can also add by hand to `.claude/settings.json`:
 
 ```json
 {
@@ -40,34 +67,32 @@ To pin the plugin for a team repo, add to `.claude/settings.json`:
 }
 ```
 
-### Cursor
+### Cursor notes
 
-Not on Cursor's public marketplace. **Cursor only** — install one way:
-
-- Team marketplace (Teams/Enterprise): Dashboard → Settings → Plugins → Import from Repo → `https://github.com/hashiiiii/rules-for-ai`
-- Local: `git clone https://github.com/hashiiiii/rules-for-ai ~/.cursor/plugins/local/rules-for-ai` and restart Cursor
+- `user` clones into `~/.cursor/plugins/local/` (restart Cursor afterwards). Teams/Enterprise can instead import the repo from the dashboard: Settings → Plugins → Import from Repo.
+- `project` copies `rules/agents.mdc` into `.cursor/rules/` and the skills (minus `hashiiiii-locale`) into `.cursor/skills/`. Commit them — teammates need no install at all.
+- `local` is `project` plus `.git/info/exclude` entries, so nothing shows up in `git status`.
 
 > [!WARNING]
-> Already enabled for Claude Code (`enabledPlugins`)? Cursor imports it from `~/.claude/plugins/` — do not also clone locally.
+> Already enabled for Claude Code (`enabledPlugins`)? Cursor imports it from `~/.claude/plugins/` — do not also install at `cursor user` scope.
 
 ### Set Locale
 
-After install, set which locale the agent uses for `issues`, `code comments`, `logs`, and `test logs`:
+For user-scope installs, set which locale the agent uses for `issues`, `code comments`, `logs`, and `test logs`: run the `/hashiiiii-locale` skill.
 
-Run `/hashiiiii-locale` skill.
+For project/local installs, skip it — it writes user-level config. Put language policy in the target project's own `CLAUDE.md` / rules instead; project instructions override the resolved locale keys by design.
 
 ## Updates
 
-| Platform | Command |
-|----------|---------|
-| Claude Code | `/plugin marketplace update hashiiiii` |
-| Cursor | Team marketplace UI, or `git pull` in `~/.cursor/plugins/local/rules-for-ai` |
+Re-run the same `install.sh` line (or `curl ... | sh -s -- ...`) — every cell updates in place. Claude Code can also use `/plugin marketplace update hashiiiii`.
 
 ## Fork and customize
 
 Fork, edit `AGENTS.md` and `skills/`, then install from your fork's URL instead of `hashiiiii/rules-for-ai`.
 
 Skills are namespaced `hashiiiii-*`. Rename them to your own prefix; `grep -rl 'hashiiiii-' .` lists every file to update.
+
+Also point `REPO` at your fork in `install.sh` and update `repository` in `.claude-plugin/plugin.json`.
 
 ## Releasing (maintainers)
 
