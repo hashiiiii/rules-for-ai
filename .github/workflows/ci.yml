@@ -13,7 +13,9 @@ jobs:
         run: shellcheck hooks/session-start.sh scripts/check-versions.sh tests/session-start.test.sh
       - name: hook tests
         run: sh tests/session-start.test.sh
-      - name: always-on rules drift check
-        run: diff AGENTS.md rules/agents.md
+      - name: always-on rule drift check
+        # rules/agents.mdc mirrors AGENTS.md behind Cursor's required frontmatter;
+        # strip the frontmatter block and compare the body byte-for-byte.
+        run: sed '1,/^---$/d' rules/agents.mdc | sed '/./,$!d' | diff AGENTS.md -
       - name: manifest version lockstep
         run: scripts/check-versions.sh

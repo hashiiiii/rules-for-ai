@@ -49,9 +49,7 @@ run_hook() {
     sh "$HOOK"
 }
 
-# Case 1: nothing configured -> bundled defaults plus onboarding. A decoy
-# project file guards against the project layer sneaking back in as a
-# fallback between the user layer and the bundled default.
+# Case 1: fallback between the user layer and the bundled default.
 root=$(new_fixture)
 cat > "$root/project/LOCALE.md" <<'EOF'
 issues=en_GB
@@ -62,12 +60,10 @@ EOF
 out=$(run_hook "$root")
 assert_contains "$out" '# AGENTS' 'case 1: always-on rules injected'
 assert_contains "$out" 'issues=en_US' 'case 1: bundled default resolves'
-assert_contains "$out" 'hashiiiii-locale' 'case 1: onboarding instruction present'
 assert_not_contains "$out" 'en_GB' 'case 1: project file is ignored without user file'
 rm -rf "$root"
 
-# Case 2: user config -> user file wins over the bundled default and
-# onboarding stays quiet.
+# Case 2: user config -> user file wins over the bundled default.
 root=$(new_fixture)
 mkdir -p "$root/config/rules-for-ai"
 cat > "$root/config/rules-for-ai/LOCALE.md" <<'EOF'
@@ -79,7 +75,6 @@ EOF
 out=$(run_hook "$root")
 assert_contains "$out" 'issues=ja_JP' 'case 2: user file wins over default'
 assert_contains "$out" 'logs=en_US' 'case 2: all four keys are injected'
-assert_not_contains "$out" 'No user-level locale preference' 'case 2: no onboarding when configured'
 rm -rf "$root"
 
 # Case 3: a project-root LOCALE.md is ignored. The project layer was

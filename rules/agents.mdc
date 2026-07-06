@@ -1,3 +1,9 @@
+---
+description: Shared behavioral principles for AI coding agents
+globs:
+alwaysApply: true
+---
+
 # AGENTS
 
 - Premature Optimization is the Root of All Evil

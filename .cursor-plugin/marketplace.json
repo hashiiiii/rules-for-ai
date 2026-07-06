@@ -1,11 +1,13 @@
 {
   "name": "hashiiiii",
   "owner": { "name": "hashiiiii" },
-  "description": "Portable rules and skills for AI coding agents",
+  "metadata": {
+    "description": "Portable rules and skills for AI coding agents"
+  },
   "plugins": [
     {
       "name": "rules-for-ai",
-      "source": "./",
+      "source": ".",
       "description": "Portable rules and skills for AI coding agents"
     }
   ]
