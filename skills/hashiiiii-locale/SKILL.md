@@ -21,8 +21,6 @@ There is no project-level LOCALE file. A project-specific language policy is an 
 - When the user asks to set or change the language of issues, code comments, or logs
 - When the user wants a project-specific policy — do not write a LOCALE file; add the policy to that project's `CLAUDE.md` / `AGENTS.md` instead
 
-Setting locale is always an explicit action: the user runs this skill when they want to configure it. There is no session-start prompt that asks for it.
-
 ## Arguments
 
 - A single POSIX-style tag (`ja_JP`): apply it to all four keys

@@ -16,7 +16,7 @@ Write your rules once and carry them across Claude Code and Cursor as an install
 | `rules/` | Cursor always-on rules |
 | `.claude-plugin/`, `.cursor-plugin/` | Plugin manifests |
 
-## Install
+## Setup
 
 ### Claude Code
 
@@ -46,20 +46,9 @@ Import `https://github.com/hashiiiii/rules-for-ai` via a team marketplace. `rule
 
 Without marketplace support, clone under `~/.cursor/plugins/local/`.
 
-## Locale
+### Set Locale
 
-Resolution order (first existing file wins; layers do not merge):
-
-1. `~/.config/rules-for-ai/LOCALE.md` (respects `$XDG_CONFIG_HOME`)
-2. Bundled `LOCALE.default.md`
-
-Four keys: `issues`, `comments`, `logs`, `test-logs` (`key=value` lines, POSIX locale tags).
-
-Project-level language policy belongs in that project's `CLAUDE.md` / `AGENTS.md` and overrides resolved keys.
-
-On Claude Code, the SessionStart hook resolves and injects the locale keys each session, falling back to the bundled default when no user file exists. On Cursor there is no hook; the agent reads the resolved file directly per the `AGENTS.md` Language rules.
-
-Setting locale is always explicit: run `hashiiiii-locale` (any platform) to set or change preferences, or edit `~/.config/rules-for-ai/LOCALE.md` manually, keeping all four keys. There is no session-start prompt that asks for it.
+After install, run `/hashiiiii-locale` to set which locale the agent uses for `issues`, `code comments`, `logs`, and `test logs`. The skill walks you through it — no manual config files needed.
 
 ## Updates
 

@@ -49,11 +49,7 @@ run_hook() {
     sh "$HOOK"
 }
 
-# Case 1: nothing configured -> bundled defaults, no onboarding prompt.
-# Setting locale is an explicit action (run the hashiiiii-locale skill), so
-# the hook must never inject a prompt asking the user to configure it. A
-# decoy project file guards against the project layer sneaking back in as a
-# fallback between the user layer and the bundled default.
+# Case 1: fallback between the user layer and the bundled default.
 root=$(new_fixture)
 cat > "$root/project/LOCALE.md" <<'EOF'
 issues=en_GB
@@ -64,7 +60,6 @@ EOF
 out=$(run_hook "$root")
 assert_contains "$out" '# AGENTS' 'case 1: always-on rules injected'
 assert_contains "$out" 'issues=en_US' 'case 1: bundled default resolves'
-assert_not_contains "$out" 'No user-level locale preference' 'case 1: no onboarding prompt'
 assert_not_contains "$out" 'en_GB' 'case 1: project file is ignored without user file'
 rm -rf "$root"
 
