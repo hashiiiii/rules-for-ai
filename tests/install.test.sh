@@ -184,6 +184,31 @@ HOME="$home" RULES_FOR_AI_SOURCE="$src" sh "$src/install.sh" --uninstall cursor 
 assert_no_file "$dest" 'case 5: uninstall removes the clone'
 rm -rf "$src" "$home"
 
+# Case 6: curl mode. The script runs from a bare directory (as if piped
+# from curl), self-fetches the repo from RULES_FOR_AI_SOURCE into
+# TMPDIR, installs, and cleans the temp clone up on exit.
+src=$(new_source_repo)
+tgt=$(new_target_repo)
+outside=$(mktemp -d)
+cp "$REPO/install.sh" "$outside/install.sh"
+work="$outside/tmpwork"
+mkdir "$work"
+TMPDIR="$work" RULES_FOR_AI_SOURCE="$src" sh "$outside/install.sh" cursor project "$tgt" > /dev/null
+assert_file "$tgt/.cursor/rules/agents.mdc" 'case 6: curl mode installs'
+if [ -z "$(ls -A "$work")" ]; then
+    printf 'PASS: case 6: temp clone cleaned up on exit\n'
+else
+    printf 'FAIL: case 6: temp clone left behind in %s\n' "$work"; failures=$((failures + 1))
+fi
+rm -rf "$src" "$tgt" "$outside"
+
+# Case 7: the installer must refuse to target its own repo (the
+# run-from-clone footgun).
+src=$(new_source_repo)
+out=$(sh "$src/install.sh" cursor project "$src" 2>&1) && :
+assert_contains "$out" 'itself' 'case 7: refuses to target the source repo'
+rm -rf "$src"
+
 if [ "$failures" -gt 0 ]; then
     printf '%s test(s) failed\n' "$failures"
     exit 1

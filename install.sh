@@ -80,7 +80,10 @@ if [ -n "$SCRIPT_DIR" ] && [ -f "$SCRIPT_DIR/.claude-plugin/plugin.json" ] \
     && [ -f "$SCRIPT_DIR/rules/agents.mdc" ]; then
     ROOT=$SCRIPT_DIR
 else
-    die 'not implemented'
+    require_cmd git
+    ROOT=$(mktemp -d)
+    trap 'rm -rf "$ROOT"' EXIT
+    git clone --quiet --depth 1 "$SOURCE" "$ROOT" || die "could not clone $SOURCE"
 fi
 
 # First "name" value in a machine-written manifest. Not a JSON parser;
