@@ -69,9 +69,9 @@ Four keys: `issues`, `comments`, `logs`, `test-logs` (`key=value` lines, POSIX l
 
 Project-level language policy belongs in that project's `CLAUDE.md` / `AGENTS.md` and overrides resolved keys.
 
-On Claude Code, the hook resolves and injects locale keys. On first run with no user file, the `hashiiiii-locale` skill runs once to set preferences.
+On Claude Code, the SessionStart hook resolves and injects the locale keys each session, falling back to the bundled default when no user file exists. On Codex and Cursor there is no hook; the agent reads the resolved file directly per the `AGENTS.md` Language rules.
 
-On Codex and Cursor, run `hashiiiii-locale` or create `~/.config/rules-for-ai/LOCALE.md` manually.
+Setting locale is always explicit: run `hashiiiii-locale` (any platform) to set or change preferences, or edit `~/.config/rules-for-ai/LOCALE.md` manually, keeping all four keys. There is no session-start prompt that asks for it.
 
 ## Updates
 

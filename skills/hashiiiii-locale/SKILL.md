@@ -1,6 +1,6 @@
 ---
 name: hashiiiii-locale
-description: Use when setting or changing rules-for-ai locale preferences, or when onboarding says no user-level locale is set. Writes the user-level LOCALE.md.
+description: Use when setting or changing rules-for-ai locale preferences. Writes the user-level LOCALE.md.
 ---
 
 # Locale Setup
@@ -18,9 +18,10 @@ There is no project-level LOCALE file. A project-specific language policy is an 
 
 ## When to Use
 
-- When the session context says no user-level locale preference is set (onboarding)
-- When the user asks to change the language of issues, code comments, or logs
+- When the user asks to set or change the language of issues, code comments, or logs
 - When the user wants a project-specific policy — do not write a LOCALE file; add the policy to that project's `CLAUDE.md` / `AGENTS.md` instead
+
+Setting locale is always an explicit action: the user runs this skill when they want to configure it. There is no session-start prompt that asks for it.
 
 ## Arguments
 
@@ -57,10 +58,6 @@ File format (exactly this shape):
     comments=ja_JP
     logs=en_US
     test-logs=en_US
-
-## When the user accepts the defaults
-
-Write all four keys as `en_US` to the user-level path, in the file format above. The existence of the file records the decision, so onboarding never fires again.
 
 ## Common Mistakes
 

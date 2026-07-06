@@ -40,9 +40,4 @@ if [ -n "$locale_file" ]; then
     grep -E '^(issues|comments|logs|test-logs)=' "$locale_file"
 fi
 
-# Onboarding: the existence of the user-level file means "configured".
-if [ ! -f "$USER_CONFIG" ]; then
-    printf '\nNo user-level locale preference is set. At the start of this session, ask the user which language to use for each artifact (Issues, Code comments, Log messages, Test log messages) and save the answer with the hashiiiii-locale skill. If the user is happy with the defaults, save the default file unchanged so this prompt never appears again.\n'
-fi
-
 exit 0
