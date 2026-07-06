@@ -120,8 +120,32 @@ managed_paths() {
 
 # --- cells -----------------------------------------------------------------
 
-claude_install() { die 'not implemented'; }
-claude_uninstall() { die 'not implemented'; }
+claude_run_dir() {
+    if [ "$SCOPE" = user ]; then printf '.'; else printf '%s' "$TARGET"; fi
+}
+
+claude_install() {
+    require_cmd claude
+    run_dir=$(claude_run_dir)
+    (
+        CDPATH='' cd -- "$run_dir" || exit 1
+        claude plugin marketplace add "$SOURCE" --scope "$SCOPE" \
+            && claude plugin marketplace update "$MARKETPLACE" \
+            && claude plugin install "$PLUGIN@$MARKETPLACE" --scope "$SCOPE"
+    ) || die 'claude plugin command failed'
+    printf 'installed %s@%s (%s scope)\n' "$PLUGIN" "$MARKETPLACE" "$SCOPE"
+}
+
+claude_uninstall() {
+    require_cmd claude
+    run_dir=$(claude_run_dir)
+    (
+        CDPATH='' cd -- "$run_dir" || exit 1
+        claude plugin uninstall "$PLUGIN@$MARKETPLACE" --scope "$SCOPE"
+    ) || die 'claude plugin uninstall failed'
+    printf "uninstalled %s@%s (%s scope); run 'claude plugin marketplace remove %s' if nothing else uses the marketplace\n" \
+        "$PLUGIN" "$MARKETPLACE" "$SCOPE" "$MARKETPLACE"
+}
 cursor_user_dest() {
     printf '%s/.cursor/plugins/local/%s' "$HOME" "$PLUGIN"
 }

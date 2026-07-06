@@ -209,6 +209,26 @@ out=$(sh "$src/install.sh" cursor project "$src" 2>&1) && :
 assert_contains "$out" 'itself' 'case 7: refuses to target the source repo'
 rm -rf "$src"
 
+# Case 8: claude cells, end to end against the real `claude` CLI. This
+# writes to the machine's real plugin cache under $HOME, so it is
+# opt-in: RULES_FOR_AI_E2E=1 plus `claude` on PATH (CI sets both).
+if [ "${RULES_FOR_AI_E2E:-}" = 1 ] && command -v claude > /dev/null 2>&1; then
+    src=$(new_source_repo)
+    tgt=$(new_target_repo)
+    RULES_FOR_AI_SOURCE="$src" sh "$src/install.sh" claude project "$tgt" > /dev/null
+    settings="$tgt/.claude/settings.json"
+    assert_file "$settings" 'case 8: project settings written'
+    assert_contains "$(cat "$settings")" '"rfa-test@rfa-mkt": true' 'case 8: plugin enabled at project scope'
+    RULES_FOR_AI_SOURCE="$src" sh "$src/install.sh" --uninstall claude project "$tgt" > /dev/null
+    assert_not_contains "$(cat "$settings")" '"rfa-test@rfa-mkt": true' 'case 8: uninstall disables plugin'
+    RULES_FOR_AI_SOURCE="$src" sh "$src/install.sh" claude local "$tgt" > /dev/null
+    assert_contains "$(cat "$tgt/.claude/settings.local.json")" '"rfa-test@rfa-mkt": true' 'case 8: local scope uses settings.local.json'
+    RULES_FOR_AI_SOURCE="$src" sh "$src/install.sh" --uninstall claude local "$tgt" > /dev/null
+    rm -rf "$src" "$tgt"
+else
+    printf 'SKIP: case 8: claude e2e (set RULES_FOR_AI_E2E=1 with claude on PATH)\n'
+fi
+
 if [ "$failures" -gt 0 ]; then
     printf '%s test(s) failed\n' "$failures"
     exit 1
