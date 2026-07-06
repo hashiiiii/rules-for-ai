@@ -3,7 +3,7 @@
 
 Portable rules and skills for AI coding agents.
 
-Write your rules once and carry them across Claude Code, Codex, and Cursor as an installable, updatable plugin — no more copy-pasting the same instructions into every machine and repository. Language preferences for issues, comments, logs, and test logs are resolved per user and overridden per project. Use it as is, or fork it and swap in your own rules.
+Write your rules once and carry them across Claude Code and Cursor as an installable, updatable plugin — no more copy-pasting the same instructions into every machine and repository. Language preferences for issues, comments, logs, and test logs are resolved per user and overridden per project. Use it as is, or fork it and swap in your own rules.
 
 ## Contents
 
@@ -14,7 +14,7 @@ Write your rules once and carry them across Claude Code, Codex, and Cursor as an
 | `skills/` | Git, GitHub issues, and locale skills |
 | `hooks/` | SessionStart hook (Claude Code) |
 | `rules/` | Cursor always-on rules |
-| `.claude-plugin/`, `.codex-plugin/`, `.cursor-plugin/` | Plugin manifests |
+| `.claude-plugin/`, `.cursor-plugin/` | Plugin manifests |
 
 ## Install
 
@@ -40,18 +40,6 @@ To pin the plugin for a team repo, add to `.claude/settings.json`:
 }
 ```
 
-### Codex
-
-```
-codex plugin marketplace add hashiiiii/rules-for-ai
-```
-
-Install from `/plugins`. Until a SessionStart hook ships, append rules once per machine:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/hashiiiii/rules-for-ai/main/AGENTS.md >> ~/.codex/AGENTS.md
-```
-
 ### Cursor
 
 Import `https://github.com/hashiiiii/rules-for-ai` via a team marketplace. `rules/agents.md` is auto-discovered as an always-applied rule.
@@ -69,7 +57,7 @@ Four keys: `issues`, `comments`, `logs`, `test-logs` (`key=value` lines, POSIX l
 
 Project-level language policy belongs in that project's `CLAUDE.md` / `AGENTS.md` and overrides resolved keys.
 
-On Claude Code, the SessionStart hook resolves and injects the locale keys each session, falling back to the bundled default when no user file exists. On Codex and Cursor there is no hook; the agent reads the resolved file directly per the `AGENTS.md` Language rules.
+On Claude Code, the SessionStart hook resolves and injects the locale keys each session, falling back to the bundled default when no user file exists. On Cursor there is no hook; the agent reads the resolved file directly per the `AGENTS.md` Language rules.
 
 Setting locale is always explicit: run `hashiiiii-locale` (any platform) to set or change preferences, or edit `~/.config/rules-for-ai/LOCALE.md` manually, keeping all four keys. There is no session-start prompt that asks for it.
 
@@ -78,7 +66,6 @@ Setting locale is always explicit: run `hashiiiii-locale` (any platform) to set 
 | Platform | Command |
 |----------|---------|
 | Claude Code | `/plugin marketplace update hashiiiii` |
-| Codex | `codex plugin marketplace upgrade` |
 | Cursor | Marketplace UI (auto-refresh is periodic) |
 
 ## Fork and customize
@@ -89,7 +76,7 @@ Skills are namespaced `hashiiiii-*`. Rename them to your own prefix; `grep -rl '
 
 ## Releasing (maintainers)
 
-1. Bump `version` in all three plugin manifests in lockstep (CI enforces this)
+1. Bump `version` in both plugin manifests in lockstep (CI enforces this)
 2. Tag and push: `git tag vX.Y.Z && git push origin vX.Y.Z`
 
 The release workflow verifies the tag matches the manifest version and creates the GitHub release.
