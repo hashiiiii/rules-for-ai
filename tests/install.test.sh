@@ -167,6 +167,23 @@ out=$(sh "$src/install.sh" cursor local "$tgt" 2>&1)
 assert_contains "$out" 'already tracked' 'case 4: tracked file warning'
 rm -rf "$src" "$tgt"
 
+# Case 5: cursor user clones under a fixture HOME, pulls on re-run, and
+# removes on uninstall. The rfa-test directory name proves the plugin
+# name came from the fixture manifest, not a hard-coded string.
+src=$(new_source_repo)
+home=$(mktemp -d)
+HOME="$home" RULES_FOR_AI_SOURCE="$src" sh "$src/install.sh" cursor user > /dev/null
+dest="$home/.cursor/plugins/local/rfa-test"
+assert_file "$dest/rules/agents.mdc" 'case 5: clone lands under fixture HOME'
+# Update path: a new commit in the source must arrive via pull.
+printf 'v2\n' >> "$src/rules/agents.mdc"
+git_q -C "$src" commit --quiet -am 'v2'
+HOME="$home" RULES_FOR_AI_SOURCE="$src" sh "$src/install.sh" cursor user > /dev/null
+assert_contains "$(cat "$dest/rules/agents.mdc")" 'v2' 'case 5: re-run pulls updates'
+HOME="$home" RULES_FOR_AI_SOURCE="$src" sh "$src/install.sh" --uninstall cursor user > /dev/null
+assert_no_file "$dest" 'case 5: uninstall removes the clone'
+rm -rf "$src" "$home"
+
 if [ "$failures" -gt 0 ]; then
     printf '%s test(s) failed\n' "$failures"
     exit 1

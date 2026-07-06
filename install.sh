@@ -20,7 +20,6 @@
 #
 # Re-running an install is the update path for every cell. Uninstall
 # removes only what install created.
-# shellcheck disable=SC2034,SC2329  # skeleton: used once all cells land
 set -u
 
 # Forks: point this at your fork (see README, Fork and customize).
@@ -120,8 +119,32 @@ managed_paths() {
 
 claude_install() { die 'not implemented'; }
 claude_uninstall() { die 'not implemented'; }
-cursor_user_install() { die 'not implemented'; }
-cursor_user_uninstall() { die 'not implemented'; }
+cursor_user_dest() {
+    printf '%s/.cursor/plugins/local/%s' "$HOME" "$PLUGIN"
+}
+
+cursor_user_install() {
+    require_cmd git
+    dest=$(cursor_user_dest)
+    if [ -d "$dest/.git" ]; then
+        git -C "$dest" pull --ff-only --quiet || die "update failed in $dest"
+    else
+        mkdir -p "$(dirname -- "$dest")"
+        git clone --quiet "$SOURCE" "$dest" || die "could not clone $SOURCE"
+    fi
+    # Cursor also imports plugins enabled for Claude Code from
+    # ~/.claude/plugins; a second copy here would double-load.
+    if grep -qs "\"$PLUGIN@" "$HOME/.claude/settings.json"; then
+        printf 'warning: %s is also enabled for Claude Code; Cursor may import it from ~/.claude/plugins as well\n' "$PLUGIN" >&2
+    fi
+    printf 'installed to %s -- restart Cursor to load it\n' "$dest"
+}
+
+cursor_user_uninstall() {
+    dest=$(cursor_user_dest)
+    rm -rf "$dest"
+    printf 'removed %s -- restart Cursor to unload it\n' "$dest"
+}
 exclude_file() {
     printf '%s/info/exclude' "$(git -C "$TARGET" rev-parse --absolute-git-dir)"
 }
