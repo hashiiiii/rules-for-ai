@@ -11,13 +11,13 @@ Every pull request body uses the same headings in the same order.
 
 Before drafting a pull request:
 
-1. Project instructions (`CLAUDE.md` / `AGENTS.md`) override resolved locale keys; follow them when they state a language for pull requests or issues
+1. Project instructions (`CLAUDE.md` / `AGENTS.md`) override resolved locale keys; follow them when they state a language for pull requests
 2. Otherwise use the resolved locale keys if they are already in context (plugin path)
 3. Otherwise read `~/.config/rules-for-ai/LOCALE.md`
 4. If missing, read the bundled `LOCALE.default.md`
-5. Write the PR **title and body** in the language given by the `issues` key — pull requests share the issue prose locale
+5. Write the PR **title and body** in the language given by the `pull-requests` key
 
-Section headings (Summary, Motivation, ...) are always English — the template structure never changes. When `issues` is `ja_JP`, keep the English headings and write the prose under each heading in Japanese.
+Section headings (Summary, Motivation, ...) are always English — the template structure never changes. When `pull-requests` is `ja_JP`, keep the English headings and write the prose under each heading in Japanese.
 
 ## When to Use
 
