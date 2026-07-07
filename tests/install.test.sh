@@ -5,6 +5,15 @@
 # target repo under a temp root, then runs the installer against them.
 # No mocks or stubs; the installer copies real files and runs real git.
 #
+# Coverage matrix -- every {platform} x {scope} cell is guaranteed:
+#
+#   cursor  project  case 2  .cursor/rules + .cursor/skills placed
+#   cursor  local    case 3  case 2 files + .git/info/exclude entries
+#   cursor  user     case 5  ~/.cursor/plugins/local/<plugin> clone
+#   claude  project  case 8  .claude/settings.json enables the plugin
+#   claude  local    case 8  .claude/settings.local.json enables it
+#   claude  user     case 8  ~/.claude/settings.json enables it
+#
 # The source fixture uses distinctive names (rfa-test / rfa-mkt) so the
 # assertions prove the installer derives names from the manifests
 # instead of hard-coding them.
@@ -209,22 +218,33 @@ out=$(sh "$src/install.sh" cursor project "$src" 2>&1) && :
 assert_contains "$out" 'itself' 'case 7: refuses to target the source repo'
 rm -rf "$src"
 
-# Case 8: claude cells, end to end against the real `claude` CLI. This
-# writes to the machine's real plugin cache under $HOME, so it is
-# opt-in: RULES_FOR_AI_E2E=1 plus `claude` on PATH (CI sets both).
+# Case 8: claude cells at every scope, end to end against the real
+# `claude` CLI. Each scope writes a different settings file; the asserts
+# pin the plugin to the file its scope must use. This writes to the real
+# plugin cache under $HOME, so it is opt-in: RULES_FOR_AI_E2E=1 plus
+# `claude` on PATH (CI sets both).
 if [ "${RULES_FOR_AI_E2E:-}" = 1 ] && command -v claude > /dev/null 2>&1; then
     src=$(new_source_repo)
     tgt=$(new_target_repo)
+    # project scope -> the repo's .claude/settings.json (committed).
     RULES_FOR_AI_SOURCE="$src" sh "$src/install.sh" claude project "$tgt" > /dev/null
     settings="$tgt/.claude/settings.json"
     assert_file "$settings" 'case 8: project settings written'
-    assert_contains "$(cat "$settings")" '"rfa-test@rfa-mkt": true' 'case 8: plugin enabled at project scope'
+    assert_contains "$(cat "$settings")" '"rfa-test@rfa-mkt": true' 'case 8: project scope enables plugin in settings.json'
     RULES_FOR_AI_SOURCE="$src" sh "$src/install.sh" --uninstall claude project "$tgt" > /dev/null
-    assert_not_contains "$(cat "$settings")" '"rfa-test@rfa-mkt": true' 'case 8: uninstall disables plugin'
+    assert_not_contains "$(cat "$settings")" '"rfa-test@rfa-mkt": true' 'case 8: uninstall disables plugin at project scope'
+    # local scope -> the repo's .claude/settings.local.json (gitignored).
     RULES_FOR_AI_SOURCE="$src" sh "$src/install.sh" claude local "$tgt" > /dev/null
-    assert_contains "$(cat "$tgt/.claude/settings.local.json")" '"rfa-test@rfa-mkt": true' 'case 8: local scope uses settings.local.json'
+    assert_contains "$(cat "$tgt/.claude/settings.local.json")" '"rfa-test@rfa-mkt": true' 'case 8: local scope enables plugin in settings.local.json'
     RULES_FOR_AI_SOURCE="$src" sh "$src/install.sh" --uninstall claude local "$tgt" > /dev/null
-    rm -rf "$src" "$tgt"
+    # user scope -> ~/.claude/settings.json. It is HOME-based, not
+    # repo-based, so a fixture HOME isolates the machine's real config.
+    home=$(mktemp -d)
+    HOME="$home" RULES_FOR_AI_SOURCE="$src" sh "$src/install.sh" claude user > /dev/null
+    assert_contains "$(cat "$home/.claude/settings.json")" '"rfa-test@rfa-mkt": true' 'case 8: user scope enables plugin in ~/.claude/settings.json'
+    HOME="$home" RULES_FOR_AI_SOURCE="$src" sh "$src/install.sh" --uninstall claude user > /dev/null
+    assert_not_contains "$(cat "$home/.claude/settings.json")" '"rfa-test@rfa-mkt": true' 'case 8: uninstall disables plugin at user scope'
+    rm -rf "$src" "$tgt" "$home"
 else
     printf 'SKIP: case 8: claude e2e (set RULES_FOR_AI_E2E=1 with claude on PATH)\n'
 fi
