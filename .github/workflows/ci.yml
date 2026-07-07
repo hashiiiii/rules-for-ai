@@ -10,9 +10,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: shellcheck
-        run: shellcheck hooks/session-start.sh scripts/check-versions.sh install.sh tests/session-start.test.sh tests/install.test.sh
+        run: shellcheck hooks/session-start.sh hooks/pr-template-check.sh scripts/check-versions.sh install.sh tests/session-start.test.sh tests/pr-template-check.test.sh tests/install.test.sh
       - name: hook tests
-        run: sh tests/session-start.test.sh
+        run: |
+          sh tests/session-start.test.sh
+          sh tests/pr-template-check.test.sh
       - name: installer tests
         run: sh tests/install.test.sh
       - name: installer e2e (claude cells)

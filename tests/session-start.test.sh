@@ -6,7 +6,7 @@
 # pointing into it. No mocks or stubs; the hook reads real files.
 #
 # LOCALE files are machine-written by the hashiiiii-locale skill, so the
-# fixtures are complete (all four keys).
+# fixtures are complete (all five keys).
 set -u
 
 REPO="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
@@ -53,6 +53,7 @@ run_hook() {
 root=$(new_fixture)
 cat > "$root/project/LOCALE.md" <<'EOF'
 issues=en_GB
+pull-requests=en_GB
 comments=en_GB
 logs=en_GB
 test-logs=en_GB
@@ -68,13 +69,15 @@ root=$(new_fixture)
 mkdir -p "$root/config/rules-for-ai"
 cat > "$root/config/rules-for-ai/LOCALE.md" <<'EOF'
 issues=ja_JP
+pull-requests=ja_JP
 comments=ja_JP
 logs=en_US
 test-logs=en_US
 EOF
 out=$(run_hook "$root")
 assert_contains "$out" 'issues=ja_JP' 'case 2: user file wins over default'
-assert_contains "$out" 'logs=en_US' 'case 2: all four keys are injected'
+assert_contains "$out" 'pull-requests=ja_JP' 'case 2: pull-requests key is injected'
+assert_contains "$out" 'logs=en_US' 'case 2: all five keys are injected'
 rm -rf "$root"
 
 # Case 3: a project-root LOCALE.md is ignored. The project layer was
@@ -86,12 +89,14 @@ root=$(new_fixture)
 mkdir -p "$root/config/rules-for-ai"
 cat > "$root/config/rules-for-ai/LOCALE.md" <<'EOF'
 issues=ja_JP
+pull-requests=ja_JP
 comments=ja_JP
 logs=ja_JP
 test-logs=ja_JP
 EOF
 cat > "$root/project/LOCALE.md" <<'EOF'
 issues=en_GB
+pull-requests=en_GB
 comments=en_GB
 logs=en_GB
 test-logs=en_GB
