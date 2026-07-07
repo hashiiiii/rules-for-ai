@@ -3,7 +3,7 @@
 
 Portable rules and skills for AI coding agents.
 
-Write your rules once and carry them across Claude Code and Cursor as an installable, updatable plugin — no more copy-pasting the same instructions into every machine and repository. Language preferences for issues, comments, logs, and test logs are resolved per user and overridden per project. Use it as is, or fork it and swap in your own rules.
+Write your rules once and carry them across Claude Code and Cursor as an installable, updatable plugin — no more copy-pasting the same instructions into every machine and repository. Language preferences for issues, pull requests, comments, logs, and test logs are resolved per user and overridden per project. Use it as is, or fork it and swap in your own rules.
 
 ## Contents
 
@@ -11,7 +11,7 @@ Write your rules once and carry them across Claude Code and Cursor as an install
 |------|---------|
 | `AGENTS.md` | Shared behavioral principles |
 | `LOCALE.default.md` | Default language settings |
-| `skills/` | Git, GitHub issues, and locale skills |
+| `skills/` | Git, GitHub issue, pull request, and locale skills |
 | `hooks/` | SessionStart hook (Claude Code) |
 | `rules/` | Cursor always-on rule (`.mdc`) |
 | `.claude-plugin/`, `.cursor-plugin/` | Plugin and marketplace manifests |
@@ -52,7 +52,7 @@ Not on Cursor's public marketplace. **Cursor only** — install one way:
 
 ### Set Locale
 
-After install, set which locale the agent uses for `issues`, `code comments`, `logs`, and `test logs`:
+After install, set which locale the agent uses for `issues`, `pull requests`, `code comments`, `logs`, and `test logs`:
 
 Run `/hashiiiii-locale` skill.
 

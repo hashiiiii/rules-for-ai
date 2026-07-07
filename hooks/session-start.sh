@@ -11,8 +11,9 @@
 # CLAUDE.md / AGENTS.md and overrides these keys.
 #
 # LOCALE files are machine-written by the hashiiiii-locale skill: strict
-# key=value lines, always all four keys (issues, comments, logs,
-# test-logs), LF endings. The hook trusts that format; layers never merge.
+# key=value lines, always all five keys (issues, pull-requests,
+# comments, logs, test-logs), LF endings. The hook trusts that format;
+# layers never merge.
 # This script must never break session start: it always exits 0.
 
 set -u
@@ -37,7 +38,7 @@ done
 
 if [ -n "$locale_file" ]; then
     printf '\n## Locale (resolved)\n\n'
-    grep -E '^(issues|comments|logs|test-logs)=' "$locale_file"
+    grep -E '^(issues|pull-requests|comments|logs|test-logs)=' "$locale_file"
 fi
 
 exit 0
