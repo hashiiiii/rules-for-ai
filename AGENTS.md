@@ -24,3 +24,7 @@
 ## Issues
 
 - Follow the `hashiiiii-issues` skill for GitHub issue operations
+
+## Pull Requests
+
+- Follow the `hashiiiii-pull-request` skill for GitHub pull request operations
