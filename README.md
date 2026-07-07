@@ -13,7 +13,7 @@ Write your rules once and carry them across Claude Code and Cursor as an install
 | `LOCALE.default.md` | Default language settings |
 | `skills/` | Git, GitHub issue, pull request, and locale skills |
 | `hooks/` | SessionStart hook (Claude Code) |
-| `install.sh` | One-command installer for every platform × scope |
+| `rules-for-ai.sh` | One-command installer for every platform × scope |
 | `rules/` | Cursor always-on rule (`.mdc`) |
 | `.claude-plugin/`, `.cursor-plugin/` | Plugin and marketplace manifests |
 
@@ -30,18 +30,18 @@ One script installs, updates, and uninstalls everything. Pick a platform (`claud
 Without cloning (run inside the target repo for `project` / `local`):
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/hashiiiii/rules-for-ai/main/install.sh | sh -s -- claude user
-curl -fsSL https://raw.githubusercontent.com/hashiiiii/rules-for-ai/main/install.sh | sh -s -- cursor project
+curl -fsSL https://raw.githubusercontent.com/hashiiiii/rules-for-ai/main/rules-for-ai.sh | sh -s -- install claude user
+curl -fsSL https://raw.githubusercontent.com/hashiiiii/rules-for-ai/main/rules-for-ai.sh | sh -s -- install cursor project
 ```
 
 From a clone:
 
 ```sh
-./install.sh claude project path/to/repo
-./install.sh --uninstall cursor user
+./rules-for-ai.sh install claude project path/to/repo
+./rules-for-ai.sh uninstall cursor user
 ```
 
-Re-running an install is how you update. `--uninstall` removes exactly what install created.
+Re-running `install` is how you update. `uninstall` removes exactly what install created.
 
 ### Claude Code notes
 
@@ -54,7 +54,7 @@ Re-running an install is how you update. `--uninstall` removes exactly what inst
 ```
 
 - Interactive alternative: `/plugin marketplace add hashiiiii/rules-for-ai` then `/plugin install rules-for-ai@hashiiiii`.
-- `install.sh claude project` writes the same pin block you can also add by hand to `.claude/settings.json`:
+- `rules-for-ai.sh install claude project` writes the same pin block you can also add by hand to `.claude/settings.json`:
 
 ```json
 {
@@ -84,7 +84,7 @@ For project/local installs, skip it — it writes user-level config. Put languag
 
 ## Updates
 
-Re-run the same `install.sh` line (or `curl ... | sh -s -- ...`) — every cell updates in place. Claude Code can also use `/plugin marketplace update hashiiiii`.
+Re-run the same `rules-for-ai.sh` line (or `curl ... | sh -s -- ...`) — every cell updates in place. Claude Code can also use `/plugin marketplace update hashiiiii`.
 
 ## Fork and customize
 
@@ -92,7 +92,7 @@ Fork, edit `AGENTS.md` and `skills/`, then install from your fork's URL instead 
 
 Skills are namespaced `hashiiiii-*`. Rename them to your own prefix; `grep -rl 'hashiiiii-' .` lists every file to update.
 
-Also point `REPO` at your fork in `install.sh` and update `repository` in `.claude-plugin/plugin.json`.
+Also point `REPO` at your fork in `rules-for-ai.sh` and update `repository` in `.claude-plugin/plugin.json`.
 
 ## Releasing (maintainers)
 
