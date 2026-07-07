@@ -10,11 +10,17 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: shellcheck
-        run: shellcheck hooks/session-start.sh hooks/pr-template-check.sh scripts/check-versions.sh tests/session-start.test.sh tests/pr-template-check.test.sh
+        run: shellcheck hooks/session-start.sh hooks/pr-template-check.sh scripts/check-versions.sh install.sh tests/session-start.test.sh tests/pr-template-check.test.sh tests/install.test.sh
       - name: hook tests
         run: |
           sh tests/session-start.test.sh
           sh tests/pr-template-check.test.sh
+      - name: installer tests
+        run: sh tests/install.test.sh
+      - name: installer e2e (claude cells)
+        run: |
+          npm install -g @anthropic-ai/claude-code
+          RULES_FOR_AI_E2E=1 sh tests/install.test.sh
       - name: always-on rule drift check
         # rules/agents.mdc mirrors AGENTS.md behind Cursor's required frontmatter;
         # strip the frontmatter block and compare the body byte-for-byte.
