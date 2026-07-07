@@ -45,7 +45,7 @@ Re-running `install` is how you update. `uninstall` removes exactly what install
 
 ### Claude Code notes
 
-- Requires the `claude` CLI. Scopes map to `claude plugin ... --scope`: `user` writes `~/.claude/settings.json`, `project` writes the repo's `.claude/settings.json` (commit it — teammates only accept the trust prompt), `local` writes `.claude/settings.local.json` (gitignored).
+- Requires the `claude` CLI. Scopes map to `claude plugin ... --scope`: `user` writes `~/.claude/settings.json`, `project` writes the repo's `.claude/settings.json` (commit it — teammates only accept the trust prompt), `local` writes `.claude/settings.local.json` (Claude Code ignores it globally, so nothing is added to your repo's `.gitignore`).
 - The SessionStart hook injects `AGENTS.md` and resolved locale keys each session.
 - Installed at user scope but want it off in one repo? Add to that repo's `.claude/settings.json`:
 
