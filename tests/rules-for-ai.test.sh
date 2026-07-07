@@ -1,5 +1,5 @@
 #!/bin/sh
-# Tests for install.sh.
+# Tests for rules-for-ai.sh.
 #
 # Each case builds a real rules-for-ai-shaped source repo and a real
 # target repo under a temp root, then runs the installer against them.
@@ -64,7 +64,7 @@ assert_no_file() {
 git_q() { git -c user.email=test@test.invalid -c user.name=test "$@"; }
 
 # new_source_repo: minimal rules-for-ai-shaped repo with the real
-# install.sh copied in, committed so it can be cloned. Prints its path.
+# rules-for-ai.sh copied in, committed so it can be cloned. Prints its path.
 new_source_repo() {
     src=$(mktemp -d)
     mkdir -p "$src/.claude-plugin" "$src/rules" \
@@ -88,7 +88,7 @@ EOF
     printf '# git skill fixture\n' > "$src/skills/hashiiiii-git/SKILL.md"
     printf '# issues skill fixture\n' > "$src/skills/hashiiiii-issues/SKILL.md"
     printf '# locale skill fixture\n' > "$src/skills/hashiiiii-locale/SKILL.md"
-    cp "$REPO/install.sh" "$src/install.sh"
+    cp "$REPO/rules-for-ai.sh" "$src/rules-for-ai.sh"
     git_q -C "$src" init --quiet
     git_q -C "$src" add -A
     git_q -C "$src" commit --quiet -m fixture
@@ -104,23 +104,36 @@ new_target_repo() {
 
 # Case 1: argument validation fails fast with a non-zero exit.
 src=$(new_source_repo)
-if sh "$src/install.sh" > /dev/null 2>&1; then
+if sh "$src/rules-for-ai.sh" > /dev/null 2>&1; then
     printf 'FAIL: case 1: no arguments must fail\n'; failures=$((failures + 1))
 else
     printf 'PASS: case 1: no arguments must fail\n'
 fi
-if sh "$src/install.sh" emacs user > /dev/null 2>&1; then
+if sh "$src/rules-for-ai.sh" frobnicate cursor user > /dev/null 2>&1; then
+    printf 'FAIL: case 1: unknown verb must fail\n'; failures=$((failures + 1))
+else
+    printf 'PASS: case 1: unknown verb must fail\n'
+fi
+if sh "$src/rules-for-ai.sh" install emacs user > /dev/null 2>&1; then
     printf 'FAIL: case 1: unknown platform must fail\n'; failures=$((failures + 1))
 else
     printf 'PASS: case 1: unknown platform must fail\n'
 fi
-if sh "$src/install.sh" claude global > /dev/null 2>&1; then
+if sh "$src/rules-for-ai.sh" install claude global > /dev/null 2>&1; then
     printf 'FAIL: case 1: unknown scope must fail\n'; failures=$((failures + 1))
 else
     printf 'PASS: case 1: unknown scope must fail\n'
 fi
-out=$(sh "$src/install.sh" cursor user /tmp 2>&1) && :
+out=$(sh "$src/rules-for-ai.sh" install cursor user /tmp 2>&1) && :
 assert_contains "$out" 'target-dir does not apply' 'case 1: user scope rejects target-dir'
+# help is an explicit request: usage to stdout, exit 0.
+out=$(sh "$src/rules-for-ai.sh" help) && rc=0 || rc=$?
+assert_contains "$out" 'usage:' 'case 1: help prints usage'
+if [ "${rc:-1}" -eq 0 ]; then
+    printf 'PASS: case 1: help exits 0\n'
+else
+    printf 'FAIL: case 1: help exits non-zero (%s)\n' "$rc"; failures=$((failures + 1))
+fi
 rm -rf "$src"
 
 # Case 2: cursor project install / update / uninstall. An unmanaged
@@ -130,16 +143,16 @@ src=$(new_source_repo)
 tgt=$(new_target_repo)
 mkdir -p "$tgt/.cursor/rules"
 printf 'team rule\n' > "$tgt/.cursor/rules/team.mdc"
-sh "$src/install.sh" cursor project "$tgt" > /dev/null
+sh "$src/rules-for-ai.sh" install cursor project "$tgt" > /dev/null
 assert_file "$tgt/.cursor/rules/agents.mdc" 'case 2: rule copied'
 assert_file "$tgt/.cursor/skills/hashiiiii-git/SKILL.md" 'case 2: git skill copied'
 assert_file "$tgt/.cursor/skills/hashiiiii-issues/SKILL.md" 'case 2: issues skill copied'
 assert_no_file "$tgt/.cursor/skills/hashiiiii-locale" 'case 2: locale skill excluded'
 # Re-run is the update path: a changed source file must overwrite.
 printf 'changed\n' > "$src/rules/agents.mdc"
-sh "$src/install.sh" cursor project "$tgt" > /dev/null
+sh "$src/rules-for-ai.sh" install cursor project "$tgt" > /dev/null
 assert_contains "$(cat "$tgt/.cursor/rules/agents.mdc")" 'changed' 'case 2: re-run overwrites managed file'
-sh "$src/install.sh" --uninstall cursor project "$tgt" > /dev/null
+sh "$src/rules-for-ai.sh" uninstall cursor project "$tgt" > /dev/null
 assert_no_file "$tgt/.cursor/rules/agents.mdc" 'case 2: uninstall removes rule'
 assert_no_file "$tgt/.cursor/skills" 'case 2: uninstall prunes empty skills dir'
 assert_file "$tgt/.cursor/rules/team.mdc" 'case 2: unmanaged file survives uninstall'
@@ -149,18 +162,18 @@ rm -rf "$src" "$tgt"
 # deduplicated on re-run and removed again on uninstall.
 src=$(new_source_repo)
 tgt=$(new_target_repo)
-sh "$src/install.sh" cursor local "$tgt" > /dev/null
+sh "$src/rules-for-ai.sh" install cursor local "$tgt" > /dev/null
 exclude="$tgt/.git/info/exclude"
 assert_contains "$(cat "$exclude")" '.cursor/rules/agents.mdc' 'case 3: exclude lists the rule'
 assert_contains "$(cat "$exclude")" '.cursor/skills/hashiiiii-git' 'case 3: exclude lists a skill'
-sh "$src/install.sh" cursor local "$tgt" > /dev/null
+sh "$src/rules-for-ai.sh" install cursor local "$tgt" > /dev/null
 dups=$(grep -cxF '.cursor/rules/agents.mdc' "$exclude")
 if [ "$dups" -eq 1 ]; then
     printf 'PASS: case 3: re-run does not duplicate exclude entries\n'
 else
     printf 'FAIL: case 3: exclude entry appears %s times\n' "$dups"; failures=$((failures + 1))
 fi
-sh "$src/install.sh" --uninstall cursor local "$tgt" > /dev/null
+sh "$src/rules-for-ai.sh" uninstall cursor local "$tgt" > /dev/null
 assert_not_contains "$(cat "$exclude")" '.cursor/rules/agents.mdc' 'case 3: uninstall cleans exclude'
 assert_no_file "$tgt/.cursor" 'case 3: uninstall removes files'
 rm -rf "$src" "$tgt"
@@ -169,10 +182,10 @@ rm -rf "$src" "$tgt"
 # must warn and point at project scope instead.
 src=$(new_source_repo)
 tgt=$(new_target_repo)
-sh "$src/install.sh" cursor project "$tgt" > /dev/null
+sh "$src/rules-for-ai.sh" install cursor project "$tgt" > /dev/null
 git_q -C "$tgt" add -A
 git_q -C "$tgt" commit --quiet -m 'adopt project scope'
-out=$(sh "$src/install.sh" cursor local "$tgt" 2>&1)
+out=$(sh "$src/rules-for-ai.sh" install cursor local "$tgt" 2>&1)
 assert_contains "$out" 'already tracked' 'case 4: tracked file warning'
 rm -rf "$src" "$tgt"
 
@@ -181,15 +194,15 @@ rm -rf "$src" "$tgt"
 # name came from the fixture manifest, not a hard-coded string.
 src=$(new_source_repo)
 home=$(mktemp -d)
-HOME="$home" RULES_FOR_AI_SOURCE="$src" sh "$src/install.sh" cursor user > /dev/null
+HOME="$home" RULES_FOR_AI_SOURCE="$src" sh "$src/rules-for-ai.sh" install cursor user > /dev/null
 dest="$home/.cursor/plugins/local/rfa-test"
 assert_file "$dest/rules/agents.mdc" 'case 5: clone lands under fixture HOME'
 # Update path: a new commit in the source must arrive via pull.
 printf 'v2\n' >> "$src/rules/agents.mdc"
 git_q -C "$src" commit --quiet -am 'v2'
-HOME="$home" RULES_FOR_AI_SOURCE="$src" sh "$src/install.sh" cursor user > /dev/null
+HOME="$home" RULES_FOR_AI_SOURCE="$src" sh "$src/rules-for-ai.sh" install cursor user > /dev/null
 assert_contains "$(cat "$dest/rules/agents.mdc")" 'v2' 'case 5: re-run pulls updates'
-HOME="$home" RULES_FOR_AI_SOURCE="$src" sh "$src/install.sh" --uninstall cursor user > /dev/null
+HOME="$home" RULES_FOR_AI_SOURCE="$src" sh "$src/rules-for-ai.sh" uninstall cursor user > /dev/null
 assert_no_file "$dest" 'case 5: uninstall removes the clone'
 rm -rf "$src" "$home"
 
@@ -199,10 +212,10 @@ rm -rf "$src" "$home"
 src=$(new_source_repo)
 tgt=$(new_target_repo)
 outside=$(mktemp -d)
-cp "$REPO/install.sh" "$outside/install.sh"
+cp "$REPO/rules-for-ai.sh" "$outside/rules-for-ai.sh"
 work="$outside/tmpwork"
 mkdir "$work"
-TMPDIR="$work" RULES_FOR_AI_SOURCE="$src" sh "$outside/install.sh" cursor project "$tgt" > /dev/null
+TMPDIR="$work" RULES_FOR_AI_SOURCE="$src" sh "$outside/rules-for-ai.sh" install cursor project "$tgt" > /dev/null
 assert_file "$tgt/.cursor/rules/agents.mdc" 'case 6: curl mode installs'
 if [ -z "$(ls -A "$work")" ]; then
     printf 'PASS: case 6: temp clone cleaned up on exit\n'
@@ -214,7 +227,7 @@ rm -rf "$src" "$tgt" "$outside"
 # Case 7: the installer must refuse to target its own repo (the
 # run-from-clone footgun).
 src=$(new_source_repo)
-out=$(sh "$src/install.sh" cursor project "$src" 2>&1) && :
+out=$(sh "$src/rules-for-ai.sh" install cursor project "$src" 2>&1) && :
 assert_contains "$out" 'itself' 'case 7: refuses to target the source repo'
 rm -rf "$src"
 
@@ -227,22 +240,22 @@ if [ "${RULES_FOR_AI_E2E:-}" = 1 ] && command -v claude > /dev/null 2>&1; then
     src=$(new_source_repo)
     tgt=$(new_target_repo)
     # project scope -> the repo's .claude/settings.json (committed).
-    RULES_FOR_AI_SOURCE="$src" sh "$src/install.sh" claude project "$tgt" > /dev/null
+    RULES_FOR_AI_SOURCE="$src" sh "$src/rules-for-ai.sh" install claude project "$tgt" > /dev/null
     settings="$tgt/.claude/settings.json"
     assert_file "$settings" 'case 8: project settings written'
     assert_contains "$(cat "$settings")" '"rfa-test@rfa-mkt": true' 'case 8: project scope enables plugin in settings.json'
-    RULES_FOR_AI_SOURCE="$src" sh "$src/install.sh" --uninstall claude project "$tgt" > /dev/null
+    RULES_FOR_AI_SOURCE="$src" sh "$src/rules-for-ai.sh" uninstall claude project "$tgt" > /dev/null
     assert_not_contains "$(cat "$settings")" '"rfa-test@rfa-mkt": true' 'case 8: uninstall disables plugin at project scope'
     # local scope -> the repo's .claude/settings.local.json (gitignored).
-    RULES_FOR_AI_SOURCE="$src" sh "$src/install.sh" claude local "$tgt" > /dev/null
+    RULES_FOR_AI_SOURCE="$src" sh "$src/rules-for-ai.sh" install claude local "$tgt" > /dev/null
     assert_contains "$(cat "$tgt/.claude/settings.local.json")" '"rfa-test@rfa-mkt": true' 'case 8: local scope enables plugin in settings.local.json'
-    RULES_FOR_AI_SOURCE="$src" sh "$src/install.sh" --uninstall claude local "$tgt" > /dev/null
+    RULES_FOR_AI_SOURCE="$src" sh "$src/rules-for-ai.sh" uninstall claude local "$tgt" > /dev/null
     # user scope -> ~/.claude/settings.json. It is HOME-based, not
     # repo-based, so a fixture HOME isolates the machine's real config.
     home=$(mktemp -d)
-    HOME="$home" RULES_FOR_AI_SOURCE="$src" sh "$src/install.sh" claude user > /dev/null
+    HOME="$home" RULES_FOR_AI_SOURCE="$src" sh "$src/rules-for-ai.sh" install claude user > /dev/null
     assert_contains "$(cat "$home/.claude/settings.json")" '"rfa-test@rfa-mkt": true' 'case 8: user scope enables plugin in ~/.claude/settings.json'
-    HOME="$home" RULES_FOR_AI_SOURCE="$src" sh "$src/install.sh" --uninstall claude user > /dev/null
+    HOME="$home" RULES_FOR_AI_SOURCE="$src" sh "$src/rules-for-ai.sh" uninstall claude user > /dev/null
     assert_not_contains "$(cat "$home/.claude/settings.json")" '"rfa-test@rfa-mkt": true' 'case 8: uninstall disables plugin at user scope'
     rm -rf "$src" "$tgt" "$home"
 else

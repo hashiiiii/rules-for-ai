@@ -1,9 +1,9 @@
 #!/bin/sh
-# install.sh -- install, update, or uninstall rules-for-ai for Claude
+# rules-for-ai.sh -- install, update, or uninstall rules-for-ai for Claude
 # Code and Cursor at user, project, or local scope.
 #
 # Usage:
-#   ./install.sh [--uninstall] <claude|cursor> <user|project|local> [target-dir]
+#   ./rules-for-ai.sh <install|uninstall> <claude|cursor> <user|project|local> [target-dir]
 #
 # Scopes:
 #   user     every project on this machine
@@ -31,7 +31,14 @@ REPO="https://github.com/hashiiiii/rules-for-ai"
 LOCALE_SKILL="hashiiiii-locale"
 
 usage() {
-    printf 'usage: %s [--uninstall] <claude|cursor> <user|project|local> [target-dir]\n' "$0" >&2
+    # "help" prints to stdout and exits 0 (explicit request); anything
+    # else is the error path: stderr and exit 1.
+    _u="usage: $0 <install|uninstall> <claude|cursor> <user|project|local> [target-dir]"
+    if [ "${1:-}" = help ]; then
+        printf '%s\n' "$_u"
+        exit 0
+    fi
+    printf '%s\n' "$_u" >&2
     exit 1
 }
 
@@ -46,11 +53,11 @@ require_cmd() {
 
 # --- argument parsing --------------------------------------------------
 
-MODE=install
-if [ "${1:-}" = "--uninstall" ]; then
-    MODE=uninstall
-    shift
-fi
+case "${1:-}" in
+    install|uninstall) ACTION=$1; shift ;;
+    -h|--help|help) usage help ;;
+    *) usage ;;
+esac
 if [ $# -lt 2 ] || [ $# -gt 3 ]; then
     usage
 fi
@@ -222,12 +229,12 @@ cursor_project_uninstall() {
 
 if [ "$PLATFORM" = claude ]; then
     [ "$SCOPE" = user ] || resolve_target
-    if [ "$MODE" = install ]; then claude_install; else claude_uninstall; fi
+    if [ "$ACTION" = install ]; then claude_install; else claude_uninstall; fi
 else
     if [ "$SCOPE" = user ]; then
-        if [ "$MODE" = install ]; then cursor_user_install; else cursor_user_uninstall; fi
+        if [ "$ACTION" = install ]; then cursor_user_install; else cursor_user_uninstall; fi
     else
         resolve_target
-        if [ "$MODE" = install ]; then cursor_project_install; else cursor_project_uninstall; fi
+        if [ "$ACTION" = install ]; then cursor_project_install; else cursor_project_uninstall; fi
     fi
 fi
