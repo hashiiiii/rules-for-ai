@@ -37,14 +37,14 @@ flowchart LR
 
 **Without cloning** — for **project** or **local**, run inside the target repo:
 
-```sh
+```bash
 curl -fsSL https://raw.githubusercontent.com/hashiiiii/rules-for-ai/main/rules-for-ai.sh | sh -s -- install claude user
 curl -fsSL https://raw.githubusercontent.com/hashiiiii/rules-for-ai/main/rules-for-ai.sh | sh -s -- install cursor project
 ```
 
 **From a clone:**
 
-```sh
+```bash
 ./rules-for-ai.sh install claude project path/to/repo
 ./rules-for-ai.sh uninstall cursor user
 ```
@@ -107,7 +107,7 @@ Fork, edit [AGENTS.md](./AGENTS.md) and [skills/](./skills/), then install from 
 
 Skills use the `hashiiiii-` prefix. Rename to your own and find every reference:
 
-```sh
+```bash
 grep -rl 'hashiiiii-' .
 ```
 
@@ -118,7 +118,7 @@ Also set `REPO` in [rules-for-ai.sh](./rules-for-ai.sh) and `repository` in [.cl
 1. Bump `version` in both plugin manifests in lockstep (CI enforces this).
 2. Tag and push:
 
-```sh
+```bash
 git tag vX.Y.Z && git push origin vX.Y.Z
 ```
 
