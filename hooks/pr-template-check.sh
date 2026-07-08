@@ -2,8 +2,10 @@
 # PreToolUse hook for the rules-for-ai plugin.
 #
 # Blocks `gh pr create` / `gh pr edit` when the pull request body is set
-# inline but is missing one of the sections the hashiiiii-pull-request
-# skill requires: Summary, Motivation, Changes, Testing.
+# inline but is missing one of the sections required by the repository
+# pull request template. When the repository has no template, falls back
+# to the default sections from the hashiiiii-pull-request skill:
+# Summary, Motivation, Changes, Testing.
 #
 # The hook reads the PreToolUse payload from stdin and scans the Bash
 # command. An inline body (--body / -b, heredoc included) carries the
@@ -39,17 +41,90 @@ case "$input" in
     *) exit 0 ;;
 esac
 
+find_template_file() {
+    root=$(git rev-parse --show-toplevel 2>/dev/null) || return 1
+
+    for path in \
+        "$root/.github/pull_request_template.md" \
+        "$root/.github/PULL_REQUEST_TEMPLATE.md" \
+        "$root/pull_request_template.md" \
+        "$root/docs/pull_request_template.md"
+    do
+        if [ -f "$path" ]; then
+            printf '%s\n' "$path"
+            return 0
+        fi
+    done
+
+    dir="$root/.github/PULL_REQUEST_TEMPLATE"
+    if [ -d "$dir" ]; then
+        count=$(find "$dir" -maxdepth 1 -name '*.md' -print | wc -l | tr -d ' ')
+        case "$count" in
+            0) return 1 ;;
+            1) find "$dir" -maxdepth 1 -name '*.md' -print | head -n 1
+               return 0 ;;
+            *) return 2 ;;
+        esac
+    fi
+
+    return 1
+}
+
+extract_sections() {
+    template_file=$1
+    grep -E '^## [^#]' "$template_file" 2>/dev/null \
+        | sed 's/^## //' \
+        | sed 's/[[:space:]]*$//' \
+        | sed '/^$/d'
+}
+
+# resolve_sections writes required section names to stdout.
+# Exit 0: sections resolved. Exit 3: fail open (multiple templates).
+resolve_sections() {
+    template_file=$(find_template_file)
+    status=$?
+
+    case "$status" in
+        0)
+            sections=$(extract_sections "$template_file")
+            if [ -n "$sections" ]; then
+                printf '%s\n' "$sections"
+                return 0
+            fi
+            ;;
+        2) return 3 ;;
+    esac
+
+    for section in Summary Motivation Changes Testing; do
+        printf '%s\n' "$section"
+    done
+    return 0
+}
+
+if ! sections=$(resolve_sections); then
+    exit 0
+fi
+
 # Collect the required sections that are absent from the body.
 missing=''
-for section in Summary Motivation Changes Testing; do
+while IFS= read -r section; do
+    [ -n "$section" ] || continue
     case "$input" in
         *"## $section"*) ;;
         *) missing="$missing $section" ;;
     esac
-done
+done <<EOF
+$sections
+EOF
 
 [ -z "$missing" ] && exit 0
 
-printf 'Pull request body is missing required section(s):%s\n' "$missing" >&2
-printf 'Follow the hashiiiii-pull-request skill: the body needs the headings ## Summary, ## Motivation, ## Changes, and ## Testing. Rewrite the body and retry.\n' >&2
+template_file=$(find_template_file 2>/dev/null || true)
+if [ -n "$template_file" ]; then
+    printf 'Pull request body is missing required section(s):%s\n' "$missing" >&2
+    printf 'Follow the repository pull request template (%s): include every ## heading it defines. Rewrite the body and retry.\n' "$template_file" >&2
+else
+    printf 'Pull request body is missing required section(s):%s\n' "$missing" >&2
+    printf 'Follow the hashiiiii-pull-request skill default: the body needs the headings ## Summary, ## Motivation, ## Changes, and ## Testing. Rewrite the body and retry.\n' >&2
+fi
 exit 2

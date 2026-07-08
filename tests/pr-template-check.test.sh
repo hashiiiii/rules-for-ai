@@ -79,6 +79,31 @@ assert_exit 'edit with incomplete body is blocked' 2 \
 assert_block_mentions 'edit block names the missing section' 'Motivation' \
     "$(payload "gh pr edit 12 --body '## Summary\ns\n## Changes\n- c\n## Testing\nt'")"
 
+# When the repository defines its own template, enforce that structure.
+template_repo=$(mktemp -d)
+(
+    cd "$template_repo" || exit 1
+    git init -q
+    git config user.email 'test@example.com'
+    git config user.name 'test'
+    mkdir -p .github
+    printf '%s\n' '## Description' '## Checklist' > .github/pull_request_template.md
+    git add .github/pull_request_template.md
+    git commit -q -m 'add template'
+)
+custom_body='## Description\ndetails\n## Checklist\n- [ ] done'
+missing_custom='## Description\ndetails'
+(
+    cd "$template_repo" || exit 1
+    assert_exit 'repo template body passes' 0 \
+        "$(payload "gh pr create --title x --body '$custom_body'")"
+    assert_exit 'repo template missing section is blocked' 2 \
+        "$(payload "gh pr create --title x --body '$missing_custom'")"
+    assert_block_mentions 'repo template block cites template file' 'pull_request_template.md' \
+        "$(payload "gh pr create --title x --body '$missing_custom'")"
+)
+rm -rf "$template_repo"
+
 if [ "$failures" -gt 0 ]; then
     printf '%s test(s) failed\n' "$failures"
     exit 1
