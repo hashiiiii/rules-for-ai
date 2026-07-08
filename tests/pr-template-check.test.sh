@@ -104,6 +104,51 @@ missing_custom='## Description\ndetails'
 )
 rm -rf "$template_repo"
 
+# ATX headings at levels other than ## are enforced with their exact prefix.
+h3_repo=$(mktemp -d)
+(
+    cd "$h3_repo" || exit 1
+    git init -q
+    git config user.email 'test@example.com'
+    git config user.name 'test'
+    mkdir -p .github
+    printf '%s\n' '### Summary' '### Testing' > .github/pull_request_template.md
+    git add .github/pull_request_template.md
+    git commit -q -m 'add h3 template'
+)
+h3_body='### Summary\nwhat\n### Testing\nran tests'
+missing_h3='### Summary\nwhat'
+(
+    cd "$h3_repo" || exit 1
+    assert_exit 'h3 template body passes' 0 \
+        "$(payload "gh pr create --title x --body '$h3_body'")"
+    assert_exit 'h3 template missing section is blocked' 2 \
+        "$(payload "gh pr create --title x --body '$missing_h3'")"
+)
+rm -rf "$h3_repo"
+
+# A template with no ATX headings cannot be validated; fail open.
+no_heading_repo=$(mktemp -d)
+(
+    cd "$no_heading_repo" || exit 1
+    git init -q
+    git config user.email 'test@example.com'
+    git config user.name 'test'
+    mkdir -p .github
+    printf '%s\n' \
+        '<!-- Describe your changes below -->' \
+        '- [ ] I added tests' \
+        '- [ ] I updated docs' > .github/pull_request_template.md
+    git add .github/pull_request_template.md
+    git commit -q -m 'add checklist-only template'
+)
+(
+    cd "$no_heading_repo" || exit 1
+    assert_exit 'template without headings fails open' 0 \
+        "$(payload "gh pr create --title x --body 'no headings here'")"
+)
+rm -rf "$no_heading_repo"
+
 if [ "$failures" -gt 0 ]; then
     printf '%s test(s) failed\n' "$failures"
     exit 1

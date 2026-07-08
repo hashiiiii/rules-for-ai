@@ -70,51 +70,55 @@ find_template_file() {
     return 1
 }
 
-extract_sections() {
+# extract_headings writes ATX markdown headings from the template to stdout.
+# Lines must start with 1-6 # characters followed by a space; setext headings
+# and non-markdown structures are intentionally ignored.
+extract_headings() {
     template_file=$1
-    grep -E '^## [^#]' "$template_file" 2>/dev/null \
-        | sed 's/^## //' \
+    grep -E '^#{1,6} [^#]' "$template_file" 2>/dev/null \
         | sed 's/[[:space:]]*$//' \
         | sed '/^$/d'
 }
 
-# resolve_sections writes required section names to stdout.
-# Exit 0: sections resolved. Exit 3: fail open (multiple templates).
-resolve_sections() {
+# resolve_headings writes required heading lines to stdout.
+# Exit 0: headings resolved. Exit 3: fail open (multiple templates or a
+# template with no extractable ATX headings).
+resolve_headings() {
     template_file=$(find_template_file)
     status=$?
 
     case "$status" in
         0)
-            sections=$(extract_sections "$template_file")
-            if [ -n "$sections" ]; then
-                printf '%s\n' "$sections"
+            headings=$(extract_headings "$template_file")
+            if [ -n "$headings" ]; then
+                printf '%s\n' "$headings"
                 return 0
             fi
+            return 3
             ;;
         2) return 3 ;;
     esac
 
-    for section in Summary Motivation Changes Testing; do
-        printf '%s\n' "$section"
+    for heading in '## Summary' '## Motivation' '## Changes' '## Testing'; do
+        printf '%s\n' "$heading"
     done
     return 0
 }
 
-if ! sections=$(resolve_sections); then
+if ! headings=$(resolve_headings); then
     exit 0
 fi
 
-# Collect the required sections that are absent from the body.
+# Collect the required headings that are absent from the body.
 missing=''
-while IFS= read -r section; do
-    [ -n "$section" ] || continue
+while IFS= read -r heading; do
+    [ -n "$heading" ] || continue
     case "$input" in
-        *"## $section"*) ;;
-        *) missing="$missing $section" ;;
+        *"$heading"*) ;;
+        *) missing="$missing $heading" ;;
     esac
 done <<EOF
-$sections
+$headings
 EOF
 
 [ -z "$missing" ] && exit 0
@@ -122,7 +126,7 @@ EOF
 template_file=$(find_template_file 2>/dev/null || true)
 if [ -n "$template_file" ]; then
     printf 'Pull request body is missing required section(s):%s\n' "$missing" >&2
-    printf 'Follow the repository pull request template (%s): include every ## heading it defines. Rewrite the body and retry.\n' "$template_file" >&2
+    printf 'Follow the repository pull request template (%s): include every markdown heading it defines. Rewrite the body and retry.\n' "$template_file" >&2
 else
     printf 'Pull request body is missing required section(s):%s\n' "$missing" >&2
     printf 'Follow the hashiiiii-pull-request skill default: the body needs the headings ## Summary, ## Motivation, ## Changes, and ## Testing. Rewrite the body and retry.\n' >&2

@@ -34,7 +34,7 @@ Before drafting, look for a pull request template in the target repository:
 3. `pull_request_template.md` at the repository root
 4. A single `.md` file under `.github/PULL_REQUEST_TEMPLATE/`
 
-When one exists, read it and follow its headings, order, and subsections verbatim. Fill in every `##` section the template defines. If the repository has multiple templates under `.github/PULL_REQUEST_TEMPLATE/`, follow whichever template the user or repository conventions point to.
+When one exists, read it and follow its headings, order, and subsections verbatim. Fill in every markdown ATX heading the template defines (`#` through `######`). If the repository has multiple templates under `.github/PULL_REQUEST_TEMPLATE/`, follow whichever template the user or repository conventions point to.
 
 ## Default Template (fallback)
 
@@ -88,5 +88,5 @@ The `<type>: <subject>` title follows the same type vocabulary as the branch and
 | Ignoring the repo template | Read the repository template first; only use the default fallback when none exists |
 | Empty or vague Testing | Paste the actual commands and their output |
 | Motivation folded into Summary | Summary is what changed; Motivation is why, with the issue link |
-| Missing a template section | Include every `##` heading from the template you are following |
+| Missing a template section | Include every markdown ATX heading from the template you are following |
 | Reordering or renaming headings | Keep the template's headings verbatim and in order |
