@@ -13,9 +13,9 @@
 ## Language
 
 - Project instructions (`CLAUDE.md` / `AGENTS.md`) override resolved locale keys
-- If resolved locale keys are already in context (plugin path), follow them
+- If resolved locale keys are already in context (hook-injected), follow them
 - Otherwise read `~/.config/rules-for-ai/LOCALE.md`
-- If missing, read the plugin's bundled `LOCALE.default.md`
+- If missing, read the plugin's bundled `LOCALE.default.md` if present; else use `en_US` for all keys
 
 ## Git
 

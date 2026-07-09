@@ -12,7 +12,7 @@ Write your rules once and carry them across Claude Code and Cursor as an install
 | [AGENTS.md](./AGENTS.md) | Shared behavioral principles |
 | [LOCALE.default.md](./LOCALE.default.md) | Default language settings |
 | [skills/](./skills/) | Git, GitHub issue, pull request, and locale skills |
-| [hooks/](./hooks/) | SessionStart hook (Claude Code) |
+| [hooks/](./hooks/) | Session-start hooks (Claude Code and Cursor) |
 | [rules-for-ai.sh](./rules-for-ai.sh) | One-command installer for every platform × scope |
 | [rules/](./rules/) | Cursor always-on rule |
 | [.claude-plugin/](./.claude-plugin/), [.cursor-plugin/](./.cursor-plugin/) | Plugin and marketplace manifests |
@@ -85,7 +85,7 @@ Prefer the UI? Run `/plugin marketplace add hashiiiii/rules-for-ai`, then `/plug
 ### Cursor
 
 - **user** — clones into `~/.cursor/plugins/local/` (restart Cursor after). Teams/Enterprise can import the repo from Settings → Plugins → Import from Repo instead.
-- **project** — copies [rules/agents.mdc](./rules/agents.mdc) into `.cursor/rules/` and the skills (except `hashiiiii-locale`) into `.cursor/skills/`. Commit them; teammates need no install.
+- **project** — copies [rules/agents.mdc](./rules/agents.mdc) into `.cursor/rules/`, the skills (except `hashiiiii-locale`) into `.cursor/skills/`, and the locale hook into `.cursor/rules-for-ai/`; writes `.cursor/hooks.json` unless one already exists (then it prints the entry to add manually). Commit them; teammates need no install, though Cursor may ask each developer to approve the hook.
 - **local** — same as **project**, plus `.git/info/exclude` entries so nothing appears in `git status`.
 
 > [!WARNING]
@@ -96,6 +96,21 @@ Prefer the UI? Run `/plugin marketplace add hashiiiii/rules-for-ai`, then `/plug
 After a **user** install, run the `/hashiiiii-locale` skill to set languages for issues, pull requests, code comments, logs, and test logs.
 
 For **project** or **local**, skip it — that skill writes user-level config. Put language policy in the target project's [CLAUDE.md](./CLAUDE.md) or Cursor rules instead; project instructions override resolved locale keys by design.
+
+#### How locale reaches the model
+
+Two layers decide the effective language:
+
+1. **Project instructions** — a repo's own `CLAUDE.md` / `AGENTS.md` language policy always wins.
+2. **Resolved keys** — otherwise the first existing file wins as a whole: `~/.config/rules-for-ai/LOCALE.md`, else the plugin's bundled [LOCALE.default.md](./LOCALE.default.md), else an inline `en_US` default. Layers never merge.
+
+| Platform | Scope | Resolved keys delivered by |
+|----------|-------|----------------------------|
+| Claude Code | user / project / local | SessionStart hook |
+| Cursor | user | the model reads the cloned plugin files |
+| Cursor | project / local | `sessionStart` hook in `.cursor/hooks.json`, after each developer approves it |
+
+Cursor project and local installs carry no bundled default, so their hook falls back to inline `en_US` when no user-level `LOCALE.md` exists.
 
 ## Updates
 
