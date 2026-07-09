@@ -116,8 +116,12 @@ resolve_target() {
 }
 
 # Relative paths installed into a target repo by the cursor cells.
+# .cursor/hooks.json is deliberately NOT listed: it is only ours when
+# byte-identical to cursor_hooks_json (see hooks_json_owned).
 managed_paths() {
     printf '.cursor/rules/agents.mdc\n'
+    printf '.cursor/rules-for-ai/resolve-locale.sh\n'
+    printf '.cursor/rules-for-ai/session-start-cursor.sh\n'
     for skill_dir in "$ROOT"/skills/*/; do
         skill=$(basename "$skill_dir")
         [ "$skill" = "$LOCALE_SKILL" ] && continue
@@ -183,6 +187,28 @@ exclude_file() {
     printf '%s/info/exclude' "$(git -C "$TARGET" rev-parse --absolute-git-dir)"
 }
 
+# Canonical .cursor/hooks.json written when the target has none. The
+# command is relative because Cursor runs sessionStart hooks with
+# cwd = project root (verified 2026-07-10 via a cursor-agent spike).
+cursor_hooks_json() {
+    cat <<'EOF'
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      { "command": "sh .cursor/rules-for-ai/session-start-cursor.sh" }
+    ]
+  }
+}
+EOF
+}
+
+# True when the target's hooks.json is byte-identical to ours, i.e. we
+# created it and may overwrite or remove it.
+hooks_json_owned() {
+    cursor_hooks_json | cmp -s - "$TARGET/.cursor/hooks.json" 2> /dev/null
+}
+
 cursor_project_install() {
     mkdir -p "$TARGET/.cursor/rules" "$TARGET/.cursor/skills"
     cp "$ROOT/rules/agents.mdc" "$TARGET/.cursor/rules/agents.mdc"
@@ -192,6 +218,17 @@ cursor_project_install() {
         rm -rf "${TARGET:?}/.cursor/skills/$skill"
         cp -R "${skill_dir%/}" "$TARGET/.cursor/skills/$skill"
     done
+    mkdir -p "$TARGET/.cursor/rules-for-ai"
+    cp "$ROOT/hooks/resolve-locale.sh" "$TARGET/.cursor/rules-for-ai/resolve-locale.sh"
+    cp "$ROOT/hooks/session-start-cursor.sh" "$TARGET/.cursor/rules-for-ai/session-start-cursor.sh"
+    # hooks.json is wholesale-or-warn: write it only when absent or
+    # already ours; never merge into someone else's file (no jq).
+    if [ -f "$TARGET/.cursor/hooks.json" ] && ! hooks_json_owned; then
+        printf 'warning: %s/.cursor/hooks.json already exists; add this sessionStart entry manually:\n' "$TARGET" >&2
+        printf '  { "command": "sh .cursor/rules-for-ai/session-start-cursor.sh" }\n' >&2
+    else
+        cursor_hooks_json > "$TARGET/.cursor/hooks.json"
+    fi
     if [ "$SCOPE" = local ]; then
         exclude=$(exclude_file)
         mkdir -p "$(dirname -- "$exclude")"
@@ -207,9 +244,14 @@ cursor_project_install() {
 }
 
 cursor_project_uninstall() {
+    # Ownership must be decided before anything is removed.
+    if hooks_json_owned; then owned_hooks=1; else owned_hooks=0; fi
     managed_paths | while IFS= read -r path; do
         rm -rf "${TARGET:?}/$path"
     done
+    if [ "$owned_hooks" = 1 ]; then
+        rm -f "$TARGET/.cursor/hooks.json"
+    fi
     if [ "$SCOPE" = local ]; then
         exclude=$(exclude_file)
         if [ -f "$exclude" ]; then
@@ -221,7 +263,7 @@ cursor_project_uninstall() {
             rm -f "$patterns"
         fi
     fi
-    rmdir "$TARGET/.cursor/skills" "$TARGET/.cursor/rules" "$TARGET/.cursor" 2> /dev/null || :
+    rmdir "$TARGET/.cursor/skills" "$TARGET/.cursor/rules-for-ai" "$TARGET/.cursor/rules" "$TARGET/.cursor" 2> /dev/null || :
     printf 'removed cursor files from %s (%s scope)\n' "$TARGET" "$SCOPE"
 }
 
