@@ -182,6 +182,8 @@ sh "$src/rules-for-ai.sh" install cursor local "$tgt" > /dev/null
 exclude="$tgt/.git/info/exclude"
 assert_contains "$(cat "$exclude")" '.cursor/rules/agents.mdc' 'case 3: exclude lists the rule'
 assert_contains "$(cat "$exclude")" '.cursor/skills/hashiiiii-git' 'case 3: exclude lists a skill'
+assert_contains "$(cat "$exclude")" '.cursor/rules-for-ai/session-start-cursor.sh' 'case 3: exclude lists the cursor hook'
+assert_contains "$(cat "$exclude")" '.cursor/hooks.json' 'case 3: exclude lists the hooks.json we created'
 sh "$src/rules-for-ai.sh" install cursor local "$tgt" > /dev/null
 dups=$(grep -cxF '.cursor/rules/agents.mdc' "$exclude")
 if [ "$dups" -eq 1 ]; then
@@ -191,6 +193,7 @@ else
 fi
 sh "$src/rules-for-ai.sh" uninstall cursor local "$tgt" > /dev/null
 assert_not_contains "$(cat "$exclude")" '.cursor/rules/agents.mdc' 'case 3: uninstall cleans exclude'
+assert_not_contains "$(cat "$exclude")" '.cursor/hooks.json' 'case 3: uninstall cleans the hooks.json exclude'
 assert_no_file "$tgt/.cursor" 'case 3: uninstall removes files'
 rm -rf "$src" "$tgt"
 
@@ -291,6 +294,14 @@ assert_contains "$out" 'session-start-cursor.sh' 'case 9: warning shows the entr
 assert_contains "$(cat "$tgt/.cursor/hooks.json")" '"hooks": {}' 'case 9: foreign hooks.json untouched'
 out=$(sh "$src/rules-for-ai.sh" uninstall cursor project "$tgt" 2>&1)
 assert_file "$tgt/.cursor/hooks.json" 'case 9: uninstall leaves the foreign hooks.json'
+# When a developer pasted our entry into their own hooks.json, the file
+# is not byte-identical to ours, so uninstall must not delete it -- it
+# warns to remove the entry manually instead.
+printf '{ "version": 1, "hooks": { "sessionStart": [ { "command": "sh .cursor/rules-for-ai/session-start-cursor.sh" } ], "afterEdit": [] } }\n' > "$tgt/.cursor/hooks.json"
+sh "$src/rules-for-ai.sh" install cursor project "$tgt" > /dev/null 2>&1
+out=$(sh "$src/rules-for-ai.sh" uninstall cursor project "$tgt" 2>&1)
+assert_contains "$out" 'manually' 'case 9: uninstall warns when our entry is embedded elsewhere'
+assert_file "$tgt/.cursor/hooks.json" 'case 9: embedded-entry hooks.json preserved'
 rm -rf "$src" "$tgt"
 
 if [ "$failures" -gt 0 ]; then

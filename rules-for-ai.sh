@@ -233,7 +233,12 @@ cursor_project_install() {
         exclude=$(exclude_file)
         mkdir -p "$(dirname -- "$exclude")"
         [ -f "$exclude" ] || : > "$exclude"
-        managed_paths | while IFS= read -r path; do
+        {
+            managed_paths
+            # Exclude hooks.json only when this install created it; a
+            # team-owned file must keep showing up in git status.
+            hooks_json_owned && printf '.cursor/hooks.json\n'
+        } | while IFS= read -r path; do
             if git -C "$TARGET" ls-files --error-unmatch "$path" > /dev/null 2>&1; then
                 printf 'warning: %s is already tracked; local scope cannot hide it -- use project scope\n' "$path" >&2
             fi
@@ -251,13 +256,18 @@ cursor_project_uninstall() {
     done
     if [ "$owned_hooks" = 1 ]; then
         rm -f "$TARGET/.cursor/hooks.json"
+    elif grep -qsF 'session-start-cursor.sh' "$TARGET/.cursor/hooks.json"; then
+        printf 'warning: %s/.cursor/hooks.json was modified; remove the rules-for-ai sessionStart entry manually\n' "$TARGET" >&2
     fi
     if [ "$SCOPE" = local ]; then
         exclude=$(exclude_file)
         if [ -f "$exclude" ]; then
             patterns=$(mktemp)
             kept=$(mktemp)
-            managed_paths > "$patterns"
+            {
+                managed_paths
+                [ "$owned_hooks" = 1 ] && printf '.cursor/hooks.json\n'
+            } > "$patterns"
             grep -vxF -f "$patterns" "$exclude" > "$kept" || :
             mv "$kept" "$exclude"
             rm -f "$patterns"
