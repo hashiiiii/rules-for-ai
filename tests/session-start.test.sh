@@ -134,6 +134,17 @@ else
 fi
 rm -rf "$root"
 
+# Case 6: no locale file anywhere -> the shared resolver's inline en_US
+# default still yields a complete resolved block. A resolved block must
+# never be empty; this pins the contract the Cursor wrapper relies on.
+root=$(new_fixture)
+rm "$root/plugin/LOCALE.default.md"
+out=$(run_hook "$root")
+assert_contains "$out" '## Locale (resolved)' 'case 6: header present without any locale file'
+assert_contains "$out" 'issues=en_US' 'case 6: inline default provides issues'
+assert_contains "$out" 'test-logs=en_US' 'case 6: inline default provides test-logs'
+rm -rf "$root"
+
 if [ "$failures" -gt 0 ]; then
     printf '%s test(s) failed\n' "$failures"
     exit 1
