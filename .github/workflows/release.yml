@@ -1,19 +1,54 @@
 name: release
 on:
-  push:
-    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (X.Y.Z, no v prefix)'
+        required: true
 
 permissions:
   contents: write
 
+# Prevent overlapping release runs.
+concurrency:
+  group: release
+
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ inputs.version }}
     steps:
+      - uses: actions/create-github-app-token@v3
+        id: app-token
+        with:
+          client-id: ${{ secrets.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - uses: actions/checkout@v7
-      - name: manifest version matches tag
-        run: scripts/check-versions.sh "$GITHUB_REF_NAME"
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+      - name: install tools
+        uses: jdx/mise-action@v4
+      - name: validate input
+        run: |
+          set -euo pipefail
+          [ "$GITHUB_REF_NAME" = "main" ] || { echo "::error::run this workflow from main (got $GITHUB_REF_NAME)"; exit 1; }
+      - name: bump, commit, and tag
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+        run: |
+          set -euo pipefail
+          # Author the commit as the app (unidog-bot[bot]); the +<id> email links it to the bot.
+          user_id=$(gh api "/users/${APP_SLUG}[bot]" --jq .id)
+          git config user.name "${APP_SLUG}[bot]"
+          git config user.email "${user_id}+${APP_SLUG}[bot]@users.noreply.github.com"
+          bump-my-version bump --new-version "$VERSION"
+          git add -u
+          git diff --cached --quiet || git commit -m "chore: release v$VERSION"
+          git tag "v$VERSION"
+          git push --atomic origin main "v$VERSION"
       - name: create release
         env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" --generate-notes
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: gh release create "v$VERSION" --generate-notes

@@ -1,0 +1,2 @@
+[tools]
+'pipx:bump-my-version' = '1.4.1'

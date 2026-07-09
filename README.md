@@ -115,14 +115,12 @@ Also set `REPO` in [rules-for-ai.sh](./rules-for-ai.sh) and `repository` in [.cl
 
 ## Releasing (maintainers)
 
-1. Bump `version` in both plugin manifests in lockstep (CI enforces this).
-2. Tag and push:
+Releases are cut from the Actions tab — no local tagging.
 
-```bash
-git tag vX.Y.Z && git push origin vX.Y.Z
-```
+1. Open **Actions → release → Run workflow**, keep `main` selected, and enter the version as `X.Y.Z` (no `v` prefix).
+2. The workflow bumps `version` in both plugin manifests, commits `chore: release vX.Y.Z`, tags it, and creates the GitHub release with generated notes.
 
-The release workflow verifies the tag matches the manifest version and creates the GitHub release.
+The release commit is authored by a GitHub App, so a one-time setup is required: install the App on this repo, add its `APP_CLIENT_ID` / `APP_PRIVATE_KEY` secrets, and add the App to the `main` ruleset's bypass actors so it can push the commit past the pull-request requirement.
 
 ## License
 
