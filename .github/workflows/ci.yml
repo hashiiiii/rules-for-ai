@@ -10,10 +10,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: shellcheck
-        run: shellcheck hooks/session-start.sh hooks/resolve-locale.sh hooks/pr-template-check.sh scripts/check-versions.sh rules-for-ai.sh tests/session-start.test.sh tests/resolve-locale.test.sh tests/pr-template-check.test.sh tests/rules-for-ai.test.sh
+        run: shellcheck hooks/session-start.sh hooks/session-start-cursor.sh hooks/resolve-locale.sh hooks/pr-template-check.sh scripts/check-versions.sh rules-for-ai.sh tests/session-start.test.sh tests/session-start-cursor.test.sh tests/resolve-locale.test.sh tests/pr-template-check.test.sh tests/rules-for-ai.test.sh
       - name: hook tests
         run: |
           sh tests/session-start.test.sh
+          sh tests/session-start-cursor.test.sh
           sh tests/resolve-locale.test.sh
           sh tests/pr-template-check.test.sh
       - name: installer tests
