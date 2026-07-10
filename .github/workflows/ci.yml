@@ -10,16 +10,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: shellcheck
-        run: shellcheck hooks/session-start.sh hooks/session-start-cursor.sh hooks/resolve-locale.sh hooks/pr-template-check.sh scripts/check-versions.sh rules-for-ai.sh tests/session-start.test.sh tests/session-start-cursor.test.sh tests/resolve-locale.test.sh tests/pr-template-check.test.sh tests/rules-for-ai.test.sh
-      - name: hook tests
-        run: |
-          sh tests/session-start.test.sh
-          sh tests/session-start-cursor.test.sh
-          sh tests/resolve-locale.test.sh
-          sh tests/pr-template-check.test.sh
-      - name: installer tests
-        run: sh tests/rules-for-ai.test.sh
-      - name: installer e2e (claude cells)
+        run: find . -name '*.sh' -exec shellcheck {} +
+      - name: unit tests
+        # || exit 1 keeps an early failure from being masked by the
+        # exit status of the last suite in the loop.
+        run: for f in tests/*.test.sh; do sh "$f" || exit 1; done
+      - name: e2e tests
         run: |
           npm install -g @anthropic-ai/claude-code
           RULES_FOR_AI_E2E=1 sh tests/rules-for-ai.test.sh
