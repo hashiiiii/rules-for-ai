@@ -1,5 +1,5 @@
 #!/bin/sh
-# Tests for hooks/session-start.sh.
+# Tests for hooks/session-start-claude-code.sh.
 #
 # Each case builds a real directory layout under a temp root and runs the
 # hook with CLAUDE_PLUGIN_ROOT / CLAUDE_PROJECT_DIR / XDG_CONFIG_HOME
@@ -10,7 +10,7 @@
 set -u
 
 REPO="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
-HOOK="$REPO/hooks/session-start.sh"
+HOOK="$REPO/hooks/session-start-claude-code.sh"
 failures=0
 
 # assert_contains <haystack> <needle> <case description>
