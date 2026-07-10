@@ -5,21 +5,11 @@ Portable rules and skills for AI coding agents.
 
 Write your rules once and carry them across Claude Code and Cursor as an installable, updatable plugin — no more copy-pasting the same instructions into every machine and repository. Language preferences for issues, pull requests, comments, logs, and test logs are resolved per user and overridden per project. Use it as is, or fork it and swap in your own rules.
 
-## Contents
+## Getting Started
 
-| Path | Purpose |
-|------|---------|
-| [AGENTS.md](./AGENTS.md) | Shared behavioral principles |
-| [LOCALE.default.md](./LOCALE.default.md) | Default language settings |
-| [skills/](./skills/) | Git, GitHub issue, pull request, and locale skills |
-| [hooks/](./hooks/) | Session-start hooks (Claude Code and Cursor) |
-| [rules-for-ai.sh](./rules-for-ai.sh) | One-command installer for every platform × scope |
-| [rules/](./rules/) | Cursor always-on rule |
-| [.claude-plugin/](./.claude-plugin/), [.cursor-plugin/](./.cursor-plugin/) | Plugin and marketplace manifests |
+[rules-for-ai.sh](./rules-for-ai.sh) installs, updates, and uninstalls everything. Choose a platform — **claude** or **cursor** — and a scope.
 
-## Setup
-
-[rules-for-ai.sh](./rules-for-ai.sh) installs, updates, and uninstalls everything. Choose a platform — **claude** or **cursor** — and a scope:
+### Scopes
 
 | Scope | Meaning |
 |-------|---------|
@@ -35,14 +25,16 @@ flowchart LR
   Q -->|All my projects| U[user]
 ```
 
-**Without cloning** — for **project** or **local**, run inside the target repo:
+### Without cloning
+
+For **project** or **local**, run inside the target repo:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/hashiiiii/rules-for-ai/main/rules-for-ai.sh | sh -s -- install claude user
 curl -fsSL https://raw.githubusercontent.com/hashiiiii/rules-for-ai/main/rules-for-ai.sh | sh -s -- install cursor project
 ```
 
-**From a clone:**
+### From a clone
 
 ```bash
 ./rules-for-ai.sh install claude project path/to/repo
@@ -51,66 +43,41 @@ curl -fsSL https://raw.githubusercontent.com/hashiiiii/rules-for-ai/main/rules-f
 
 Re-running install updates in place. Uninstall removes exactly what install created.
 
-### Claude Code
-
-Requires the Claude Code CLI. Scopes follow `claude plugin ... --scope`:
-
-- **user** → ~/.claude/settings.json
-- **project** → the repo's `.claude/settings.json` (commit it — teammates only accept the trust prompt)
-- **local** → `.claude/settings.local.json` (not tracked; no `.gitignore` change needed)
-
-Each session, the SessionStart hook injects [AGENTS.md](./AGENTS.md) and your resolved locale keys.
-
-**project** install also pins the marketplace and enables the plugin in `.claude/settings.json`. The same block can be added by hand:
-
-```json
-{
-  "extraKnownMarketplaces": {
-    "hashiiiii": {
-      "source": { "source": "github", "repo": "hashiiiii/rules-for-ai" }
-    }
-  },
-  "enabledPlugins": { "rules-for-ai@hashiiiii": true }
-}
-```
-
-Installed at **user** scope but want it off in one repo? Add to that repo's `.claude/settings.json`:
-
-```json
-{ "enabledPlugins": { "rules-for-ai@hashiiiii": false } }
-```
-
-Prefer the UI? Run `/plugin marketplace add hashiiiii/rules-for-ai`, then `/plugin install rules-for-ai@hashiiiii`.
-
-### Cursor
-
-- **user** — clones into `~/.cursor/plugins/local/` (restart Cursor after). Teams/Enterprise can import the repo from Settings → Plugins → Import from Repo instead.
-- **project** — copies [rules/agents.mdc](./rules/agents.mdc) into `.cursor/rules/`, the skills (except `hashiiiii-locale`) into `.cursor/skills/`, and the locale hook into `.cursor/rules-for-ai/`; writes `.cursor/hooks.json` unless one already exists (then it prints the entry to add manually). Commit them; teammates need no install, though Cursor may ask each developer to approve the hook.
-- **local** — same as **project**, plus `.git/info/exclude` entries so nothing appears in `git status`.
-
-> [!WARNING]
-> Already enabled for Claude Code? Cursor can import it from `~/.claude/plugins/` — do not also install at **cursor** **user** scope.
+What each platform puts where, and how locale reaches the model, is in [Platform details](#platform-details).
 
 ### Locale
 
-After a **user** install, run the `/hashiiiii-locale` skill to set languages for issues, pull requests, code comments, logs, and test logs.
-
-For **project** or **local**, skip it — that skill writes user-level config. Put language policy in the target project's [CLAUDE.md](./CLAUDE.md) or Cursor rules instead; project instructions override resolved locale keys by design.
-
-#### How locale reaches the model
-
 Two layers decide the effective language:
 
-1. **Project instructions** — a repo's own `CLAUDE.md` / `AGENTS.md` language policy always wins.
-2. **Resolved keys** — otherwise the first existing file wins as a whole: `~/.config/rules-for-ai/LOCALE.md`, else the plugin's bundled [LOCALE.default.md](./LOCALE.default.md), else an inline `en_US` default. Layers never merge.
+1. **Project instructions** — a repo's own `CLAUDE.md` / `AGENTS.md` language policy always wins when present.
+2. **Resolved keys** — otherwise the first existing file wins as a whole; layers never merge:
+   - `~/.config/rules-for-ai/LOCALE.md` (respect `$XDG_CONFIG_HOME` when set)
+   - the plugin's bundled [LOCALE.default.md](./LOCALE.default.md)
+   - an inline `en_US` default for all keys
 
-| Platform | Scope | Resolved keys delivered by |
-|----------|-------|----------------------------|
-| Claude Code | user / project / local | SessionStart hook |
-| Cursor | user | the model reads the cloned plugin files |
-| Cursor | project / local | `sessionStart` hook in `.cursor/hooks.json`, after each developer approves it |
+There is no project-level `LOCALE.md`. A file at the project root is ignored. Put project-specific language policy in that project's `CLAUDE.md` / `AGENTS.md` instead.
 
-Cursor project and local installs carry no bundled default, so their hook falls back to inline `en_US` when no user-level `LOCALE.md` exists.
+Every LOCALE file must carry all five keys (POSIX-style tags such as `ja_JP` or `en_US`):
+
+| Key | Artifact |
+|-----|----------|
+| `issues` | Issues |
+| `pull-requests` | Pull requests |
+| `comments` | Code comments |
+| `logs` | Log messages |
+| `test-logs` | Test log messages |
+
+Create or update the user-level file with the `hashiiiii-locale` skill (after a **user** install). Examples:
+
+- One tag for everything: `ja_JP`
+- Per artifact: `issues=ja_JP pull-requests=ja_JP comments=ja_JP logs=en_US test-logs=en_US`
+
+The skill always writes `~/.config/rules-for-ai/LOCALE.md` with all five keys. It never writes a LOCALE file into a project.
+
+## Platform details
+
+- [Claude Code](./docs/CLAUDE_CODE.md) — settings paths, SessionStart injection, locale resolution
+- [Cursor](./docs/CURSOR.md) — per-scope files, hooks.json, how locale reaches context
 
 ## Updates
 
