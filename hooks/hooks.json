@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/pr-template-check.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/pr-template-check-claude-code.sh"
           }
         ]
       }

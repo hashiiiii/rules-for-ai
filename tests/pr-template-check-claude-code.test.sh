@@ -1,9 +1,10 @@
 #!/bin/sh
-# Tests for hooks/pr-template-check.sh.
+# Tests for hooks/pr-template-check-claude-code.sh.
 #
 # Each case feeds a real PreToolUse payload (JSON on stdin) to the hook
 # and checks the exit status, plus the stderr guidance for blocks. No
-# mocks or stubs; the hook runs exactly as Claude Code would invoke it.
+# mocks or stubs; the hook (a thin envelope over check-pr-template.sh)
+# runs exactly as Claude Code would invoke it.
 #
 # The hook validates only inline bodies, so file-backed (--body-file) and
 # auto-filled (--fill) bodies must always pass — it fails open rather than
@@ -11,7 +12,7 @@
 set -u
 
 REPO="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
-HOOK="$REPO/hooks/pr-template-check.sh"
+HOOK="$REPO/hooks/pr-template-check-claude-code.sh"
 failures=0
 
 # A complete inline body carrying all four required headings. Newlines are
@@ -102,6 +103,24 @@ missing_custom='## Description\ndetails'
     assert_block_mentions 'repo template block cites template file' 'pull_request_template.md' \
         "$(payload "gh pr create --title x --body '$missing_custom'")"
 )
+
+# The payload's "cwd" field names the repo whose template applies; the
+# check must honor it even when its own process runs somewhere else
+# entirely (Cursor user-level hooks run from ~/.cursor, and Claude
+# payloads carry the project dir the same way). The temp cwd is not a
+# git repo, so citing the template proves the payload field was used.
+cwd_payload() {
+    printf '{"cwd":"%s","tool_name":"Bash","tool_input":{"command":"%s"}}' "$1" "$2"
+}
+elsewhere=$(mktemp -d)
+(
+    cd "$elsewhere" || exit 1
+    assert_exit 'payload cwd selects the template repo' 2 \
+        "$(cwd_payload "$template_repo" "gh pr create --title x --body '$missing_custom'")"
+    assert_block_mentions 'payload cwd block cites that template' 'pull_request_template.md' \
+        "$(cwd_payload "$template_repo" "gh pr create --title x --body '$missing_custom'")"
+)
+rm -rf "$elsewhere"
 rm -rf "$template_repo"
 
 # ATX headings at levels other than ## are enforced with their exact prefix.

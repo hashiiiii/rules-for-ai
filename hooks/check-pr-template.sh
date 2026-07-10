@@ -1,5 +1,5 @@
 #!/bin/sh
-# PreToolUse hook for the rules-for-ai plugin.
+# Shared pull request template check for the pr-template-check hooks.
 #
 # Blocks `gh pr create` / `gh pr edit` when the pull request body is set
 # inline but is missing one of the sections required by the repository
@@ -7,20 +7,21 @@
 # to the default sections from the hashiiiii-pull-request skill:
 # Summary, Motivation, Changes, Testing.
 #
-# The hook reads the PreToolUse payload from stdin and scans the Bash
-# command. An inline body (--body / -b, heredoc included) carries the
-# section headings as literal text, so a substring scan is enough and
-# needs no jq. A body read from a file (--body-file / -F) or built by gh
-# (--fill) is invisible here, so the hook fails OPEN in those cases: it
-# never blocks a body it cannot actually read.
+# Reads the whole hook payload from stdin and scans it as text. An
+# inline body (--body / -b, heredoc included) carries the section
+# headings as literal text inside the JSON-encoded command, so a
+# substring scan is enough and needs no jq. A body read from a file
+# (--body-file / -F) or built by gh (--fill) is invisible here, so the
+# check fails OPEN in those cases: it never blocks a body it cannot
+# actually read.
 #
-# Exit 0 lets the command run. Exit 2 blocks it and feeds stderr back to
-# the agent as the reason to rewrite the body.
+# Contract: exit 0 allows the command; exit 2 blocks it with the reason
+# on stdout. The per-platform envelopes live in the sibling
+# pr-template-check-claude-code.sh (stderr + exit 2) and
+# pr-template-check-cursor.sh (permission JSON).
 
 set -u
 
-# The whole payload is enough: an inline body carries its headings as
-# literal text inside the JSON-encoded command, robust to shell quoting.
 input=$(cat)
 
 # Only pull request creation/edit is in scope.
@@ -41,8 +42,28 @@ case "$input" in
     *) exit 0 ;;
 esac
 
+# The template belongs to the repo the agent's command runs in. Both
+# platforms carry that directory in the payload's "cwd" field; the
+# process cwd is the fallback (Claude Code runs hooks from the project
+# dir). Cursor user-level hooks run from ~/.cursor, which is why the
+# payload field must win when present. Paths are machine-written, so a
+# quote-delimited awk match is enough and needs no jq.
+payload_cwd=$(printf '%s' "$input" | awk '
+    match($0, /"cwd"[[:space:]]*:[[:space:]]*"[^"]*"/) {
+        s = substr($0, RSTART, RLENGTH)
+        sub(/^"cwd"[[:space:]]*:[[:space:]]*"/, "", s)
+        sub(/"$/, "", s)
+        print s
+        exit
+    }')
+if [ -n "$payload_cwd" ] && [ -d "$payload_cwd" ]; then
+    repo_dir=$payload_cwd
+else
+    repo_dir=.
+fi
+
 find_template_file() {
-    root=$(git rev-parse --show-toplevel 2>/dev/null) || return 1
+    root=$(git -C "$repo_dir" rev-parse --show-toplevel 2>/dev/null) || return 1
 
     for path in \
         "$root/.github/pull_request_template.md" \
@@ -125,10 +146,10 @@ EOF
 
 template_file=$(find_template_file 2>/dev/null || true)
 if [ -n "$template_file" ]; then
-    printf 'Pull request body is missing required section(s):%s\n' "$missing" >&2
-    printf 'Follow the repository pull request template (%s): include every markdown heading it defines. Rewrite the body and retry.\n' "$template_file" >&2
+    printf 'Pull request body is missing required section(s):%s\n' "$missing"
+    printf 'Follow the repository pull request template (%s): include every markdown heading it defines. Rewrite the body and retry.\n' "$template_file"
 else
-    printf 'Pull request body is missing required section(s):%s\n' "$missing" >&2
-    printf 'Follow the hashiiiii-pull-request skill default: the body needs the headings ## Summary, ## Motivation, ## Changes, and ## Testing. Rewrite the body and retry.\n' >&2
+    printf 'Pull request body is missing required section(s):%s\n' "$missing"
+    printf 'Follow the hashiiiii-pull-request skill default: the body needs the headings ## Summary, ## Motivation, ## Changes, and ## Testing. Rewrite the body and retry.\n'
 fi
 exit 2
