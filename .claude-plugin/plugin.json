@@ -1,6 +1,6 @@
 {
   "name": "rules-for-ai",
-  "version": "2.2.2",
+  "version": "2.3.0",
   "description": "Portable rules and skills for AI coding agents",
   "author": { "name": "hashiiiii" },
   "repository": "https://github.com/hashiiiii/rules-for-ai",
