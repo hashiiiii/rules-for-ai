@@ -48,7 +48,7 @@ What each platform puts where, and how locale reaches the model, is in [Platform
 
 ### Locale
 
-Language preferences live in one user-level file: `~/.config/rules-for-ai/LOCALE.md`. You never write it by hand — ask the agent to set your locale and the `hashiiiii-locale` skill (it ships with every install) writes the file with all five keys (POSIX-style tags such as `ja_JP` or `en_US`):
+Language preferences live in one user-level file: `~/.config/rules-for-ai/LOCALE.md`. You can ask the agent to set your locale and the `hashiiiii-locale` skill (it ships with every install) writes the file with all five keys (POSIX-style tags such as `ja_JP` or `en_US`):
 
 
 | Key             | Artifact          |
