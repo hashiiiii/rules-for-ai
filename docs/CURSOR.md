@@ -5,14 +5,16 @@ How rules-for-ai installs under Cursor, and how locale keys reach the model.
 Install with [rules-for-ai.sh](../rules-for-ai.sh):
 
 ```bash
-./rules-for-ai.sh install cursor <user|project|local> [target-dir]
+./rules-for-ai.sh install cursor <user|project|local> [path/to/repo]
 ```
+
+That one command is all you run. Everything below spells out what `rules-for-ai.sh` does internally, so you can audit it or reproduce it by hand.
 
 ## Scopes and artifacts
 
 ### user
 
-Clones the repo into `~/.cursor/plugins/local/rules-for-ai/`. Restart Cursor after install or update.
+Clones the repo into `~/.cursor/plugins/local/rules-for-ai/` — Cursor's documented directory for locally installed plugins — so Cursor loads it through its own plugin system. Restart Cursor after install or update.
 
 The full plugin tree is present: rules (`rules/agents.mdc`, `alwaysApply`), every skill including `hashiiiii-locale`, and the bundled `LOCALE.default.md`.
 
@@ -25,7 +27,7 @@ Hooks ride on `~/.cursor/hooks.json` (user-level hooks run with cwd `~/.cursor`,
 
 (`sessionStart` and `beforeShellExecution` respectively; the installer prints them with `$HOME` expanded.)
 
-Teams/Enterprise can import the repo from Settings → Plugins → Import from Repo instead of using the installer; that path loads rules and skills but registers no hooks.
+Teams/Enterprise can import the repo from Settings → Plugins → Import from Repo instead of using the installer; that path loads rules and skills but registers no hooks today. Cursor discovers plugin hooks from `hooks/hooks.json`, and this repo must keep that exact path in Claude Code's hook format (`claude plugin validate` parses it), so the Cursor hooks ride on the installer-written `hooks.json` files instead.
 
 > [!WARNING]
 > Already enabled for Claude Code? Cursor can import it from `~/.claude/plugins/` — do not also install at **cursor** **user** scope, or the plugin may load twice.
@@ -39,10 +41,7 @@ Copies files into the target repo (commit them; teammates need no install, thoug
 | Path | Source |
 |------|--------|
 | `.cursor/rules/agents.mdc` | `rules/agents.mdc` |
-| `.cursor/skills/hashiiiii-git/` | `skills/hashiiiii-git/` |
-| `.cursor/skills/hashiiiii-issues/` | `skills/hashiiiii-issues/` |
-| `.cursor/skills/hashiiiii-locale/` | `skills/hashiiiii-locale/` |
-| `.cursor/skills/hashiiiii-pull-request/` | `skills/hashiiiii-pull-request/` |
+| `.cursor/skills/*` | `skills/*` (every skill, `hashiiiii-locale` included) |
 | `.cursor/rules-for-ai/resolve-locale.sh` | `hooks/resolve-locale.sh` |
 | `.cursor/rules-for-ai/session-start-cursor.sh` | `hooks/session-start-cursor.sh` |
 | `.cursor/rules-for-ai/json-escape.sh` | `hooks/json-escape.sh` |

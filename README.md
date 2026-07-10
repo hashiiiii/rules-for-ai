@@ -30,8 +30,6 @@ flowchart LR
 
 ### Without cloning
 
-For **project** or **local**, run inside the target repo:
-
 ```bash
 curl -fsSL https://raw.githubusercontent.com/hashiiiii/rules-for-ai/main/rules-for-ai.sh | sh -s -- <install|uninstall> <claude|cursor> <user|project|local> [path/to/repo]
 # e.g. curl -fsSL https://raw.githubusercontent.com/hashiiiii/rules-for-ai/main/rules-for-ai.sh | sh -s -- install claude user
@@ -44,23 +42,13 @@ curl -fsSL https://raw.githubusercontent.com/hashiiiii/rules-for-ai/main/rules-f
 # e.g. ./rules-for-ai.sh install cursor project path/to/repo
 ```
 
-Re-running install updates in place. Uninstall removes exactly what install created.
+`path/to/repo` applies to **project** and **local** only and defaults to the current directory. Re-running install updates in place. Uninstall removes exactly what install created.
 
 What each platform puts where, and how locale reaches the model, is in [Platform details](#platform-details).
 
 ### Locale
 
-Two layers decide the effective language:
-
-1. **Project instructions** — a repo's own `CLAUDE.md` / `AGENTS.md` language policy always wins when present.
-2. **Resolved keys** — otherwise the first existing file wins as a whole; layers never merge:
-  - `~/.config/rules-for-ai/LOCALE.md` (respect `$XDG_CONFIG_HOME` when set)
-  - the bundled [LOCALE.default.md](./LOCALE.default.md) — at the plugin root, and copied to `.cursor/rules-for-ai/` by Cursor project/local installs so every cell shares the same fallback
-  - an inline `en_US` default for all keys
-
-The same chain applies on both platforms and at every scope; a session hook injects the resolved keys into context. There is no project-level `LOCALE.md`. A file at the project root is ignored. Put project-specific language policy in that project's `CLAUDE.md` / `AGENTS.md` instead.
-
-Every LOCALE file must carry all five keys (POSIX-style tags such as `ja_JP` or `en_US`):
+Language preferences live in one user-level file: `~/.config/rules-for-ai/LOCALE.md`. You never write it by hand — ask the agent to set your locale and the `hashiiiii-locale` skill (it ships with every install) writes the file with all five keys (POSIX-style tags such as `ja_JP` or `en_US`):
 
 
 | Key             | Artifact          |
@@ -72,12 +60,17 @@ Every LOCALE file must carry all five keys (POSIX-style tags such as `ja_JP` or 
 | `test-logs`     | Test log messages |
 
 
-Create or update the user-level file with the `hashiiiii-locale` skill (it ships with every install). Examples:
+Tell it one tag for everything (`ja_JP`) or one per artifact (`issues=ja_JP pull-requests=ja_JP comments=ja_JP logs=en_US test-logs=en_US`). The skill only ever writes the user-level file — never a file inside a project.
 
-- One tag for everything: `ja_JP`
-- Per artifact: `issues=ja_JP pull-requests=ja_JP comments=ja_JP logs=en_US test-logs=en_US`
+Two layers decide the effective language:
 
-The skill always writes `~/.config/rules-for-ai/LOCALE.md` with all five keys. It never writes a LOCALE file into a project.
+1. **Project instructions** — a repo's own `CLAUDE.md` / `AGENTS.md` language policy always wins when present.
+2. **Resolved keys** — otherwise the first existing file wins as a whole; layers never merge:
+  - `~/.config/rules-for-ai/LOCALE.md` (respect `$XDG_CONFIG_HOME` when set) — the file the skill maintains
+  - the bundled [LOCALE.default.md](./LOCALE.default.md) that every install ships — where each layout places it is in [Platform details](#platform-details)
+  - an inline `en_US` default for all keys
+
+One shared resolver implements this chain on both platforms and at every scope; only the location of the bundled default differs per install layout. A session hook injects the resolved keys into context. There is no project-level `LOCALE.md`. A file at the project root is ignored. Put project-specific language policy in that project's `CLAUDE.md` / `AGENTS.md` instead.
 
 ## Platform details
 

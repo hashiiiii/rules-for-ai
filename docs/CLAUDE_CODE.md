@@ -5,10 +5,12 @@ How rules-for-ai installs under Claude Code, and how locale keys reach the model
 Install with [rules-for-ai.sh](../rules-for-ai.sh):
 
 ```bash
-./rules-for-ai.sh install claude <user|project|local> [target-dir]
+./rules-for-ai.sh install claude <user|project|local> [path/to/repo]
 ```
 
 Requires the Claude Code CLI. Scopes map to `claude plugin ... --scope`.
+
+That one command is all you run. Everything below spells out what `rules-for-ai.sh` does internally, so you can audit it or reproduce it by hand.
 
 ## Scopes and settings
 
@@ -16,9 +18,9 @@ Requires the Claude Code CLI. Scopes map to `claude plugin ... --scope`.
 |-------|---------------|-------|
 | **user** | `~/.claude/settings.json` | Every project on this machine |
 | **project** | `<repo>/.claude/settings.json` | Commit it; teammates accept the trust prompt |
-| **local** | `<repo>/.claude/settings.local.json` | Not tracked; no `.gitignore` change needed |
+| **local** | `<repo>/.claude/settings.local.json` | Untracked: Claude Code configures git to ignore the file it creates; the repo's `.gitignore` is never edited by this install |
 
-Install runs, from the appropriate directory (`~` for user, the target repo for project/local):
+Internally, install runs (inside the target repo for **project**/**local**; **user** scope works from any directory):
 
 1. `claude plugin marketplace add <source> --scope <scope>`
 2. `claude plugin marketplace update hashiiiii`
@@ -43,12 +45,14 @@ Installed at **user** scope but want it off in one repo? Add to that repo's `.cl
 { "enabledPlugins": { "rules-for-ai@hashiiiii": false } }
 ```
 
-Prefer the UI? Run `/plugin marketplace add hashiiiii/rules-for-ai`, then `/plugin install rules-for-ai@hashiiiii`.
+`.claude/settings.json` is meant to be committed; to keep the override personal and out of git, put the same block in `.claude/settings.local.json` instead.
+
+Installing from inside Claude Code instead of the shell: use the `/plugin` command — `/plugin marketplace add hashiiiii/rules-for-ai`, then `/plugin install rules-for-ai@hashiiiii`.
 
 Uninstall:
 
 ```bash
-./rules-for-ai.sh uninstall claude <user|project|local> [target-dir]
+./rules-for-ai.sh uninstall claude <user|project|local> [path/to/repo]
 ```
 
 That runs `claude plugin uninstall rules-for-ai@hashiiiii --scope <scope>`. Remove the marketplace separately with `claude plugin marketplace remove hashiiiii` if nothing else uses it.
