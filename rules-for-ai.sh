@@ -25,10 +25,10 @@ set -u
 # Forks: point this at your fork (see README, Fork and customize).
 REPO="https://github.com/hashiiiii/rules-for-ai"
 
-# The locale skill writes user-level config (~/.config/rules-for-ai),
-# so project-closed cells exclude it; language policy belongs in the
-# target project's own instructions.
-LOCALE_SKILL="hashiiiii-locale"
+# Hook scripts the cursor project/local cells copy from hooks/ into
+# <repo>/.cursor/rules-for-ai/. One list keeps copy, exclude, and
+# uninstall in lockstep.
+CURSOR_SUPPORT_FILES='resolve-locale.sh session-start-cursor.sh json-escape.sh check-pr-template.sh pr-template-check-cursor.sh'
 
 usage() {
     # "help" prints to stdout and exits 0 (explicit request); anything
@@ -116,12 +116,16 @@ resolve_target() {
 }
 
 # Relative paths installed into a target repo by the cursor cells.
+# .cursor/hooks.json is deliberately NOT listed: it is only ours when
+# byte-identical to cursor_hooks_json (see hooks_json_owned).
 managed_paths() {
     printf '.cursor/rules/agents.mdc\n'
+    for file in $CURSOR_SUPPORT_FILES; do
+        printf '.cursor/rules-for-ai/%s\n' "$file"
+    done
+    printf '.cursor/rules-for-ai/LOCALE.default.md\n'
     for skill_dir in "$ROOT"/skills/*/; do
-        skill=$(basename "$skill_dir")
-        [ "$skill" = "$LOCALE_SKILL" ] && continue
-        printf '.cursor/skills/%s\n' "$skill"
+        printf '.cursor/skills/%s\n' "$(basename "$skill_dir")"
     done
 }
 
@@ -157,6 +161,30 @@ cursor_user_dest() {
     printf '%s/.cursor/plugins/local/%s' "$HOME" "$PLUGIN"
 }
 
+user_hooks_file() {
+    printf '%s/.cursor/hooks.json' "$HOME"
+}
+
+# Canonical ~/.cursor/hooks.json written when the user has none. User
+# hooks run with cwd = ~/.cursor, so the commands carry absolute paths
+# into the plugin clone, single-quoted against spaces in $HOME.
+cursor_user_hooks_json() {
+    dest=$(cursor_user_dest)
+    cat <<EOF
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      { "command": "sh '$dest/hooks/session-start-cursor.sh'" }
+    ],
+    "beforeShellExecution": [
+      { "command": "sh '$dest/hooks/pr-template-check-cursor.sh'" }
+    ]
+  }
+}
+EOF
+}
+
 cursor_user_install() {
     require_cmd git
     dest=$(cursor_user_dest)
@@ -165,6 +193,17 @@ cursor_user_install() {
     else
         mkdir -p "$(dirname -- "$dest")"
         git clone --quiet "$SOURCE" "$dest" || die "could not clone $SOURCE"
+    fi
+    # hooks.json is wholesale-or-warn, exactly as at project scope:
+    # write it only when absent or already ours; never merge into
+    # someone else's file (no jq).
+    hooks_file=$(user_hooks_file)
+    if [ -f "$hooks_file" ] && ! hooks_json_owned cursor_user_hooks_json "$hooks_file"; then
+        printf 'warning: %s already exists; add these entries manually:\n' "$hooks_file" >&2
+        printf '  sessionStart:         { "command": "sh '\''%s/hooks/session-start-cursor.sh'\''" }\n' "$dest" >&2
+        printf '  beforeShellExecution: { "command": "sh '\''%s/hooks/pr-template-check-cursor.sh'\''" }\n' "$dest" >&2
+    else
+        cursor_user_hooks_json > "$hooks_file"
     fi
     # Cursor also imports plugins enabled for Claude Code from
     # ~/.claude/plugins; a second copy here would double-load.
@@ -176,6 +215,12 @@ cursor_user_install() {
 
 cursor_user_uninstall() {
     dest=$(cursor_user_dest)
+    hooks_file=$(user_hooks_file)
+    if hooks_json_owned cursor_user_hooks_json "$hooks_file"; then
+        rm -f "$hooks_file"
+    elif grep -qsF "$dest/hooks/session-start-cursor.sh" "$hooks_file"; then
+        printf 'warning: %s was modified; remove the rules-for-ai entries manually\n' "$hooks_file" >&2
+    fi
     rm -rf "$dest"
     printf 'removed %s -- restart Cursor to unload it\n' "$dest"
 }
@@ -183,20 +228,67 @@ exclude_file() {
     printf '%s/info/exclude' "$(git -C "$TARGET" rev-parse --absolute-git-dir)"
 }
 
+# Canonical .cursor/hooks.json written when the target has none. The
+# commands are relative because Cursor runs project hooks with
+# cwd = project root (verified 2026-07-10 via a cursor-agent spike).
+cursor_hooks_json() {
+    cat <<'EOF'
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      { "command": "sh .cursor/rules-for-ai/session-start-cursor.sh" }
+    ],
+    "beforeShellExecution": [
+      { "command": "sh .cursor/rules-for-ai/pr-template-check-cursor.sh" }
+    ]
+  }
+}
+EOF
+}
+
+# hooks_json_owned <canonical-fn> <path>: true when the hooks file at
+# <path> is byte-identical to the canonical content <canonical-fn>
+# prints, i.e. we created it and may overwrite or remove it.
+hooks_json_owned() {
+    "$1" | cmp -s - "$2" 2> /dev/null
+}
+
 cursor_project_install() {
     mkdir -p "$TARGET/.cursor/rules" "$TARGET/.cursor/skills"
     cp "$ROOT/rules/agents.mdc" "$TARGET/.cursor/rules/agents.mdc"
     for skill_dir in "$ROOT"/skills/*/; do
         skill=$(basename "$skill_dir")
-        [ "$skill" = "$LOCALE_SKILL" ] && continue
         rm -rf "${TARGET:?}/.cursor/skills/$skill"
         cp -R "${skill_dir%/}" "$TARGET/.cursor/skills/$skill"
     done
+    mkdir -p "$TARGET/.cursor/rules-for-ai"
+    for file in $CURSOR_SUPPORT_FILES; do
+        cp "$ROOT/hooks/$file" "$TARGET/.cursor/rules-for-ai/$file"
+    done
+    # The bundled locale default rides along so the copied session hook
+    # resolves the same chain as the plugin cells (sibling lookup).
+    cp "$ROOT/LOCALE.default.md" "$TARGET/.cursor/rules-for-ai/LOCALE.default.md"
+    # hooks.json is wholesale-or-warn: write it only when absent or
+    # already ours; never merge into someone else's file (no jq).
+    if [ -f "$TARGET/.cursor/hooks.json" ] && ! hooks_json_owned cursor_hooks_json "$TARGET/.cursor/hooks.json"; then
+        printf 'warning: %s/.cursor/hooks.json already exists; add these entries manually:\n' "$TARGET" >&2
+        printf '  sessionStart:         { "command": "sh .cursor/rules-for-ai/session-start-cursor.sh" }\n' >&2
+        printf '  beforeShellExecution: { "command": "sh .cursor/rules-for-ai/pr-template-check-cursor.sh" }\n' >&2
+    else
+        cursor_hooks_json > "$TARGET/.cursor/hooks.json"
+    fi
     if [ "$SCOPE" = local ]; then
         exclude=$(exclude_file)
         mkdir -p "$(dirname -- "$exclude")"
         [ -f "$exclude" ] || : > "$exclude"
-        managed_paths | while IFS= read -r path; do
+        {
+            managed_paths
+            # Exclude hooks.json only when this install created it; a
+            # team-owned file must keep showing up in git status.
+            hooks_json_owned cursor_hooks_json "$TARGET/.cursor/hooks.json" \
+                && printf '.cursor/hooks.json\n'
+        } | while IFS= read -r path; do
             if git -C "$TARGET" ls-files --error-unmatch "$path" > /dev/null 2>&1; then
                 printf 'warning: %s is already tracked; local scope cannot hide it -- use project scope\n' "$path" >&2
             fi
@@ -207,21 +299,35 @@ cursor_project_install() {
 }
 
 cursor_project_uninstall() {
+    # Ownership must be decided before anything is removed.
+    if hooks_json_owned cursor_hooks_json "$TARGET/.cursor/hooks.json"; then
+        owned_hooks=1
+    else
+        owned_hooks=0
+    fi
     managed_paths | while IFS= read -r path; do
         rm -rf "${TARGET:?}/$path"
     done
+    if [ "$owned_hooks" = 1 ]; then
+        rm -f "$TARGET/.cursor/hooks.json"
+    elif grep -qsF 'session-start-cursor.sh' "$TARGET/.cursor/hooks.json"; then
+        printf 'warning: %s/.cursor/hooks.json was modified; remove the rules-for-ai sessionStart entry manually\n' "$TARGET" >&2
+    fi
     if [ "$SCOPE" = local ]; then
         exclude=$(exclude_file)
         if [ -f "$exclude" ]; then
             patterns=$(mktemp)
             kept=$(mktemp)
-            managed_paths > "$patterns"
+            {
+                managed_paths
+                [ "$owned_hooks" = 1 ] && printf '.cursor/hooks.json\n'
+            } > "$patterns"
             grep -vxF -f "$patterns" "$exclude" > "$kept" || :
             mv "$kept" "$exclude"
             rm -f "$patterns"
         fi
     fi
-    rmdir "$TARGET/.cursor/skills" "$TARGET/.cursor/rules" "$TARGET/.cursor" 2> /dev/null || :
+    rmdir "$TARGET/.cursor/skills" "$TARGET/.cursor/rules-for-ai" "$TARGET/.cursor/rules" "$TARGET/.cursor" 2> /dev/null || :
     printf 'removed cursor files from %s (%s scope)\n' "$TARGET" "$SCOPE"
 }
 

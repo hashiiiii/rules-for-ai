@@ -1,5 +1,5 @@
 #!/bin/sh
-# Tests for hooks/session-start.sh.
+# Tests for hooks/session-start-claude-code.sh.
 #
 # Each case builds a real directory layout under a temp root and runs the
 # hook with CLAUDE_PLUGIN_ROOT / CLAUDE_PROJECT_DIR / XDG_CONFIG_HOME
@@ -10,7 +10,7 @@
 set -u
 
 REPO="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
-HOOK="$REPO/hooks/session-start.sh"
+HOOK="$REPO/hooks/session-start-claude-code.sh"
 failures=0
 
 # assert_contains <haystack> <needle> <case description>
@@ -132,6 +132,17 @@ else
     printf 'FAIL: case 5: exit status %s\n' "$status"
     failures=$((failures + 1))
 fi
+rm -rf "$root"
+
+# Case 6: no locale file anywhere -> the shared resolver's inline en_US
+# default still yields a complete resolved block. A resolved block must
+# never be empty; this pins the contract the Cursor wrapper relies on.
+root=$(new_fixture)
+rm "$root/plugin/LOCALE.default.md"
+out=$(run_hook "$root")
+assert_contains "$out" '## Locale (resolved)' 'case 6: header present without any locale file'
+assert_contains "$out" 'issues=en_US' 'case 6: inline default provides issues'
+assert_contains "$out" 'test-logs=en_US' 'case 6: inline default provides test-logs'
 rm -rf "$root"
 
 if [ "$failures" -gt 0 ]; then
