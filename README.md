@@ -1,5 +1,4 @@
 # Rules for AI
-<img src="https://img.shields.io/badge/LICENSE-MIT-green">
 
 Portable rules and skills for AI coding agents.
 
@@ -11,11 +10,13 @@ Write your rules once and carry them across Claude Code and Cursor as an install
 
 ### Scopes
 
-| Scope | Meaning |
-|-------|---------|
-| **user** | Every project on this machine |
+
+| Scope       | Meaning                                 |
+| ----------- | --------------------------------------- |
+| **user**    | Every project on this machine           |
 | **project** | One repo, shared with your team via git |
-| **local** | One repo, just you, nothing committed |
+| **local**   | One repo, just you, nothing committed   |
+
 
 ```mermaid
 flowchart LR
@@ -25,20 +26,22 @@ flowchart LR
   Q -->|All my projects| U[user]
 ```
 
+
+
 ### Without cloning
 
 For **project** or **local**, run inside the target repo:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/hashiiiii/rules-for-ai/main/rules-for-ai.sh | sh -s -- install claude user
-curl -fsSL https://raw.githubusercontent.com/hashiiiii/rules-for-ai/main/rules-for-ai.sh | sh -s -- install cursor project
+curl -fsSL https://raw.githubusercontent.com/hashiiiii/rules-for-ai/main/rules-for-ai.sh | sh -s -- <install|uninstall> <claude|cursor> <user|project|local> [path/to/repo]
+# e.g. curl -fsSL https://raw.githubusercontent.com/hashiiiii/rules-for-ai/main/rules-for-ai.sh | sh -s -- install claude user
 ```
 
 ### From a clone
 
 ```bash
-./rules-for-ai.sh install claude project path/to/repo
-./rules-for-ai.sh uninstall cursor user
+./rules-for-ai.sh <install|uninstall> <claude|cursor> <user|project|local> [path/to/repo]
+# e.g. ./rules-for-ai.sh install cursor project path/to/repo
 ```
 
 Re-running install updates in place. Uninstall removes exactly what install created.
@@ -51,23 +54,25 @@ Two layers decide the effective language:
 
 1. **Project instructions** — a repo's own `CLAUDE.md` / `AGENTS.md` language policy always wins when present.
 2. **Resolved keys** — otherwise the first existing file wins as a whole; layers never merge:
-   - `~/.config/rules-for-ai/LOCALE.md` (respect `$XDG_CONFIG_HOME` when set)
-   - the plugin's bundled [LOCALE.default.md](./LOCALE.default.md)
-   - an inline `en_US` default for all keys
+  - `~/.config/rules-for-ai/LOCALE.md` (respect `$XDG_CONFIG_HOME` when set)
+  - the bundled [LOCALE.default.md](./LOCALE.default.md) — at the plugin root, and copied to `.cursor/rules-for-ai/` by Cursor project/local installs so every cell shares the same fallback
+  - an inline `en_US` default for all keys
 
-There is no project-level `LOCALE.md`. A file at the project root is ignored. Put project-specific language policy in that project's `CLAUDE.md` / `AGENTS.md` instead.
+The same chain applies on both platforms and at every scope; a session hook injects the resolved keys into context. There is no project-level `LOCALE.md`. A file at the project root is ignored. Put project-specific language policy in that project's `CLAUDE.md` / `AGENTS.md` instead.
 
 Every LOCALE file must carry all five keys (POSIX-style tags such as `ja_JP` or `en_US`):
 
-| Key | Artifact |
-|-----|----------|
-| `issues` | Issues |
-| `pull-requests` | Pull requests |
-| `comments` | Code comments |
-| `logs` | Log messages |
-| `test-logs` | Test log messages |
 
-Create or update the user-level file with the `hashiiiii-locale` skill (after a **user** install). Examples:
+| Key             | Artifact          |
+| --------------- | ----------------- |
+| `issues`        | Issues            |
+| `pull-requests` | Pull requests     |
+| `comments`      | Code comments     |
+| `logs`          | Log messages      |
+| `test-logs`     | Test log messages |
+
+
+Create or update the user-level file with the `hashiiiii-locale` skill (it ships with every install). Examples:
 
 - One tag for everything: `ja_JP`
 - Per artifact: `issues=ja_JP pull-requests=ja_JP comments=ja_JP logs=en_US test-logs=en_US`

@@ -64,8 +64,11 @@ Claude Code loads the plugin from its plugin cache / marketplace install. The re
 | `hooks/hooks.json` | SessionStart and PreToolUse wiring |
 | `hooks/session-start-claude-code.sh` | SessionStart command |
 | `hooks/resolve-locale.sh` | Shared locale resolver |
-| `hooks/pr-template-check.sh` | PreToolUse PR template check |
+| `hooks/check-pr-template.sh` | Shared PR template check |
+| `hooks/pr-template-check-claude-code.sh` | PreToolUse envelope over the shared check |
 | `skills/*` | Including `hashiiiii-locale` |
+
+The `*-cursor.sh` hooks and `json-escape.sh` also ride along; Claude Code never runs them.
 
 ## How locale reaches context
 
