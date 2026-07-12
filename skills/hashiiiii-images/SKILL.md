@@ -14,6 +14,19 @@ First decide vector vs raster: if the image is fully describable in words (flat 
 
 When NOT to use this recipe: illustrative or photorealistic artwork (mascots, rich 3D icons, photos) — use a raster image generator and a background-removal pipeline instead.
 
+## Gather Requirements First
+
+Four inputs shape every step below. Note which ones the request and the repository already state; for each missing one, ask the user — one question at a time, offering the default so they can accept it in a word. Do not draw until all four are settled: a "placeholder" accent or an "exploratory" first pass is still a guess, and a wrong background or color invalidates the whole contact sheet, so one question up front is cheaper than redrawing six candidates.
+
+| Input | Confirm | Default to offer |
+|-------|---------|------------------|
+| Target | Which asset (favicon, app or extension icon, README header, promo tile) and the smallest size it must survive | None — always ask when unstated |
+| Colors | Accent color (existing brand color?) and intended background (dark, light, or both) | Dark background, single accent |
+| Motif | What the name means, domain concepts, motifs to avoid | Derive from the project name and README |
+| Output | SVG only or PNG exports too, and where files go | SVG mark plus PNG exports at target sizes |
+
+Target sets the sizes verified in step 3; Motif seeds the metaphor list in step 2.
+
 ## The Recipe
 
 1. **Fix the design language first.** One mark = 2 to 4 primitives (circles, polygons, lens shapes). One accent color per mark. Negative space over added detail. No gradients, no text.
@@ -41,6 +54,7 @@ for s in 16 32 48 128; do rsvg-convert -w $s -h $s mark.svg -o mark-$s.png; done
 
 | Mistake | Fix |
 |---------|-----|
+| Drawing with "placeholder" colors or sizes while questions wait at the end | Ask before drawing — one question per missing input, with a default offered |
 | Polishing the first idea | Explore 4-6 candidates on a sheet before converging |
 | Illustrative pictogram (a scene with a subject doing something) | If describing it needs a verb, it is an illustration — reduce to an abstract form |
 | Background rectangle baked into the mark | Foreground only; backgrounds live in the context |
