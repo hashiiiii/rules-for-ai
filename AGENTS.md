@@ -28,3 +28,7 @@
 ## Pull Requests
 
 - Follow the `hashiiiii-pull-request` skill for GitHub pull request operations
+
+## Images
+
+- Follow the `hashiiiii-images` skill when creating image assets (logos, icons, favicons, header images)
