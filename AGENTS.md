@@ -29,6 +29,6 @@
 
 - Follow the `hashiiiii-pull-request` skill for GitHub pull request operations
 
-## Logo Marks
+## Images
 
-- Follow the `hashiiiii-abstract-marks` skill when creating logo marks, icons, or favicons
+- Follow the `hashiiiii-images` skill when creating image assets (logos, icons, favicons, header images)

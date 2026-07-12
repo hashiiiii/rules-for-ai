@@ -1,18 +1,18 @@
 ---
-name: hashiiiii-abstract-marks
-description: Use when creating a logo mark, app or extension icon, favicon, or repository header mark — especially a flat, abstract, geometric one in the modern OSS style (dark background, single accent color).
+name: hashiiiii-images
+description: Use when creating image assets for a project — logo marks, app or extension icons, favicons, promo tiles, or repository header images, especially flat geometric ones in the modern OSS style (dark background, single accent color).
 ---
 
-# Abstract Marks
+# Images
 
-Flat geometric marks are fully describable in words, so they should be written as SVG code — never generated as raster images. The quality lever is not the drawing; it is the harness: constrain the design language, explore several candidates side by side, verify at real target sizes, then converge on one.
+First decide vector vs raster: if the image is fully describable in words (flat geometric marks, icons, tiles, headers), write it as SVG code with the recipe below — never generate it as a raster image. The quality lever is not the drawing; it is the harness: constrain the design language, explore several candidates side by side, verify at real target sizes, then converge on one.
 
 ## When to Use
 
-- Logo marks, icons, favicons, promo tiles, README header marks
+- Logo marks, icons, favicons, promo tiles, README header images
 - Anything in the "2-4 shapes, one accent color" OSS aesthetic
 
-When NOT to use: illustrative or photorealistic artwork (mascots, rich 3D icons) — use a raster image generator and a background-removal pipeline instead.
+When NOT to use this recipe: illustrative or photorealistic artwork (mascots, rich 3D icons, photos) — use a raster image generator and a background-removal pipeline instead.
 
 ## The Recipe
 
