@@ -8,6 +8,7 @@
 - Insert a half-width space between full-width and half-width characters
 - Don't use emojis
 - Prioritize comments in tests
+- Write comments for WHY, not WHAT
 - Never use mocks or stubs
 
 ## Language
