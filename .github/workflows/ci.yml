@@ -12,16 +12,16 @@ jobs:
       - name: shellcheck
         run: find . -name '*.sh' -exec shellcheck {} +
       - name: unit tests
-        # || exit 1 keeps an early failure from being masked by the
-        # exit status of the last suite in the loop.
+        # The `|| exit 1` clause preserves an early failure.
+        # Without this clause, the last suite can hide that failure.
         run: for f in tests/*.test.sh; do sh "$f" || exit 1; done
       - name: e2e tests
         run: |
           npm install -g @anthropic-ai/claude-code
           RULES_FOR_AI_E2E=1 sh tests/rules-for-ai-claude-e2e.sh
       - name: always-on rule drift check
-        # rules/agents.mdc mirrors AGENTS.md behind Cursor's required frontmatter;
-        # strip the frontmatter block and compare the body byte-for-byte.
+        # Cursor requires front matter in rules/agents.mdc.
+        # Remove the front matter and compare the remaining body with AGENTS.md.
         run: sed '1,/^---$/d' rules/agents.mdc | sed '/./,$!d' | diff AGENTS.md -
       - name: manifest version lockstep
         run: scripts/check-versions.sh

@@ -1,45 +1,54 @@
 ---
 name: hashiiiii-pull-request
-description: Use when creating or editing a GitHub pull request. Follow the repository PR template when one exists; otherwise use the default Summary / Motivation / Changes / Testing structure.
+description: Use this skill to create or edit a GitHub pull request with the repository template or the default structure.
 ---
 
 # Pull Request Conventions
 
-The pull request body structure comes from the repository. Do not impose a fixed format when the repo already defines one.
+Use the pull request structure from the repository. If the repository defines a structure, do not replace it.
 
 ## Locale
 
-Before drafting a pull request:
+Before you draft a pull request, resolve its language:
 
-1. Project instructions (`CLAUDE.md` / `AGENTS.md`) override resolved locale keys; follow them when they state a language for pull requests
-2. Otherwise use the resolved locale keys if they are already in context (plugin path)
-3. Otherwise read the first existing locale file: local, project, user, then bundled `LOCALE.default.md`
-4. Use `<absolute-git-dir>/rules-for-ai/LOCALE.md` for local, `<repo>/.rules-for-ai/LOCALE.md` for project, and `${XDG_CONFIG_HOME:-${HOME:-}/.config}/rules-for-ai/LOCALE.md` for user
-5. If no file exists, use `en_US`
-6. Write the PR **title and body** in the language given by the `pull-requests` key
+1. If project instructions specify a pull request language, use that language.
+2. If project instructions do not specify a language, use the resolved `pull-requests` key from the context.
+3. If the context has no resolved keys, read the first existing locale file.
+4. Use this file order: local, project, user, and bundled `LOCALE.default.md`.
+5. Use `<absolute-git-dir>/rules-for-ai/LOCALE.md` for the local file.
+6. Use `<repo>/.rules-for-ai/LOCALE.md` for the project file.
+7. Use `${XDG_CONFIG_HOME:-${HOME:-}/.config}/rules-for-ai/LOCALE.md` for the user file.
+8. If no locale file exists, use `en_US`.
+9. Use the `pull-requests` language for the pull request title and body.
 
-Use section headings exactly as they appear in the template you follow. When using the default fallback below, headings stay English — only the prose changes with locale. When `pull-requests` is `ja_JP`, keep those English headings and write the prose under each heading in Japanese.
+Use the exact section headings from the selected template. For the default structure, always write the headings in English.
+
+If `pull-requests` is `ja_JP`, keep the English headings. Write the text below each heading in Japanese.
 
 ## When to Use
 
 - Before `gh pr create`
-- Before editing a PR body (`gh pr edit --body`)
-- When the user asks to draft a pull request
+- Before you edit a pull request body with `gh pr edit --body`
+- If the user asks you to draft a pull request
 
 ## Repository Template (preferred)
 
-Before drafting, look for a pull request template in the target repository:
+Before you draft the body, search for a pull request template in this order:
 
 1. `.github/pull_request_template.md`
 2. `.github/PULL_REQUEST_TEMPLATE.md`
 3. `pull_request_template.md` at the repository root
 4. A single `.md` file under `.github/PULL_REQUEST_TEMPLATE/`
 
-When one exists, read it and follow its headings, order, and subsections verbatim. Fill in every markdown ATX heading the template defines (`#` through `######`). If the repository has multiple templates under `.github/PULL_REQUEST_TEMPLATE/`, follow whichever template the user or repository conventions point to.
+If a template exists, read it. Use its headings, order, and subsections without changes.
+
+Fill every Markdown ATX heading that the template defines (`#` through `######`).
+
+If the repository has multiple templates, use the template that the user or repository selects.
 
 ## Default Template (fallback)
 
-Use this structure only when the repository has no pull request template:
+If the repository has no pull request template, use this structure:
 
 ```markdown
 ## Summary
@@ -55,16 +64,16 @@ Use this structure only when the repository has no pull request template:
 
 | Section | Purpose |
 |---------|---------|
-| Summary | What this PR does, in one or two sentences |
-| Motivation | Why the change is needed; link the issue with `Closes #NNN` |
-| Changes | Notable changes, as a bullet list |
-| Testing | Commands you ran and their result — real output, no mocks or stubs |
+| Summary | Describe the pull request in one or two sentences. |
+| Motivation | Explain the reason for the change. Link the issue with `Closes #NNN`. |
+| Changes | List important changes. |
+| Testing | List the commands that you ran and their results. Use real output without mocks or stubs. |
 
 ## Creating a Pull Request
 
-Open as a draft while work is in progress.
+If the work is not complete, open the pull request as a draft.
 
-When the repository has a template, base the body on that file. When it does not, use the default fallback:
+If the repository has a template, use that file. If it has no template, use this default structure:
 
 ```bash
 gh pr create --draft --title "<type>: <subject>" --body "$(cat <<'EOF'
@@ -80,14 +89,14 @@ EOF
 )"
 ```
 
-The `<type>: <subject>` title follows the same type vocabulary as the branch and commit (see the hashiiiii-git skill).
+Use the same type for the `<type>: <subject>` title, branch, and commit. See the `hashiiiii-git` skill.
 
 ## Common Mistakes
 
 | Mistake | Fix |
 |---------|-----|
-| Ignoring the repo template | Read the repository template first; only use the default fallback when none exists |
-| Empty or vague Testing | Paste the actual commands and their output |
-| Motivation folded into Summary | Summary is what changed; Motivation is why, with the issue link |
-| Missing a template section | Include every markdown ATX heading from the template you are following |
-| Reordering or renaming headings | Keep the template's headings verbatim and in order |
+| Ignore the repository template | Read the repository template first. If no template exists, use the default structure. |
+| Empty or vague Testing | Add the actual commands and their output. |
+| Put Motivation information in Summary | Put the change in Summary. Put its reason and issue link in Motivation. |
+| Omit a template section | Include every Markdown ATX heading from the selected template. |
+| Change the heading order or names | Keep the exact headings and order from the template. |

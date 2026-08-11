@@ -1,19 +1,20 @@
 #!/bin/sh
-# Tests for hooks/session-start-claude-code.sh.
+# These tests cover hooks/session-start-claude-code.sh.
 #
-# Each case builds a real directory layout under a temp root and runs the
-# hook with CLAUDE_PLUGIN_ROOT / CLAUDE_PROJECT_DIR / XDG_CONFIG_HOME
-# pointing into it. No mocks or stubs; the hook reads real files.
+# Each case creates a real directory layout under a temporary root.
+# Then it runs the hook with environment paths that point into that layout.
+# These paths are CLAUDE_PLUGIN_ROOT, CLAUDE_PROJECT_DIR, and XDG_CONFIG_HOME.
+# The tests do not use mocks or stubs. The hook reads real files.
 #
-# LOCALE files are machine-written by the hashiiiii-locale skill, so the
-# fixtures are complete (all five keys).
+# The hashiiiii-locale skill writes complete LOCALE files.
+# Thus, each fixture contains all five keys.
 set -u
 
 REPO="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
 HOOK="$REPO/hooks/session-start-claude-code.sh"
 failures=0
 
-# assert_contains <haystack> <needle> <case description>
+# assert_contains <haystack> <needle> <case-description> searches the result.
 assert_contains() {
     case "$1" in
         *"$2"*) printf 'PASS: %s\n' "$3" ;;
@@ -21,7 +22,7 @@ assert_contains() {
     esac
 }
 
-# assert_not_contains <haystack> <needle> <case description>
+# assert_not_contains <haystack> <needle> <case-description> searches for an unexpected value.
 assert_not_contains() {
     case "$1" in
         *"$2"*) printf 'FAIL: %s (unexpected: %s)\n' "$3" "$2"; failures=$((failures + 1)) ;;
@@ -29,9 +30,9 @@ assert_not_contains() {
     esac
 }
 
-# new_fixture: fresh temp root holding a plugin dir (AGENTS.md and
-# LOCALE.default.md copied from the repo), an empty project dir, and an
-# empty config home. Prints the root path.
+# new_fixture creates a temporary root with plugin, project, and locale directories.
+# The plugin directory contains copies of AGENTS.md and LOCALE.default.md.
+# The function prints the root path.
 new_fixture() {
     fixture_root=$(mktemp -d)
     mkdir -p "$fixture_root/plugin" "$fixture_root/project" "$fixture_root/config"
@@ -41,7 +42,7 @@ new_fixture() {
     printf '%s' "$fixture_root"
 }
 
-# run_hook <fixture root>: run the hook against the fixture's layout.
+# run_hook <fixture-root> runs the hook with the fixture layout.
 run_hook() {
     printf '{"cwd":"%s","hook_event_name":"SessionStart"}' "$1/project" \
         | CLAUDE_PLUGIN_ROOT="$1/plugin" \
@@ -51,7 +52,7 @@ run_hook() {
         sh "$HOOK"
 }
 
-# Case 1: fallback between the user layer and the bundled default.
+# Case 1 covers fallback from the user layer to the bundled default.
 root=$(new_fixture)
 cat > "$root/project/LOCALE.md" <<'EOF'
 issues=en_GB
@@ -66,7 +67,7 @@ assert_contains "$out" 'issues=en_US' 'case 1: bundled default resolves'
 assert_not_contains "$out" 'en_GB' 'case 1: project file is ignored without user file'
 rm -rf "$root"
 
-# Case 2: user config -> user file wins over the bundled default.
+# Case 2 makes sure that the user file wins over the bundled default.
 root=$(new_fixture)
 mkdir -p "$root/config/rules-for-ai"
 cat > "$root/config/rules-for-ai/LOCALE.md" <<'EOF'
@@ -82,11 +83,11 @@ assert_contains "$out" 'pull-requests=ja_JP' 'case 2: pull-requests key is injec
 assert_contains "$out" 'logs=en_US' 'case 2: all five keys are injected'
 rm -rf "$root"
 
-# Case 3: a project-root LOCALE.md is ignored. The project layer was
-# removed on purpose: project language policy lives in the project's own
-# CLAUDE.md / AGENTS.md, not in a LOCALE file. This case is the
-# regression guard for that decision — the user file must win even when
-# a project file exists.
+# Case 3 makes sure that the hook ignores a root-level project LOCALE.md.
+# The project language policy belongs in CLAUDE.md or AGENTS.md.
+# It does not belong in a root-level LOCALE.md.
+# This case prevents a regression in that behavior.
+# If a root-level project file exists, the user file must win.
 root=$(new_fixture)
 mkdir -p "$root/config/rules-for-ai"
 cat > "$root/config/rules-for-ai/LOCALE.md" <<'EOF'
@@ -108,7 +109,7 @@ assert_contains "$out" 'issues=ja_JP' 'case 3: user file wins despite project fi
 assert_not_contains "$out" 'en_GB' 'case 3: project file is ignored'
 rm -rf "$root"
 
-# Case 4: the hook must exit 0 even when every input is missing.
+# In Case 4, all inputs are absent. The hook must exit 0.
 root=$(mktemp -d)
 CLAUDE_PLUGIN_ROOT="$root/nope" CLAUDE_PROJECT_DIR="$root/nope" \
 XDG_CONFIG_HOME="$root/nope" HOME="$root" sh "$HOOK" > /dev/null 2>&1
@@ -121,8 +122,7 @@ else
 fi
 rm -rf "$root"
 
-# Case 5: the hook must exit 0 even when HOME and XDG_CONFIG_HOME are
-# truly unset (not merely pointing at nonexistent paths).
+# In Case 5, HOME and XDG_CONFIG_HOME are unset. The hook must exit 0.
 root=$(mktemp -d)
 env -u HOME -u XDG_CONFIG_HOME \
     CLAUDE_PLUGIN_ROOT="$root/nope" CLAUDE_PROJECT_DIR="$root/nope" \
@@ -136,9 +136,8 @@ else
 fi
 rm -rf "$root"
 
-# Case 6: no locale file anywhere -> the shared resolver's inline en_US
-# default still yields a complete resolved block. A resolved block must
-# never be empty; this pins the contract the Cursor wrapper relies on.
+# Case 6 makes sure that inline en_US values create a complete resolved block.
+# The Cursor envelope requires a nonempty resolved block.
 root=$(new_fixture)
 rm "$root/plugin/LOCALE.default.md"
 out=$(run_hook "$root")
@@ -147,8 +146,8 @@ assert_contains "$out" 'issues=en_US' 'case 6: inline default provides issues'
 assert_contains "$out" 'test-logs=en_US' 'case 6: inline default provides test-logs'
 rm -rf "$root"
 
-# Case 7: the SessionStart cwd selects repository scopes. Distinctive
-# values make a missing input parser or a wrong candidate order fail.
+# Case 7 makes sure that the SessionStart cwd selects repository scopes.
+# Distinct values reveal an absent input parser or an incorrect candidate order.
 root=$(new_fixture)
 mkdir -p "$root/project/.rules-for-ai" "$root/config/rules-for-ai"
 cat > "$root/config/rules-for-ai/LOCALE.md" <<'EOF'
@@ -181,8 +180,8 @@ out=$(run_hook "$root")
 assert_contains "$out" 'issues=project_PROJECT' 'case 7: cwd resolves project scope without local'
 rm -rf "$root"
 
-# Case 8: older hook payloads can use CLAUDE_PROJECT_DIR. This fallback
-# keeps project scope available when the JSON has no usable cwd.
+# Case 8 makes sure that older hook payloads can use CLAUDE_PROJECT_DIR.
+# If the JSON has no valid cwd, this fallback retains project scope.
 root=$(new_fixture)
 mkdir -p "$root/project/.rules-for-ai"
 cat > "$root/project/.rules-for-ai/LOCALE.md" <<'EOF'

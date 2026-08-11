@@ -1,16 +1,16 @@
 #!/bin/sh
-# Shared locale resolver for the session-start hooks.
+# This locale resolver supports the session-start hooks.
 #
 # Usage: resolve-locale.sh [candidate-file ...]
 #
-# Prints the five locale keys (issues, pull-requests, comments, logs,
-# test-logs) from the first candidate file that exists; layers never
-# merge. When no candidate exists, prints the inline en_US default so
-# a resolved block is never empty.
+# It prints five locale keys from the first existing candidate file.
+# The keys are issues, pull-requests, comments, logs, and test-logs.
+# The locale layers do not merge.
+# If no candidate exists, it prints inline en_US values for all keys.
 #
-# LOCALE files are machine-written by the hashiiiii-locale skill:
-# strict key=value lines, always all five keys, LF endings. The
-# resolver trusts that format.
+# The hashiiiii-locale skill writes LOCALE files.
+# These files contain all five keys as strict key=value lines with LF endings.
+# The resolver trusts this format.
 set -u
 
 for f in "$@"; do

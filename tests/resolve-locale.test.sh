@@ -1,11 +1,11 @@
 #!/bin/sh
-# Tests for hooks/resolve-locale.sh.
+# These tests cover hooks/resolve-locale.sh.
 #
-# The resolver is the single source of locale resolution logic shared
-# by the Claude and Cursor session-start wrappers: first existing
-# candidate wins as a whole, inline en_US when none exists. Each case
-# runs the real script against real files under a temp root; no mocks
-# or stubs.
+# The Claude and Cursor session-start envelopes use the same locale resolver.
+# The first existing candidate wins as a whole.
+# If no candidate exists, the resolver uses inline en_US values.
+# Each case runs the real script with real files in a temporary directory.
+# The tests do not use mocks or stubs.
 set -u
 
 REPO="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
@@ -13,7 +13,7 @@ RESOLVER="$REPO/hooks/resolve-locale.sh"
 SCOPED_RESOLVER="$REPO/hooks/resolve-scoped-locale.sh"
 failures=0
 
-# assert_contains <haystack> <needle> <case description>
+# assert_contains <haystack> <needle> <case-description> searches the result.
 assert_contains() {
     case "$1" in
         *"$2"*) printf 'PASS: %s\n' "$3" ;;
@@ -21,7 +21,7 @@ assert_contains() {
     esac
 }
 
-# assert_not_contains <haystack> <needle> <case description>
+# assert_not_contains <haystack> <needle> <case-description> searches for an unexpected value.
 assert_not_contains() {
     case "$1" in
         *"$2"*) printf 'FAIL: %s (unexpected: %s)\n' "$3" "$2"; failures=$((failures + 1)) ;;
@@ -45,19 +45,19 @@ logs=en_GB
 test-logs=en_GB
 EOF
 
-# Case 1: the first existing candidate wins as a whole; later
-# candidates never merge in.
+# Case 1 makes sure that the first existing candidate wins as a whole.
+# Later candidates do not merge with it.
 out=$(sh "$RESOLVER" "$root/first.md" "$root/second.md")
 assert_contains "$out" 'issues=ja_JP' 'case 1: first candidate wins'
 assert_not_contains "$out" 'en_GB' 'case 1: layers never merge'
 
-# Case 2: a missing first candidate falls through to the second.
+# Case 2 makes sure that a missing first candidate selects the second candidate.
 out=$(sh "$RESOLVER" "$root/missing.md" "$root/second.md")
 assert_contains "$out" 'issues=en_GB' 'case 2: falls through to the next candidate'
 
-# Case 3: prose around the keys is filtered out. The real bundled
-# LOCALE.default.md carries explanatory text above the keys; only the
-# five key lines may pass through.
+# Case 3 makes sure that the resolver removes text around the keys.
+# The bundled LOCALE.default.md contains explanatory text above the keys.
+# Only the five key lines can occur in the output.
 out=$(sh "$RESOLVER" "$REPO/LOCALE.default.md")
 assert_contains "$out" 'issues=en_US' 'case 3: bundled default resolves'
 assert_not_contains "$out" '# Locale' 'case 3: prose is filtered'
@@ -68,8 +68,8 @@ else
     printf 'FAIL: case 3: expected 5 lines, got %s\n' "$lines"; failures=$((failures + 1))
 fi
 
-# Case 4: no candidate exists -> the inline en_US default provides all
-# five keys, so a resolved block is never empty.
+# Case 4 makes sure that inline en_US values supply all five keys.
+# If no candidate exists, the resolved block is not empty.
 out=$(sh "$RESOLVER" "$root/missing.md")
 assert_contains "$out" 'issues=en_US' 'case 4: inline default provides issues'
 assert_contains "$out" 'pull-requests=en_US' 'case 4: inline default provides pull-requests'
@@ -77,7 +77,7 @@ assert_contains "$out" 'comments=en_US' 'case 4: inline default provides comment
 assert_contains "$out" 'logs=en_US' 'case 4: inline default provides logs'
 assert_contains "$out" 'test-logs=en_US' 'case 4: inline default provides test-logs'
 
-# Case 5: no arguments at all -> inline default, exit 0.
+# Case 5 makes sure that no arguments select the inline default and exit 0.
 out=$(sh "$RESOLVER") && rc=0 || rc=$?
 assert_contains "$out" 'issues=en_US' 'case 5: no args yields inline default'
 if [ "$rc" -eq 0 ]; then
@@ -86,8 +86,8 @@ else
     printf 'FAIL: case 5: exit status %s\n' "$rc"; failures=$((failures + 1))
 fi
 
-# Case 6: each repository scope must override the scopes below it. A
-# wrong candidate order changes the distinctive locale in this output.
+# Case 6 makes sure that each repository scope takes precedence over lower scopes.
+# Distinct locale values reveal an incorrect candidate order.
 repo="$root/repo"
 mkdir -p "$repo/.rules-for-ai" "$root/config/rules-for-ai"
 git -C "$repo" init --quiet
@@ -126,8 +126,8 @@ out=$(sh "$SCOPED_RESOLVER" "$repo" \
     "$root/config/rules-for-ai/LOCALE.md" "$REPO/LOCALE.default.md")
 assert_contains "$out" 'issues=user_USER' 'case 6: user scope wins without repository files'
 
-# Case 7: Git metadata keeps a local file out of worktree status. This
-# prevents an accidental commit without an exclude-file mutation.
+# Case 7 makes sure that Git metadata keeps a local file outside worktree status.
+# This behavior prevents an accidental commit without a change to an exclude file.
 cat > "$git_dir/rules-for-ai/LOCALE.md" <<'EOF'
 issues=local_LOCAL
 pull-requests=local_LOCAL
@@ -143,8 +143,8 @@ else
     failures=$((failures + 1))
 fi
 
-# Case 8: linked worktrees need separate local files. A common Git
-# directory leaks one developer preference into both trees.
+# Case 8 makes sure that linked worktrees use separate local files.
+# A shared Git directory can put one developer preference in both worktrees.
 git -C "$repo" -c user.email=test@test.invalid -c user.name=test \
     commit --quiet --allow-empty -m fixture
 linked="$root/linked"

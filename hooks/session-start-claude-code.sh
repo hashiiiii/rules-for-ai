@@ -1,20 +1,19 @@
 #!/bin/sh
-# SessionStart hook for the rules-for-ai plugin (Claude Code).
+# This SessionStart hook supports the rules-for-ai plugin in Claude Code.
 #
-# Injects the always-on rules (AGENTS.md) and the locale keys into the
-# session context. The sibling scope resolver uses the first existing
-# LOCALE file as a whole:
+# It adds the always-on rules and locale keys to the session context.
+# The sibling scope resolver uses the first existing LOCALE file:
 #   1. <absolute-git-dir>/rules-for-ai/LOCALE.md (local)
 #   2. <repo>/.rules-for-ai/LOCALE.md            (project)
 #   3. $XDG_CONFIG_HOME/rules-for-ai/LOCALE.md   (user)
 #   4. $CLAUDE_PLUGIN_ROOT/LOCALE.default.md     (bundled)
-#   5. inline en_US (a resolved block is never empty)
+#   5. inline en_US values
 #
-# LOCALE files are machine-written by the hashiiiii-locale skill: strict
-# key=value lines, always all five keys (issues, pull-requests,
-# comments, logs, test-logs), LF endings. The hook trusts that format;
-# layers never merge.
-# This script must never break session start: it always exits 0.
+# The hashiiiii-locale skill writes LOCALE files.
+# These files contain all five keys as strict key=value lines with LF endings.
+# The keys are issues, pull-requests, comments, logs, and test-logs.
+# The hook trusts this format. The locale layers do not merge.
+# This script always exits 0 because it must not stop session start.
 
 set -u
 
@@ -36,7 +35,7 @@ if [ ! -d "$PROJECT_DIR" ]; then
     PROJECT_DIR=${CLAUDE_PROJECT_DIR:-}
 fi
 
-# Always-on rules from the single source of truth.
+# Read the always-on rules from their single source.
 if [ -f "$PLUGIN_ROOT/AGENTS.md" ]; then
     cat "$PLUGIN_ROOT/AGENTS.md"
 else

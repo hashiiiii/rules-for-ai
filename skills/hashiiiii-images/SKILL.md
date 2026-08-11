@@ -1,39 +1,49 @@
 ---
 name: hashiiiii-images
-description: Use when creating image assets for a project — logo marks, app or extension icons, favicons, promo tiles, or repository header images, especially flat geometric ones in the modern OSS style (dark background, single accent color).
+description: Use this skill to create project images, especially flat geometric images with a dark background and one accent color.
 ---
 
 # Images
 
-First decide vector vs raster: if the image is fully describable in words (flat geometric marks, icons, tiles, headers), write it as SVG code with the recipe below — never generate it as a raster image. The quality lever is not the drawing; it is the harness: constrain the design language, explore several candidates side by side, verify at real target sizes, then converge on one.
+First, select vector or raster output. If words fully describe the image, write SVG code with the procedure below.
+
+Do not make a flat geometric image as a raster image.
+
+The process controls the image quality. Limit the design language. Then compare candidates at their target sizes before you select one.
 
 ## When to Use
 
-- Logo marks, icons, favicons, promo tiles, README header images
-- Anything in the "2-4 shapes, one accent color" OSS aesthetic
+- Use this skill for logo marks, icons, favicons, promo tiles, and README header images.
+- Use this skill for an OSS style with two to four shapes and one accent color.
 
-When NOT to use this recipe: illustrative or photorealistic artwork (mascots, rich 3D icons, photos) — use a raster image generator and a background-removal pipeline instead.
+If the image is illustrative or photorealistic, use a raster image generator. Then use a process that removes the background.
 
 ## Gather Requirements First
 
-Four inputs shape every step below. Note which ones the request and the repository already state; for each missing one, ask the user — one question at a time, offering the default so they can accept it in a word. Do not draw until all four are settled: a "placeholder" accent or an "exploratory" first pass is still a guess, and a wrong background or color invalidates the whole contact sheet, so one question up front is cheaper than redrawing six candidates.
+Collect four inputs before you create an image. The request and the repository can already contain some inputs.
+
+For each missing input, ask the user. Ask one question at a time. Include the default in each question.
+
+Do not draw until you know all four inputs. A temporary accent or an exploratory draft still uses assumptions.
+
+An incorrect background or color invalidates the complete contact sheet. One early question prevents work on incorrect candidates.
 
 | Input | Confirm | Default to offer |
 |-------|---------|------------------|
-| Target | Which asset (favicon, app or extension icon, README header, promo tile) and the smallest size it must survive | None — always ask when unstated |
-| Colors | Accent color (existing brand color?) and intended background (dark, light, or both) | Dark background, single accent |
-| Motif | What the name means, domain concepts, motifs to avoid | Derive from the project name and README |
-| Output | SVG only or PNG exports too, and where files go | SVG mark plus PNG exports at target sizes |
+| Target | Identify the asset and its smallest usable size. | If the request does not specify a target, always ask. |
+| Colors | Identify the accent color and the intended background. | Use a dark background and one accent color. |
+| Motif | Identify the name meaning, domain concepts, and motifs to avoid. | Use the project name and README. |
+| Output | Identify the file formats and target paths. | Create an SVG mark and PNG files at the target sizes. |
 
-Target sets the sizes verified in step 3; Motif seeds the metaphor list in step 2.
+The target supplies the sizes for step 3. The motif supplies the metaphor list for step 2.
 
 ## The Recipe
 
-1. **Fix the design language first.** One mark = 2 to 4 primitives (circles, polygons, lens shapes). One accent color per mark. Negative space over added detail. No gradients, no text.
-2. **List metaphors before drawing.** Write down 4+ visual metaphors from the project's domain (what the name means, what the tool does). Each candidate gets one metaphor.
-3. **Produce a contact sheet, not a mark.** One SVG containing 4-6 candidate tiles. Each tile shows the candidate large (~100 px) AND at the smallest target size (16-32 px), on the intended background color. Render it and LOOK at the PNG — judge small-size legibility with your eyes, not by reasoning about it.
-4. **Pick, then converge.** Iterate on the chosen candidate with coordinate-level edits. If none work, change the constraint set and produce the next sheet — do not polish a weak candidate.
-5. **Deliver the mark as foreground only.** No background tile baked into the final SVG — the background belongs to the context (README header, store tile, favicon). Punch holes with `fill-rule="evenodd"` subpaths, not background-colored shapes, so the mark survives on any background.
+1. **Define the design language.** Use two to four basic shapes for each mark. Use one accent color for each mark. Prefer negative space to additional detail. Do not use gradients or text.
+2. **List metaphors.** Write at least four visual metaphors from the project domain. Include the name meaning and the tool function. Give one metaphor to each candidate.
+3. **Create a contact sheet.** Put four to six candidate tiles in one SVG. Show each candidate at approximately 100 px. Also show it at its smallest target size. Use the intended background color. Render the SVG. Then inspect the PNG at its actual sizes.
+4. **Select one candidate.** Refine it with coordinate changes. If no candidate works, change the constraints. Then create a new contact sheet. Do not refine a weak candidate.
+5. **Deliver only the foreground mark.** Do not put a background tile in the final SVG. The context supplies the background. Use `fill-rule="evenodd"` subpaths for transparent holes. Do not use shapes that have the background color.
 
 Render loop:
 
@@ -46,17 +56,17 @@ for s in 16 32 48 128; do rsvg-convert -w $s -h $s mark.svg -o mark-$s.png; done
 
 | Target | Verify at |
 |--------|-----------|
-| Favicon / browser tab | 16 px |
-| Toolbar, extension list | 32 / 48 px |
+| Favicon or browser tab | 16 px |
+| Toolbar or extension list | 32 px and 48 px |
 | Store listing, README | 128 px+ |
 
 ## Common Mistakes
 
 | Mistake | Fix |
 |---------|-----|
-| Drawing with "placeholder" colors or sizes while questions wait at the end | Ask before drawing — one question per missing input, with a default offered |
-| Polishing the first idea | Explore 4-6 candidates on a sheet before converging |
-| Illustrative pictogram (a scene with a subject doing something) | If describing it needs a verb, it is an illustration — reduce to an abstract form |
-| Background rectangle baked into the mark | Foreground only; backgrounds live in the context |
-| Holes filled with the background color | `fill-rule="evenodd"` so holes are transparent |
-| Judging legibility at full size only | Put the small size on the sheet next to the large one |
+| Use temporary colors or sizes before the user answers questions. | Ask one question for each missing input before you draw. Include a default. |
+| Refine the first idea. | Compare four to six candidates before you select one. |
+| Use an illustrative pictogram. | If its description needs a verb, reduce the image to an abstract form. |
+| Put a background rectangle in the mark. | Deliver only the foreground. The context supplies the background. |
+| Fill holes with the background color. | Use `fill-rule="evenodd"` to make the holes transparent. |
+| Inspect legibility only at full size. | Put the small and large sizes next to each other. |

@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version (X.Y.Z, no v prefix)'
+        description: 'Enter the release version as X.Y.Z without a v prefix.'
         required: true
 
 permissions:
@@ -39,7 +39,8 @@ jobs:
           APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
         run: |
           set -euo pipefail
-          # Author the commit as the app (unidog-bot[bot]); the +<id> email links it to the bot.
+          # Use the app (unidog-bot[bot]) as the commit author.
+          # The +<id> email links the commit to the bot.
           user_id=$(gh api "/users/${APP_SLUG}[bot]" --jq .id)
           git config user.name "${APP_SLUG}[bot]"
           git config user.email "${user_id}+${APP_SLUG}[bot]@users.noreply.github.com"

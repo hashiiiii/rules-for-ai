@@ -32,7 +32,7 @@ assert_no_file() {
     fi
 }
 
-# This identity permits commits on CI machines without a global identity.
+# This identity permits commits on CI machines that have no global identity.
 git_q() { git -c user.email=test@test.invalid -c user.name=test "$@"; }
 
 new_source_repo() {
@@ -58,7 +58,7 @@ EOF
     printf '# git skill fixture\n' > "$src/skills/hashiiiii-git/SKILL.md"
     printf '# issues skill fixture\n' > "$src/skills/hashiiiii-issues/SKILL.md"
     printf '# locale skill fixture\n' > "$src/skills/hashiiiii-locale/SKILL.md"
-    # This tag proves that the installed hook reads the copied default.
+    # This tag proves that the installed hook reads the copied default file.
     printf 'issues=xx_XX\npull-requests=xx_XX\ncomments=xx_XX\nlogs=xx_XX\ntest-logs=xx_XX\n' \
         > "$src/LOCALE.default.md"
     cp "$REPO/rules-for-ai.sh" "$src/rules-for-ai.sh"

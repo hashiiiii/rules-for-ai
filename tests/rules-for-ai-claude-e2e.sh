@@ -1,6 +1,6 @@
 #!/bin/sh
-# These tests write to the machine plugin cache. The environment gate keeps
-# the script opt-in for local runs.
+# These tests write to the plugin cache on the machine.
+# The environment condition makes the script optional for local runs.
 set -u
 
 REPO="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"

@@ -1,10 +1,10 @@
 #!/bin/sh
-# Resolves locale scopes for one project directory.
+# This script resolves locale scopes for one project directory.
 #
 # Usage: resolve-scoped-locale.sh <project-dir> <user-file> [default-file ...]
 #
-# The absolute Git directory keeps local preferences out of the
-# worktree and gives each linked worktree an independent local file.
+# The absolute Git directory keeps local preferences outside the worktree.
+# It also gives each linked worktree an independent local file.
 set -u
 
 HOOK_DIR=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)

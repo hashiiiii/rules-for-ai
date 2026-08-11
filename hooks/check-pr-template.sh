@@ -1,53 +1,48 @@
 #!/bin/sh
-# Shared pull request template check for the pr-template-check hooks.
+# This script evaluates pull request templates for both hook envelopes.
 #
-# Blocks `gh pr create` / `gh pr edit` when the pull request body is set
-# inline but is missing one of the sections required by the repository
-# pull request template. When the repository has no template, falls back
-# to the default sections from the hashiiiii-pull-request skill:
-# Summary, Motivation, Changes, Testing.
+# If an inline body omits a required section, it blocks `gh pr create` and `gh pr edit`.
+# If the repository has no template, it requires the default sections:
+# Summary, Motivation, Changes, and Testing.
 #
-# Reads the whole hook payload from stdin and scans it as text. An
-# inline body (--body / -b, heredoc included) carries the section
-# headings as literal text inside the JSON-encoded command, so a
-# substring scan is enough and needs no jq. A body read from a file
-# (--body-file / -F) or built by gh (--fill) is invisible here, so the
-# check fails OPEN in those cases: it never blocks a body it cannot
-# actually read.
+# The script reads the complete hook payload from stdin and scans it as text.
+# An inline body includes section headings in the JSON-encoded command.
+# Thus, a substring scan is sufficient and does not require jq.
+# The script cannot read a body from `--body-file`, `-F`, or `--fill`.
+# For these body types, the script permits the command.
 #
-# Contract: exit 0 allows the command; exit 2 blocks it with the reason
-# on stdout. The per-platform envelopes live in the sibling
-# pr-template-check-claude-code.sh (stderr + exit 2) and
-# pr-template-check-cursor.sh (permission JSON).
+# Exit 0 permits the command. Exit 2 blocks it and writes the reason to stdout.
+# The sibling scripts contain the platform envelopes.
+# pr-template-check-claude-code.sh uses stderr and exit 2.
+# pr-template-check-cursor.sh uses permission JSON.
 
 set -u
 
 input=$(cat)
 
-# Only pull request creation/edit is in scope.
+# Only pull request creation and edits are in scope.
 case "$input" in
     *'gh pr create'* | *'gh pr edit'*) ;;
     *) exit 0 ;;
 esac
 
-# Fail open when the body is not an inline literal we can read. Check the
-# file/fill forms before --body, since --body-file also contains --body.
+# If the body is not a readable inline literal, permit the command.
+# Search for file and fill forms first because --body-file contains --body.
 case "$input" in
     *'--body-file'* | *' -F '* | *'--fill'* | *' -f '*) exit 0 ;;
 esac
 
-# Enforce only when an inline body flag is actually present.
+# If an inline body flag is present, enforce the template.
 case "$input" in
     *'--body'* | *' -b '*) ;;
     *) exit 0 ;;
 esac
 
-# The template belongs to the repo the agent's command runs in. Both
-# platforms carry that directory in the payload's "cwd" field; the
-# process cwd is the fallback (Claude Code runs hooks from the project
-# dir). Cursor user-level hooks run from ~/.cursor, which is why the
-# payload field must win when present. Paths are machine-written, so a
-# quote-delimited awk match is enough and needs no jq.
+# Use the template from the repository that runs the agent command.
+# Both platforms put that repository in the payload `cwd` field.
+# The process directory is the fallback because Claude Code runs hooks from the project directory.
+# Cursor user hooks run from ~/.cursor. If the payload field is present, use it.
+# Machine-written paths use quotes. Therefore, an awk match does not require jq.
 payload_cwd=$(printf '%s' "$input" | awk '
     match($0, /"cwd"[[:space:]]*:[[:space:]]*"[^"]*"/) {
         s = substr($0, RSTART, RLENGTH)
@@ -91,9 +86,9 @@ find_template_file() {
     return 1
 }
 
-# extract_headings writes ATX markdown headings from the template to stdout.
-# Lines must start with 1-6 # characters followed by a space; setext headings
-# and non-markdown structures are intentionally ignored.
+# extract_headings writes Markdown ATX headings from the template to stdout.
+# A heading line starts with one to six # characters and a space.
+# The function intentionally ignores setext headings and non-Markdown structures.
 extract_headings() {
     template_file=$1
     grep -E '^#{1,6} [^#]' "$template_file" 2>/dev/null \
@@ -101,9 +96,9 @@ extract_headings() {
         | sed '/^$/d'
 }
 
-# resolve_headings writes required heading lines to stdout.
-# Exit 0: headings resolved. Exit 3: fail open (multiple templates or a
-# template with no extractable ATX headings).
+# resolve_headings writes the required headings to stdout.
+# Exit 0 means that the function resolved the headings.
+# Exit 3 permits the command because the function cannot select or read a template.
 resolve_headings() {
     template_file=$(find_template_file)
     status=$?
@@ -130,7 +125,7 @@ if ! headings=$(resolve_headings); then
     exit 0
 fi
 
-# Collect the required headings that are absent from the body.
+# Collect the required headings that the body does not contain.
 missing=''
 while IFS= read -r heading; do
     [ -n "$heading" ] || continue

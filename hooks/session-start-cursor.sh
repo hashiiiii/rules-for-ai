@@ -1,25 +1,22 @@
 #!/bin/sh
-# sessionStart hook for Cursor installs (every scope).
+# This sessionStart hook supports Cursor installations at every scope.
 #
-# Emits {"additional_context": ...} on stdout; Cursor injects that text
-# into the model context. The always-on rules already ride on
-# agents.mdc (alwaysApply), so this hook injects only the resolved
-# locale keys. The first existing LOCALE file wins as a whole:
+# It emits {"additional_context": ...} to stdout.
+# Cursor adds this text to the model context.
+# The always-on rules use agents.mdc with alwaysApply.
+# Thus, this hook adds only the resolved locale keys.
+# The first existing LOCALE file wins as a whole:
 #   1. <absolute-git-dir>/rules-for-ai/LOCALE.md (local)
 #   2. <repo>/.rules-for-ai/LOCALE.md            (project)
 #   3. $XDG_CONFIG_HOME/rules-for-ai/LOCALE.md   (user)
-#   4. LOCALE.default.md next to this script    (project/local install
-#      copy in .cursor/rules-for-ai/)
-#   5. LOCALE.default.md one level up           (user-scope plugin clone,
-#      where this script lives in <clone>/hooks/)
-#   6. inline en_US via resolve-locale.sh (a resolved block is never
-#      empty)
+#   4. LOCALE.default.md next to this script (project or local copy)
+#   5. LOCALE.default.md one level up (user plugin clone)
+#   6. inline en_US values from resolve-locale.sh
 #
-# The installer copies this script and its sibling scope resolver,
-# locale resolver, JSON escaper, and default into .cursor/rules-for-ai/.
-# so it must stay self-contained: absolute env paths plus dirname "$0"
-# sibling lookups, no plugin root, no jq.
-# This script must never break session start: it always exits 0.
+# The installer copies this script and its support files into .cursor/rules-for-ai/.
+# Thus, use absolute environment paths and dirname "$0" sibling lookups.
+# Do not use the plugin root or jq.
+# This script always exits 0 because it must not stop session start.
 
 set -u
 
@@ -37,8 +34,8 @@ PROJECT_DIR=$(printf '%s' "$HOOK_INPUT" | awk '
     }
 ')
 
-# A copied project hook can find its repository without input from
-# older Cursor versions. A user hook cannot use this directory shape.
+# A copied project hook can find its repository without input from older Cursor versions.
+# A user hook cannot use this directory structure.
 if [ ! -d "$PROJECT_DIR" ]; then
     case "$HOOK_DIR" in
         */.cursor/rules-for-ai)

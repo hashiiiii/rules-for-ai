@@ -1,23 +1,22 @@
 #!/bin/sh
-# Tests for hooks/session-start-cursor.sh.
+# These tests cover hooks/session-start-cursor.sh.
 #
-# The hook ships in two layouts: copied into a target repo as
-# .cursor/rules-for-ai/session-start-cursor.sh (siblings:
-# resolve-locale.sh, json-escape.sh, LOCALE.default.md), or inside the
-# user-scope plugin clone as <clone>/hooks/session-start-cursor.sh with
-# LOCALE.default.md at the clone root. Each case copies the real
-# scripts into a real layout under a temp root and runs them there —
-# running from the repo would let the repo's own LOCALE.default.md
-# shadow the layer under test. The hook must emit a single-line
-# {"additional_context": ...} JSON object on stdout; JSON validity is
-# checked with python3 when available (tests may use python3 — the hook
-# itself must not).
+# The hook has project and user installation layouts.
+# A project installation copies the hook into .cursor/rules-for-ai/.
+# Its sibling files include resolve-locale.sh, json-escape.sh, and LOCALE.default.md.
+# A user installation puts the hook in <clone>/hooks/.
+# Its LOCALE.default.md is at the clone root.
+# Each case copies the real scripts into a real layout in a temporary directory.
+# The tests run the copies to prevent the repository default from hiding the test layer.
+# The hook must write one {"additional_context": ...} JSON line to stdout.
+# If python3 is available, it parses the JSON.
+# The tests can use python3, but the hook cannot use it.
 set -u
 
 REPO="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
 failures=0
 
-# assert_contains <haystack> <needle> <case description>
+# assert_contains <haystack> <needle> <case-description> searches the result.
 assert_contains() {
     case "$1" in
         *"$2"*) printf 'PASS: %s\n' "$3" ;;
@@ -25,8 +24,7 @@ assert_contains() {
     esac
 }
 
-# install_scripts <dir>: place the hook and its script siblings the way
-# both install layouts do.
+# install_scripts <dir> copies the hook and its sibling scripts into an installation layout.
 install_scripts() {
     mkdir -p "$1"
     cp "$REPO/hooks/session-start-cursor.sh" "$1/session-start-cursor.sh"
@@ -35,17 +33,17 @@ install_scripts() {
     cp "$REPO/hooks/json-escape.sh" "$1/json-escape.sh"
 }
 
-# run_hook <hook dir> <fixture root> [workspace root]: run the installed
-# hook with user configuration isolated to the fixture.
+# run_hook <hook-dir> <fixture-root> [workspace-root] runs the installed hook.
+# It isolates the user locale files in the fixture.
 run_hook() {
     workspace_root=${3:-}
     printf '{"conversation_id":"fixture","workspace_roots":["%s"]}' "$workspace_root" \
         | XDG_CONFIG_HOME="$2/config" HOME="$2" sh "$1/session-start-cursor.sh"
 }
 
-# Case 1: user LOCALE.md beats the sibling LOCALE.default.md, and the
-# keys ride inside additional_context with newlines encoded as literal
-# \n, on one line.
+# Case 1 makes sure that the user LOCALE.md wins over the sibling default.
+# The locale keys occur in additional_context on one line.
+# Literal \n values represent the encoded newlines.
 root=$(mktemp -d)
 install_scripts "$root/.cursor/rules-for-ai"
 printf 'issues=xx_XX\n' > "$root/.cursor/rules-for-ai/LOCALE.default.md"
@@ -69,9 +67,9 @@ else
 fi
 rm -rf "$root"
 
-# Case 2: project/local layout without a user file -> the copied
-# sibling LOCALE.default.md wins. The distinctive tag proves the copy
-# was read rather than the inline default.
+# Case 2 covers a project or local layout without a user file.
+# The copied sibling LOCALE.default.md must win.
+# The distinct tag proves that the hook read the copy and not the inline default.
 root=$(mktemp -d)
 install_scripts "$root/.cursor/rules-for-ai"
 printf 'issues=xx_XX\npull-requests=xx_XX\ncomments=xx_XX\nlogs=xx_XX\ntest-logs=xx_XX\n' \
@@ -80,8 +78,8 @@ out=$(run_hook "$root/.cursor/rules-for-ai" "$root")
 assert_contains "$out" 'issues=xx_XX' 'case 2: sibling LOCALE.default.md provides the keys'
 rm -rf "$root"
 
-# Case 3: user-scope plugin clone layout (hooks/ subdir) without a user
-# file -> the clone-root LOCALE.default.md wins via the parent lookup.
+# Case 3 covers a user plugin clone without a user file.
+# The parent lookup must select the clone-root LOCALE.default.md.
 root=$(mktemp -d)
 install_scripts "$root/plugin/hooks"
 printf 'issues=yy_YY\npull-requests=yy_YY\ncomments=yy_YY\nlogs=yy_YY\ntest-logs=yy_YY\n' \
@@ -90,8 +88,8 @@ out=$(run_hook "$root/plugin/hooks" "$root")
 assert_contains "$out" 'issues=yy_YY' 'case 3: clone-root LOCALE.default.md provides the keys'
 rm -rf "$root"
 
-# Case 4: no user file and no LOCALE.default.md anywhere -> the
-# resolver's inline en_US backstop keeps the block non-empty.
+# Case 4 covers a layout without a user file or LOCALE.default.md.
+# Inline en_US values keep the block nonempty.
 root=$(mktemp -d)
 install_scripts "$root/bare"
 out=$(run_hook "$root/bare" "$root")
@@ -99,8 +97,8 @@ assert_contains "$out" 'issues=en_US' 'case 4: inline default provides issues'
 assert_contains "$out" 'test-logs=en_US' 'case 4: inline default provides test-logs'
 rm -rf "$root"
 
-# Case 5: double quotes and backslashes in values must be JSON-escaped,
-# and the whole envelope must parse as JSON.
+# Case 5 makes sure that JSON escaping preserves double quotes and backslashes.
+# The complete envelope must have valid JSON syntax.
 root=$(mktemp -d)
 install_scripts "$root/bare"
 mkdir -p "$root/config/rules-for-ai"
@@ -132,8 +130,8 @@ else
 fi
 rm -rf "$root"
 
-# Case 6: the hook must exit 0 even when HOME and XDG_CONFIG_HOME are
-# truly unset; session start must never break.
+# In Case 6, HOME and XDG_CONFIG_HOME are unset. The hook must exit 0.
+# The hook must not stop session start.
 root=$(mktemp -d)
 install_scripts "$root/bare"
 printf '{}' | env -u HOME -u XDG_CONFIG_HOME sh "$root/bare/session-start-cursor.sh" > /dev/null 2>&1
@@ -145,8 +143,8 @@ else
 fi
 rm -rf "$root"
 
-# Case 7: workspace_roots selects repository scopes for a user hook.
-# A process-cwd implementation reads the plugin directory and fails.
+# Case 7 makes sure that workspace_roots selects repository scopes for a user hook.
+# An implementation that uses the process directory reads the plugin directory and fails.
 root=$(mktemp -d)
 install_scripts "$root/plugin/hooks"
 project="$root/project"

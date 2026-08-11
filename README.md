@@ -1,21 +1,25 @@
 # Rules for AI
 
-Portable rules and skills for AI coding agents.
+Rules for AI supplies portable rules and skills for AI coding agents.
 
-Write your rules once and carry them across Claude Code and Cursor as an installable, updatable plugin — no more copy-pasting the same instructions into every machine and repository. Language preferences for issues, pull requests, comments, logs, and test logs are resolved per user and overridden per project. Use it as is, or fork it and swap in your own rules.
+Write the rules one time. Then use the same rules with Claude Code and Cursor through an installable plugin.
+
+The plugin manages language preferences for issues, pull requests, comments, logs, and test logs. A project can override the preferences of a user.
+
+Use the plugin without changes. You can also fork it and add your own rules.
 
 ## Getting Started
 
-[rules-for-ai.sh](./rules-for-ai.sh) installs, updates, and uninstalls everything. Choose a platform — **claude** or **cursor** — and a scope.
+[rules-for-ai.sh](./rules-for-ai.sh) installs, updates, and removes the plugin. Select a platform: **claude** or **cursor**. Then select a scope.
 
 ### Scopes
 
 
 | Scope       | Meaning                                 |
 | ----------- | --------------------------------------- |
-| **user**    | Every project on this machine           |
-| **project** | One repo, shared with your team via git |
-| **local**   | One repo, just you, nothing committed   |
+| **user**    | Use the plugin in every project on this machine.     |
+| **project** | Share the plugin with your team through Git.         |
+| **local**   | Use the plugin in one repository without committed files.  |
 
 
 ```mermaid
@@ -42,25 +46,29 @@ curl -fsSL https://raw.githubusercontent.com/hashiiiii/rules-for-ai/main/rules-f
 # e.g. ./rules-for-ai.sh install cursor project path/to/repo
 ```
 
-`path/to/repo` applies to **project** and **local** only and defaults to the current directory. Re-running install updates in place. Uninstall removes exactly what install created.
+Use `path/to/repo` only with **project** and **local** scopes. If you omit the path, the command uses the current directory.
 
-What each platform puts where, and how locale reaches the model, is in [Platform details](#platform-details).
+Run install again to update the plugin. Uninstall removes only the files that install created.
+
+See [Platform details](#platform-details) for the installed files and the locale process.
 
 ### Locale
 
-The plugin installation scope and the locale scope are separate choices. The `hashiiiii-locale` skill supports all three locale scopes:
+The plugin installation scope and the locale scope are independent. The `hashiiiii-locale` skill supports three locale scopes:
 
 | Scope | Path | Sharing behavior |
 | --- | --- | --- |
-| **user** | `~/.config/rules-for-ai/LOCALE.md` | All projects for this user |
-| **project** | `<repo>/.rules-for-ai/LOCALE.md` | Available for commit and team use |
-| **local** | `<absolute-git-dir>/rules-for-ai/LOCALE.md` | One Git worktree, outside `git status` |
+| **user** | `~/.config/rules-for-ai/LOCALE.md` | Use the locale in all projects for this user. |
+| **project** | `<repo>/.rules-for-ai/LOCALE.md` | Commit the locale for team use. |
+| **local** | `<absolute-git-dir>/rules-for-ai/LOCALE.md` | Use the locale in one Git worktree, outside `git status`. |
 
-The user path respects `$XDG_CONFIG_HOME`. The local path comes from `git rev-parse --absolute-git-dir`.
+The user path uses `$XDG_CONFIG_HOME`. The command `git rev-parse --absolute-git-dir` supplies the local path.
 
-If you do not specify a scope, the skill asks you to select `user`, `project`, or `local`. It never infers the locale scope from the plugin installation scope.
+If you do not specify a scope, the skill asks you to select `user`, `project`, or `local`.
 
-Each locale file contains all five keys with POSIX-style tags such as `ja_JP` or `en_US`:
+The skill does not infer the locale scope from the plugin installation scope.
+
+Each locale file contains all five keys. Each key uses a POSIX-style tag, such as `ja_JP` or `en_US`:
 
 
 | Key             | Artifact          |
@@ -72,61 +80,76 @@ Each locale file contains all five keys with POSIX-style tags such as `ja_JP` or
 | `test-logs`     | Test log messages |
 
 
-Give the skill a scope and one tag for all artifacts:
+To set one tag for all artifacts, give the skill a scope and a tag:
 
 ```text
 local ja_JP
 ```
 
-You can also set each artifact separately:
+To set each artifact separately, use this format:
 
 ```text
 project issues=ja_JP pull-requests=ja_JP comments=ja_JP logs=en_US test-logs=en_US
 ```
 
-The effective language uses these layers:
+The plugin resolves the effective language in this order:
 
-1. **Project instructions** — a repo's own `CLAUDE.md` / `AGENTS.md` language policy always wins when present.
-2. **Resolved keys** — otherwise the first existing locale file wins as a whole:
+1. **Project instructions**: A repository can specify a language in `CLAUDE.md` or `AGENTS.md`.
+2. **Resolved keys**: If project instructions do not specify a language, the first existing locale file wins as a whole:
    1. Local locale file
    2. Project locale file
    3. User locale file
    4. Bundled [LOCALE.default.md](./LOCALE.default.md)
    5. Inline `en_US` values
 
-Layers never merge during resolution. A partial update fills omitted keys from the selected scope and lower-priority scopes.
+The locale layers do not merge during resolution.
 
-Both platforms use the same resolver. A session hook injects the resolved keys into context.
+During a partial update, omitted keys use the selected scope, then lower-priority scopes.
+
+Both platforms use the same resolver. A session hook adds the resolved keys to the context.
 
 ## Platform details
 
-- [Claude Code](./docs/CLAUDE_CODE.md) — settings paths, SessionStart injection, locale resolution
-- [Cursor](./docs/CURSOR.md) — per-scope files, hooks.json, how locale reaches context
+- [Claude Code](./docs/CLAUDE_CODE.md): file paths, SessionStart input, and locale resolution
+- [Cursor](./docs/CURSOR.md): files for each scope, `hooks.json`, and locale context
 
 ## Updates
 
-Re-run the same install command (or the curl one-liner). Claude Code can also run `/plugin marketplace update hashiiiii`.
+Run the same install command or curl command again. For Claude Code, you can also run `/plugin marketplace update hashiiiii`.
 
 ## Fork and customize
 
-Fork, edit [AGENTS.md](./AGENTS.md) and [skills/](./skills/), then install from your fork instead of hashiiiii/rules-for-ai.
+Fork the repository. Then edit [AGENTS.md](./AGENTS.md) and [skills/](./skills/).
 
-Skills use the `hashiiiii-` prefix. Rename to your own and find every reference:
+Install the plugin from your fork instead of `hashiiiii/rules-for-ai`.
+
+Skills use the `hashiiiii-` prefix. Replace this prefix with your prefix.
+
+Find each reference with this command:
 
 ```bash
 grep -rl 'hashiiiii-' .
 ```
 
-Also set `REPO` in [rules-for-ai.sh](./rules-for-ai.sh) and `repository` in [.claude-plugin/plugin.json](./.claude-plugin/plugin.json).
+Set `REPO` in [rules-for-ai.sh](./rules-for-ai.sh). Then set `repository` in [.claude-plugin/plugin.json](./.claude-plugin/plugin.json).
 
 ## Releasing (maintainers)
 
-Releases are cut from the Actions tab — no local tagging.
+Create releases from the Actions tab. Do not create local tags.
 
-1. Open **Actions → release → Run workflow**, keep `main` selected, and enter the version as `X.Y.Z` (no `v` prefix).
-2. The workflow bumps `version` in both plugin manifests, commits `chore: release vX.Y.Z`, tags it, and creates the GitHub release with generated notes.
+1. Open **Actions → release → Run workflow**.
+2. Keep `main` selected.
+3. Enter the version as `X.Y.Z` without a `v` prefix.
 
-The release commit is authored by a GitHub App, so a one-time setup is required: install the App on this repo, add its `APP_CLIENT_ID` / `APP_PRIVATE_KEY` secrets, and add the App to the `main` ruleset's bypass actors so it can push the commit past the pull-request requirement.
+The workflow updates `version` in both plugin manifests. Then it creates the commit, tag, and GitHub release.
+
+The commit uses a GitHub App as its author. Complete this setup one time:
+
+1. Install the App in this repository.
+2. Add the `APP_CLIENT_ID` and `APP_PRIVATE_KEY` secrets.
+3. Add the App to the bypass actors for the `main` ruleset.
+
+This bypass lets the App push the release commit without a pull request.
 
 ## License
 

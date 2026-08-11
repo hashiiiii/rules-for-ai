@@ -1,10 +1,14 @@
 # Locale
 
-Fallback language configuration. Agents read this file only when no local, project, or user locale file exists. Layers never merge.
+This file contains the fallback locale values. If no local, project, or user locale file exists, agents read this file.
 
-To override, run the hashiiiii-locale skill and select `user`, `project`, or `local`. Each file contains all five keys.
+The locale layers do not merge.
 
-POSIX-style locale tags, for example `ja_JP`, `en_US`, and `en_GB`.
+To override these values, run the `hashiiiii-locale` skill. Then select `user`, `project`, or `local`.
+
+Each locale file contains all five keys.
+
+Use POSIX-style locale tags, such as `ja_JP`, `en_US`, and `en_GB`.
 
 issues=en_US
 pull-requests=en_US

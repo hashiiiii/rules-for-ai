@@ -1,6 +1,6 @@
 # Claude Code
 
-How rules-for-ai installs under Claude Code, and how locale keys reach the model.
+This document explains the Claude Code installation and the locale process.
 
 Install with [rules-for-ai.sh](../rules-for-ai.sh):
 
@@ -8,25 +8,29 @@ Install with [rules-for-ai.sh](../rules-for-ai.sh):
 ./rules-for-ai.sh install claude <user|project|local> [path/to/repo]
 ```
 
-Requires the Claude Code CLI. Scopes map to `claude plugin ... --scope`.
+The installation requires the Claude Code CLI. Each scope maps to `claude plugin ... --scope`.
 
-That one command is all you run. Everything below spells out what `rules-for-ai.sh` does internally, so you can audit it or reproduce it by hand.
+Run only this command. The remaining sections describe the internal actions of `rules-for-ai.sh`.
+
+Use these sections to audit or reproduce the installation.
 
 ## Scopes and settings
 
 | Scope | Settings file | Notes |
 |-------|---------------|-------|
 | **user** | `~/.claude/settings.json` | Every project on this machine |
-| **project** | `<repo>/.claude/settings.json` | Commit it; teammates accept the trust prompt |
-| **local** | `<repo>/.claude/settings.local.json` | Untracked: Claude Code configures git to ignore the file it creates; the repo's `.gitignore` is never edited by this install |
+| **project** | `<repo>/.claude/settings.json` | Commit the file. Teammates accept the trust prompt. |
+| **local** | `<repo>/.claude/settings.local.json` | Claude Code tells Git to ignore this file. The installation does not edit the repository `.gitignore`. |
 
-Internally, install runs (inside the target repo for **project**/**local**; **user** scope works from any directory):
+For **project** and **local** scopes, install runs these commands in the target repository. The **user** scope works from any directory.
 
 1. `claude plugin marketplace add <source> --scope <scope>`
 2. `claude plugin marketplace update hashiiiii`
 3. `claude plugin install rules-for-ai@hashiiiii --scope <scope>`
 
-**project** also pins the marketplace and enables the plugin in `.claude/settings.json`. The same block can be added by hand:
+The **project** scope also pins the marketplace. It enables the plugin in `.claude/settings.json`.
+
+To add the same block manually, use this content:
 
 ```json
 {
@@ -39,27 +43,33 @@ Internally, install runs (inside the target repo for **project**/**local**; **us
 }
 ```
 
-Installed at **user** scope but want it off in one repo? Add to that repo's `.claude/settings.json`:
+To disable a **user** installation in one repository, add this content to the repository `.claude/settings.json`:
 
 ```json
 { "enabledPlugins": { "rules-for-ai@hashiiiii": false } }
 ```
 
-`.claude/settings.json` is meant to be committed; to keep the override personal and out of git, put the same block in `.claude/settings.local.json` instead.
+Commit `.claude/settings.json` to share the override.
 
-Installing from inside Claude Code instead of the shell: use the `/plugin` command — `/plugin marketplace add hashiiiii/rules-for-ai`, then `/plugin install rules-for-ai@hashiiiii`.
+To keep the override personal, put the same block in `.claude/settings.local.json`.
 
-Uninstall:
+To install from Claude Code, run `/plugin marketplace add hashiiiii/rules-for-ai`. Then run `/plugin install rules-for-ai@hashiiiii`.
+
+To uninstall, run:
 
 ```bash
 ./rules-for-ai.sh uninstall claude <user|project|local> [path/to/repo]
 ```
 
-That runs `claude plugin uninstall rules-for-ai@hashiiiii --scope <scope>`. Remove the marketplace separately with `claude plugin marketplace remove hashiiiii` if nothing else uses it.
+This command runs `claude plugin uninstall rules-for-ai@hashiiiii --scope <scope>`.
+
+If no other plugin uses the marketplace, run `claude plugin marketplace remove hashiiiii`.
 
 ## What lands where
 
-Claude Code loads the plugin from its plugin cache / marketplace install. The repo's own files are not copied into the target project (unlike Cursor project/local). The live plugin tree includes:
+Claude Code loads the plugin from its plugin cache. It does not copy the repository files into the target project.
+
+The installed plugin contains these files:
 
 | Path in the plugin | Role |
 |--------------------|------|
@@ -71,18 +81,18 @@ Claude Code loads the plugin from its plugin cache / marketplace install. The re
 | `hooks/resolve-scoped-locale.sh` | Scope candidate resolver |
 | `hooks/check-pr-template.sh` | Shared PR template check |
 | `hooks/pr-template-check-claude-code.sh` | PreToolUse envelope over the shared check |
-| `skills/*` | Including `hashiiiii-locale` |
+| `skills/*` | Skills, including `hashiiiii-locale` |
 
-The `*-cursor.sh` hooks and `json-escape.sh` also ride along; Claude Code never runs them.
+The plugin also contains the `*-cursor.sh` hooks and `json-escape.sh`. Claude Code does not run these files.
 
 ## How locale reaches context
 
-Each session, the SessionStart hook (`hooks/session-start-claude-code.sh`) prints:
+For each session, the SessionStart hook (`hooks/session-start-claude-code.sh`) prints this content:
 
 1. The full contents of `AGENTS.md`
 2. A `## Locale (resolved)` block with the five keys
 
-The hook reads `cwd` from the SessionStart input. It uses `CLAUDE_PROJECT_DIR` when the input has no usable `cwd`.
+The hook reads `cwd` from the SessionStart input. If the input has no valid `cwd`, the hook uses `CLAUDE_PROJECT_DIR`.
 
 The scope resolver finds the Git repository from that directory. The first existing file wins as a whole:
 
@@ -92,6 +102,8 @@ The scope resolver finds the Git repository from that directory. The first exist
 4. `$CLAUDE_PLUGIN_ROOT/LOCALE.default.md`
 5. Inline `en_US` for all five keys
 
-Layers never merge. A root-level `LOCALE.md` remains outside this chain.
+The locale layers do not merge. A root-level `LOCALE.md` is not part of this order.
 
-Project instructions in `CLAUDE.md` or `AGENTS.md` override the resolved keys. Use `hashiiiii-locale` to create or update any locale scope.
+Project instructions in `CLAUDE.md` or `AGENTS.md` take precedence over the resolved keys.
+
+Use `hashiiiii-locale` to create or update a locale scope.
