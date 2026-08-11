@@ -97,6 +97,7 @@ EOF
     cp "$REPO/rules-for-ai.sh" "$src/rules-for-ai.sh"
     mkdir -p "$src/hooks"
     cp "$REPO/hooks/resolve-locale.sh" "$src/hooks/resolve-locale.sh"
+    cp "$REPO/hooks/resolve-scoped-locale.sh" "$src/hooks/resolve-scoped-locale.sh"
     cp "$REPO/hooks/session-start-cursor.sh" "$src/hooks/session-start-cursor.sh"
     cp "$REPO/hooks/json-escape.sh" "$src/hooks/json-escape.sh"
     cp "$REPO/hooks/check-pr-template.sh" "$src/hooks/check-pr-template.sh"
@@ -161,6 +162,7 @@ assert_file "$tgt/.cursor/skills/hashiiiii-git/SKILL.md" 'case 2: git skill copi
 assert_file "$tgt/.cursor/skills/hashiiiii-issues/SKILL.md" 'case 2: issues skill copied'
 assert_file "$tgt/.cursor/skills/hashiiiii-locale/SKILL.md" 'case 2: locale skill copied'
 assert_file "$tgt/.cursor/rules-for-ai/resolve-locale.sh" 'case 2: resolver copied'
+assert_file "$tgt/.cursor/rules-for-ai/resolve-scoped-locale.sh" 'case 2: scope resolver copied'
 assert_file "$tgt/.cursor/rules-for-ai/session-start-cursor.sh" 'case 2: cursor session hook copied'
 assert_file "$tgt/.cursor/rules-for-ai/json-escape.sh" 'case 2: json escaper copied'
 assert_file "$tgt/.cursor/rules-for-ai/check-pr-template.sh" 'case 2: pr check core copied'
@@ -268,7 +270,9 @@ work="$outside/tmpwork"
 mkdir "$work"
 TMPDIR="$work" RULES_FOR_AI_SOURCE="$src" sh "$outside/rules-for-ai.sh" install cursor project "$tgt" > /dev/null
 assert_file "$tgt/.cursor/rules/agents.mdc" 'case 6: curl mode installs'
-if [ -z "$(ls -A "$work")" ]; then
+# macOS can create an xcrun_db file in TMPDIR. Only a directory can be
+# the temporary clone that the installer must remove.
+if [ -z "$(find "$work" -mindepth 1 -maxdepth 1 -type d -print -quit)" ]; then
     printf 'PASS: case 6: temp clone cleaned up on exit\n'
 else
     printf 'FAIL: case 6: temp clone left behind in %s\n' "$work"; failures=$((failures + 1))

@@ -6,8 +6,7 @@
 # Prints the five locale keys (issues, pull-requests, comments, logs,
 # test-logs) from the first candidate file that exists; layers never
 # merge. When no candidate exists, prints the inline en_US default so
-# a resolved block is never empty (Cursor project/local installs carry
-# no bundled LOCALE.default.md).
+# a resolved block is never empty.
 #
 # LOCALE files are machine-written by the hashiiiii-locale skill:
 # strict key=value lines, always all five keys, LF endings. The

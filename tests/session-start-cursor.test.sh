@@ -31,14 +31,15 @@ install_scripts() {
     mkdir -p "$1"
     cp "$REPO/hooks/session-start-cursor.sh" "$1/session-start-cursor.sh"
     cp "$REPO/hooks/resolve-locale.sh" "$1/resolve-locale.sh"
+    cp "$REPO/hooks/resolve-scoped-locale.sh" "$1/resolve-scoped-locale.sh"
     cp "$REPO/hooks/json-escape.sh" "$1/json-escape.sh"
 }
 
-# run_hook <hook dir> <fixture root>: run the installed hook with user
-# config isolated to the fixture. Cursor feeds hook input JSON on
-# stdin; the hook must consume and ignore it.
+# run_hook <hook dir> <fixture root> [workspace root]: run the installed
+# hook with user configuration isolated to the fixture.
 run_hook() {
-    printf '{"conversation_id":"fixture"}' \
+    workspace_root=${3:-}
+    printf '{"conversation_id":"fixture","workspace_roots":["%s"]}' "$workspace_root" \
         | XDG_CONFIG_HOME="$2/config" HOME="$2" sh "$1/session-start-cursor.sh"
 }
 
@@ -142,6 +143,44 @@ if [ "$status" -eq 0 ]; then
 else
     printf 'FAIL: case 6: exit status %s\n' "$status"; failures=$((failures + 1))
 fi
+rm -rf "$root"
+
+# Case 7: workspace_roots selects repository scopes for a user hook.
+# A process-cwd implementation reads the plugin directory and fails.
+root=$(mktemp -d)
+install_scripts "$root/plugin/hooks"
+project="$root/project"
+mkdir -p "$project" "$root/config/rules-for-ai"
+git -C "$project" init --quiet
+mkdir -p "$project/.rules-for-ai"
+cat > "$root/config/rules-for-ai/LOCALE.md" <<'EOF'
+issues=user_USER
+pull-requests=user_USER
+comments=user_USER
+logs=user_USER
+test-logs=user_USER
+EOF
+cat > "$project/.rules-for-ai/LOCALE.md" <<'EOF'
+issues=project_PROJECT
+pull-requests=project_PROJECT
+comments=project_PROJECT
+logs=project_PROJECT
+test-logs=project_PROJECT
+EOF
+git_dir=$(git -C "$project" rev-parse --absolute-git-dir)
+mkdir -p "$git_dir/rules-for-ai"
+cat > "$git_dir/rules-for-ai/LOCALE.md" <<'EOF'
+issues=local_LOCAL
+pull-requests=local_LOCAL
+comments=local_LOCAL
+logs=local_LOCAL
+test-logs=local_LOCAL
+EOF
+out=$(run_hook "$root/plugin/hooks" "$root" "$project")
+assert_contains "$out" 'issues=local_LOCAL' 'case 7: workspace root resolves local scope'
+rm "$git_dir/rules-for-ai/LOCALE.md"
+out=$(run_hook "$root/plugin/hooks" "$root" "$project")
+assert_contains "$out" 'issues=project_PROJECT' 'case 7: workspace root resolves project scope without local'
 rm -rf "$root"
 
 if [ "$failures" -gt 0 ]; then

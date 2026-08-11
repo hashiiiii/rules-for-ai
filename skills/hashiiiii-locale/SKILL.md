@@ -1,55 +1,79 @@
 ---
 name: hashiiiii-locale
-description: Use when setting or changing rules-for-ai locale preferences. Writes the user-level LOCALE.md.
+description: Use when setting or changing rules-for-ai locale preferences for a user, project, or local Git worktree.
 ---
 
 # Locale Setup
 
-Manage the user-level LOCALE file that rules-for-ai resolves at session start.
+Set locale preferences at the scope that the user selects. The plugin installation scope never selects the locale scope.
 
-## Resolution order (first existing file wins)
+## Scope Selection
 
-1. `~/.config/rules-for-ai/LOCALE.md` (user level; respect `$XDG_CONFIG_HOME` when set)
-2. Bundled `LOCALE.default.md` (all `en_US`)
+Accept `user`, `project`, or `local` as a bare argument. Also accept `scope=<scope>`.
 
-The winning file is used as a whole; layers never merge. That is why every LOCALE file must carry all five keys.
+If the request has no scope, ask for the scope before you ask for locale values. Never infer the scope from the current directory or plugin installation.
 
-There is no project-level LOCALE file. A project-specific language policy is an ordinary project instruction: it belongs in that project's `CLAUDE.md` / `AGENTS.md` (e.g. "Write issues in English"), and project instructions override resolved locale keys.
+Before each write, state the selected scope, exact target path, and sharing behavior.
 
-## When to Use
+| Scope | Target | Sharing behavior |
+| --- | --- | --- |
+| `user` | `${XDG_CONFIG_HOME:-${HOME:-}/.config}/rules-for-ai/LOCALE.md` | All projects for this user |
+| `project` | `<repo>/.rules-for-ai/LOCALE.md` | Available for commit and team use |
+| `local` | `<absolute-git-dir>/rules-for-ai/LOCALE.md` | This Git worktree only, outside `git status` |
 
-- When the user asks to set or change the language of issues, pull requests, code comments, or logs
-- When the user wants a project-specific policy — do not write a LOCALE file; add the policy to that project's `CLAUDE.md` / `AGENTS.md` instead
+For `project` or `local`, use `git rev-parse --show-toplevel` to find the repository. Stop without a write if the command fails.
 
-## Arguments
+For `local`, get `<absolute-git-dir>` from `git rev-parse --absolute-git-dir`. This path keeps linked worktree preferences separate.
 
-- A single POSIX-style tag (`ja_JP`): apply it to all five keys
-- Key=value pairs, one per artifact:
+Do not commit a project file automatically. Do not add a local file to `.gitignore` or `.git/info/exclude`.
+
+## Resolution Order
+
+The first existing file wins as a whole:
+
+1. `<absolute-git-dir>/rules-for-ai/LOCALE.md`
+2. `<repo>/.rules-for-ai/LOCALE.md`
+3. `${XDG_CONFIG_HOME:-${HOME:-}/.config}/rules-for-ai/LOCALE.md`
+4. Bundled `LOCALE.default.md`
+5. Inline `en_US` values
+
+Project instructions in `CLAUDE.md` or `AGENTS.md` still override the resolved locale keys.
+
+## Locale Arguments
+
+- A single POSIX-style tag, such as `ja_JP`, applies to all five keys.
+- Key-value arguments set individual keys.
+- If the request has no locale values, ask about each artifact after scope selection.
 
 | Key | Artifact |
-|-----|----------|
+| --- | --- |
 | `issues` | Issues |
 | `pull-requests` | Pull requests |
 | `comments` | Code comments |
 | `logs` | Log messages |
 | `test-logs` | Test log messages |
 
-Example: `issues=ja_JP pull-requests=ja_JP comments=ja_JP logs=en_US test-logs=en_US`
+Example: `local issues=ja_JP pull-requests=ja_JP comments=ja_JP logs=en_US test-logs=en_US`
 
-- No arguments: ask the user about each of the five artifacts individually — locales may differ per artifact.
+Reject unknown scopes and keys. Use each POSIX-style tag as given. Do not translate or normalize a tag.
 
-## Writing the file
+## Partial Updates
 
-Always target `~/.config/rules-for-ai/LOCALE.md` (`$XDG_CONFIG_HOME/rules-for-ai/LOCALE.md` when `XDG_CONFIG_HOME` is set). Never write a LOCALE file into a project.
+Always write all five keys. For omitted keys, use the existing target file first.
 
-1. Validate keys: only the five keys above exist; reject anything else
-2. Use POSIX-style tags (`ja_JP`, `en_US`, `en_GB`) as given; do not translate or normalize
-3. Write strict `key=value` lines: no spaces around `=`, one key per line, LF line endings
-4. Create the target directory when missing
-5. Write atomically: write a temp file in the same directory, then `mv` it over the target
-6. Always write all five keys; fill unspecified keys from the currently resolved values
+If the target does not supply a key, use only lower-priority scopes:
 
-File format (exactly this shape):
+| Target | Fallback order |
+| --- | --- |
+| `local` | Project, user, bundled default, inline `en_US` |
+| `project` | User, bundled default, inline `en_US` |
+| `user` | Bundled default, inline `en_US` |
+
+Do not use a higher-priority scope as a fallback. A local value must never enter a project or user file.
+
+## File Write
+
+Write strict `key=value` lines with no spaces around `=`. Use LF line endings and this exact shape:
 
     # Locale
 
@@ -59,11 +83,14 @@ File format (exactly this shape):
     logs=en_US
     test-logs=en_US
 
+Create the target directory if it does not exist. Write a temporary file in that directory, then move it over the target atomically.
+
 ## Common Mistakes
 
-| Mistake | Fix |
-|---------|-----|
-| Writing a project-root `LOCALE.md` | The project layer does not exist; put project policy in that project's `CLAUDE.md` / `AGENTS.md` |
-| Leaving keys out | Always write all five keys |
-| Inventing keys like `commits` | Only the five keys in the table exist |
-| Spaces around `=` (`issues = ja_JP`) | Strict `issues=ja_JP` only |
+| Mistake | Required action |
+| --- | --- |
+| Use the plugin installation scope | Ask for the locale scope |
+| Write a repository request to the user file | Use the selected repository target |
+| Write a local file in the worktree | Use the absolute Git directory |
+| Copy local values into a project file | Use only project fallback scopes |
+| Leave keys out | Fill and write all five keys |

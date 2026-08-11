@@ -13,9 +13,10 @@ Before drafting an issue:
 
 1. Project instructions (`CLAUDE.md` / `AGENTS.md`) override resolved locale keys; follow them when they state a language for issues
 2. Otherwise use the resolved locale keys if they are already in context (plugin path)
-3. Otherwise read `~/.config/rules-for-ai/LOCALE.md`
-4. If missing, read the bundled `LOCALE.default.md`
-5. Write the issue **title and body** in the language given by the `issues` key
+3. Otherwise read the first existing locale file: local, project, user, then bundled `LOCALE.default.md`
+4. Use `<absolute-git-dir>/rules-for-ai/LOCALE.md` for local, `<repo>/.rules-for-ai/LOCALE.md` for project, and `${XDG_CONFIG_HOME:-${HOME:-}/.config}/rules-for-ai/LOCALE.md` for user
+5. If no file exists, use `en_US`
+6. Write the issue **title and body** in the language given by the `issues` key
 
 Section headings (Background, Problem, ...) are always English — the template structure never changes. When `issues` is `ja_JP`, keep the English headings and write the prose under each heading in Japanese.
 

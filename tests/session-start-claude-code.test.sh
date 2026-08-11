@@ -35,6 +35,7 @@ assert_not_contains() {
 new_fixture() {
     fixture_root=$(mktemp -d)
     mkdir -p "$fixture_root/plugin" "$fixture_root/project" "$fixture_root/config"
+    git -C "$fixture_root/project" init --quiet
     cp "$REPO/AGENTS.md" "$fixture_root/plugin/AGENTS.md"
     cp "$REPO/LOCALE.default.md" "$fixture_root/plugin/LOCALE.default.md"
     printf '%s' "$fixture_root"
@@ -42,11 +43,12 @@ new_fixture() {
 
 # run_hook <fixture root>: run the hook against the fixture's layout.
 run_hook() {
-    CLAUDE_PLUGIN_ROOT="$1/plugin" \
-    CLAUDE_PROJECT_DIR="$1/project" \
-    XDG_CONFIG_HOME="$1/config" \
-    HOME="$1" \
-    sh "$HOOK"
+    printf '{"cwd":"%s","hook_event_name":"SessionStart"}' "$1/project" \
+        | CLAUDE_PLUGIN_ROOT="$1/plugin" \
+        CLAUDE_PROJECT_DIR="$1/missing-project" \
+        XDG_CONFIG_HOME="$1/config" \
+        HOME="$1" \
+        sh "$HOOK"
 }
 
 # Case 1: fallback between the user layer and the bundled default.
@@ -143,6 +145,57 @@ out=$(run_hook "$root")
 assert_contains "$out" '## Locale (resolved)' 'case 6: header present without any locale file'
 assert_contains "$out" 'issues=en_US' 'case 6: inline default provides issues'
 assert_contains "$out" 'test-logs=en_US' 'case 6: inline default provides test-logs'
+rm -rf "$root"
+
+# Case 7: the SessionStart cwd selects repository scopes. Distinctive
+# values make a missing input parser or a wrong candidate order fail.
+root=$(new_fixture)
+mkdir -p "$root/project/.rules-for-ai" "$root/config/rules-for-ai"
+cat > "$root/config/rules-for-ai/LOCALE.md" <<'EOF'
+issues=user_USER
+pull-requests=user_USER
+comments=user_USER
+logs=user_USER
+test-logs=user_USER
+EOF
+cat > "$root/project/.rules-for-ai/LOCALE.md" <<'EOF'
+issues=project_PROJECT
+pull-requests=project_PROJECT
+comments=project_PROJECT
+logs=project_PROJECT
+test-logs=project_PROJECT
+EOF
+git_dir=$(git -C "$root/project" rev-parse --absolute-git-dir)
+mkdir -p "$git_dir/rules-for-ai"
+cat > "$git_dir/rules-for-ai/LOCALE.md" <<'EOF'
+issues=local_LOCAL
+pull-requests=local_LOCAL
+comments=local_LOCAL
+logs=local_LOCAL
+test-logs=local_LOCAL
+EOF
+out=$(run_hook "$root")
+assert_contains "$out" 'issues=local_LOCAL' 'case 7: cwd resolves local scope'
+rm "$git_dir/rules-for-ai/LOCALE.md"
+out=$(run_hook "$root")
+assert_contains "$out" 'issues=project_PROJECT' 'case 7: cwd resolves project scope without local'
+rm -rf "$root"
+
+# Case 8: older hook payloads can use CLAUDE_PROJECT_DIR. This fallback
+# keeps project scope available when the JSON has no usable cwd.
+root=$(new_fixture)
+mkdir -p "$root/project/.rules-for-ai"
+cat > "$root/project/.rules-for-ai/LOCALE.md" <<'EOF'
+issues=project_PROJECT
+pull-requests=project_PROJECT
+comments=project_PROJECT
+logs=project_PROJECT
+test-logs=project_PROJECT
+EOF
+out=$(printf '{}' | CLAUDE_PLUGIN_ROOT="$root/plugin" \
+    CLAUDE_PROJECT_DIR="$root/project" XDG_CONFIG_HOME="$root/config" \
+    HOME="$root" sh "$HOOK")
+assert_contains "$out" 'issues=project_PROJECT' 'case 8: environment fallback resolves project scope'
 rm -rf "$root"
 
 if [ "$failures" -gt 0 ]; then

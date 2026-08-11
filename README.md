@@ -48,7 +48,19 @@ What each platform puts where, and how locale reaches the model, is in [Platform
 
 ### Locale
 
-Language preferences live in one user-level file: `~/.config/rules-for-ai/LOCALE.md`. You can ask the agent to set your locale and the `hashiiiii-locale` skill (it ships with every install) writes the file with all five keys (POSIX-style tags such as `ja_JP` or `en_US`):
+The plugin installation scope and the locale scope are separate choices. The `hashiiiii-locale` skill supports all three locale scopes:
+
+| Scope | Path | Sharing behavior |
+| --- | --- | --- |
+| **user** | `~/.config/rules-for-ai/LOCALE.md` | All projects for this user |
+| **project** | `<repo>/.rules-for-ai/LOCALE.md` | Available for commit and team use |
+| **local** | `<absolute-git-dir>/rules-for-ai/LOCALE.md` | One Git worktree, outside `git status` |
+
+The user path respects `$XDG_CONFIG_HOME`. The local path comes from `git rev-parse --absolute-git-dir`.
+
+If you do not specify a scope, the skill asks you to select `user`, `project`, or `local`. It never infers the locale scope from the plugin installation scope.
+
+Each locale file contains all five keys with POSIX-style tags such as `ja_JP` or `en_US`:
 
 
 | Key             | Artifact          |
@@ -60,17 +72,31 @@ Language preferences live in one user-level file: `~/.config/rules-for-ai/LOCALE
 | `test-logs`     | Test log messages |
 
 
-Tell it one tag for everything (`ja_JP`) or one per artifact (`issues=ja_JP pull-requests=ja_JP comments=ja_JP logs=en_US test-logs=en_US`). The skill only ever writes the user-level file — never a file inside a project.
+Give the skill a scope and one tag for all artifacts:
 
-Two layers decide the effective language:
+```text
+local ja_JP
+```
+
+You can also set each artifact separately:
+
+```text
+project issues=ja_JP pull-requests=ja_JP comments=ja_JP logs=en_US test-logs=en_US
+```
+
+The effective language uses these layers:
 
 1. **Project instructions** — a repo's own `CLAUDE.md` / `AGENTS.md` language policy always wins when present.
-2. **Resolved keys** — otherwise the first existing file wins as a whole; layers never merge:
-  - `~/.config/rules-for-ai/LOCALE.md` (respect `$XDG_CONFIG_HOME` when set) — the file the skill maintains
-  - the bundled [LOCALE.default.md](./LOCALE.default.md) that every install ships — where each layout places it is in [Platform details](#platform-details)
-  - an inline `en_US` default for all keys
+2. **Resolved keys** — otherwise the first existing locale file wins as a whole:
+   1. Local locale file
+   2. Project locale file
+   3. User locale file
+   4. Bundled [LOCALE.default.md](./LOCALE.default.md)
+   5. Inline `en_US` values
 
-One shared resolver implements this chain on both platforms and at every scope; only the location of the bundled default differs per install layout. A session hook injects the resolved keys into context. There is no project-level `LOCALE.md`. A file at the project root is ignored. Put project-specific language policy in that project's `CLAUDE.md` / `AGENTS.md` instead.
+Layers never merge during resolution. A partial update fills omitted keys from the selected scope and lower-priority scopes.
+
+Both platforms use the same resolver. A session hook injects the resolved keys into context.
 
 ## Platform details
 

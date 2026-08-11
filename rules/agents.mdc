@@ -21,8 +21,13 @@ alwaysApply: true
 
 - Project instructions (`CLAUDE.md` / `AGENTS.md`) override resolved locale keys
 - If resolved locale keys are already in context (hook-injected), follow them
-- Otherwise read `~/.config/rules-for-ai/LOCALE.md`
-- If missing, read the bundled `LOCALE.default.md` (plugin root, or `.cursor/rules-for-ai/` in Cursor project installs); else use `en_US` for all keys
+- Otherwise read the first existing locale file in this order:
+  1. `<absolute-git-dir>/rules-for-ai/LOCALE.md`
+  2. `<repo>/.rules-for-ai/LOCALE.md`
+  3. `~/.config/rules-for-ai/LOCALE.md`
+  4. Bundled `LOCALE.default.md`
+- Get `<absolute-git-dir>` with `git rev-parse --absolute-git-dir`
+- If no locale file exists, use `en_US` for all keys
 
 ## Git
 

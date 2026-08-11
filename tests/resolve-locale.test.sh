@@ -10,6 +10,7 @@ set -u
 
 REPO="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
 RESOLVER="$REPO/hooks/resolve-locale.sh"
+SCOPED_RESOLVER="$REPO/hooks/resolve-scoped-locale.sh"
 failures=0
 
 # assert_contains <haystack> <needle> <case description>
@@ -84,6 +85,85 @@ if [ "$rc" -eq 0 ]; then
 else
     printf 'FAIL: case 5: exit status %s\n' "$rc"; failures=$((failures + 1))
 fi
+
+# Case 6: each repository scope must override the scopes below it. A
+# wrong candidate order changes the distinctive locale in this output.
+repo="$root/repo"
+mkdir -p "$repo/.rules-for-ai" "$root/config/rules-for-ai"
+git -C "$repo" init --quiet
+cat > "$root/config/rules-for-ai/LOCALE.md" <<'EOF'
+issues=user_USER
+pull-requests=user_USER
+comments=user_USER
+logs=user_USER
+test-logs=user_USER
+EOF
+cat > "$repo/.rules-for-ai/LOCALE.md" <<'EOF'
+issues=project_PROJECT
+pull-requests=project_PROJECT
+comments=project_PROJECT
+logs=project_PROJECT
+test-logs=project_PROJECT
+EOF
+git_dir=$(git -C "$repo" rev-parse --absolute-git-dir)
+mkdir -p "$git_dir/rules-for-ai"
+cat > "$git_dir/rules-for-ai/LOCALE.md" <<'EOF'
+issues=local_LOCAL
+pull-requests=local_LOCAL
+comments=local_LOCAL
+logs=local_LOCAL
+test-logs=local_LOCAL
+EOF
+out=$(sh "$SCOPED_RESOLVER" "$repo" \
+    "$root/config/rules-for-ai/LOCALE.md" "$REPO/LOCALE.default.md")
+assert_contains "$out" 'issues=local_LOCAL' 'case 6: local scope wins'
+rm "$git_dir/rules-for-ai/LOCALE.md"
+out=$(sh "$SCOPED_RESOLVER" "$repo" \
+    "$root/config/rules-for-ai/LOCALE.md" "$REPO/LOCALE.default.md")
+assert_contains "$out" 'issues=project_PROJECT' 'case 6: project scope wins without local'
+rm "$repo/.rules-for-ai/LOCALE.md"
+out=$(sh "$SCOPED_RESOLVER" "$repo" \
+    "$root/config/rules-for-ai/LOCALE.md" "$REPO/LOCALE.default.md")
+assert_contains "$out" 'issues=user_USER' 'case 6: user scope wins without repository files'
+
+# Case 7: Git metadata keeps a local file out of worktree status. This
+# prevents an accidental commit without an exclude-file mutation.
+cat > "$git_dir/rules-for-ai/LOCALE.md" <<'EOF'
+issues=local_LOCAL
+pull-requests=local_LOCAL
+comments=local_LOCAL
+logs=local_LOCAL
+test-logs=local_LOCAL
+EOF
+status=$(git -C "$repo" status --short)
+if [ -z "$status" ]; then
+    printf 'PASS: case 7: local scope stays out of git status\n'
+else
+    printf 'FAIL: case 7: local scope changed git status (%s)\n' "$status"
+    failures=$((failures + 1))
+fi
+
+# Case 8: linked worktrees need separate local files. A common Git
+# directory leaks one developer preference into both trees.
+git -C "$repo" -c user.email=test@test.invalid -c user.name=test \
+    commit --quiet --allow-empty -m fixture
+linked="$root/linked"
+git -C "$repo" worktree add --quiet -b linked "$linked"
+linked_git_dir=$(git -C "$linked" rev-parse --absolute-git-dir)
+mkdir -p "$linked_git_dir/rules-for-ai"
+cat > "$linked_git_dir/rules-for-ai/LOCALE.md" <<'EOF'
+issues=linked_LINKED
+pull-requests=linked_LINKED
+comments=linked_LINKED
+logs=linked_LINKED
+test-logs=linked_LINKED
+EOF
+out=$(sh "$SCOPED_RESOLVER" "$repo" \
+    "$root/config/rules-for-ai/LOCALE.md" "$REPO/LOCALE.default.md")
+assert_contains "$out" 'issues=local_LOCAL' 'case 8: primary worktree keeps its local scope'
+out=$(sh "$SCOPED_RESOLVER" "$linked" \
+    "$root/config/rules-for-ai/LOCALE.md" "$REPO/LOCALE.default.md")
+assert_contains "$out" 'issues=linked_LINKED' 'case 8: linked worktree gets its local scope'
 
 rm -rf "$root"
 

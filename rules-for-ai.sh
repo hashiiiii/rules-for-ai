@@ -28,7 +28,7 @@ REPO="https://github.com/hashiiiii/rules-for-ai"
 # Hook scripts the cursor project/local cells copy from hooks/ into
 # <repo>/.cursor/rules-for-ai/. One list keeps copy, exclude, and
 # uninstall in lockstep.
-CURSOR_SUPPORT_FILES='resolve-locale.sh session-start-cursor.sh json-escape.sh check-pr-template.sh pr-template-check-cursor.sh'
+CURSOR_SUPPORT_FILES='resolve-locale.sh resolve-scoped-locale.sh session-start-cursor.sh json-escape.sh check-pr-template.sh pr-template-check-cursor.sh'
 
 usage() {
     # "help" prints to stdout and exits 0 (explicit request); anything

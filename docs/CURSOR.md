@@ -43,6 +43,7 @@ Copies files into the target repo (commit them; teammates need no install, thoug
 | `.cursor/rules/agents.mdc` | `rules/agents.mdc` |
 | `.cursor/skills/*` | `skills/*` (every skill, `hashiiiii-locale` included) |
 | `.cursor/rules-for-ai/resolve-locale.sh` | `hooks/resolve-locale.sh` |
+| `.cursor/rules-for-ai/resolve-scoped-locale.sh` | `hooks/resolve-scoped-locale.sh` |
 | `.cursor/rules-for-ai/session-start-cursor.sh` | `hooks/session-start-cursor.sh` |
 | `.cursor/rules-for-ai/json-escape.sh` | `hooks/json-escape.sh` |
 | `.cursor/rules-for-ai/check-pr-template.sh` | `hooks/check-pr-template.sh` |
@@ -50,7 +51,7 @@ Copies files into the target repo (commit them; teammates need no install, thoug
 | `.cursor/rules-for-ai/LOCALE.default.md` | `LOCALE.default.md` |
 | `.cursor/hooks.json` | Written when absent or already identical to the installer's canonical file |
 
-`hashiiiii-locale` writes the user-level `~/.config/rules-for-ai/LOCALE.md` only — never a file inside the project — so shipping it here keeps project/local installs closed to the project. Project language policy still belongs in the project's `CLAUDE.md` / `AGENTS.md`.
+`hashiiiii-locale` can write user, project, or local locale configuration. The locale scope is independent of this plugin installation scope.
 
 If `.cursor/hooks.json` already exists and is not byte-identical to the installer's file, install does not overwrite it. It prints the entries to add manually:
 
@@ -83,17 +84,25 @@ If a path is already tracked, local scope cannot hide it — use project scope i
 
 ## How locale reaches context
 
-Every scope resolves through the same hook (`session-start-cursor.sh` emits `{"additional_context":"..."}`; Cursor injects that text after the developer approves the hook). The hook adds only the resolved locale keys (`## Locale (resolved)`); always-on rules already ride on `agents.mdc` (`alwaysApply`).
+Every scope uses the same `session-start-cursor.sh` hook. Cursor injects its `additional_context` output after the developer approves the hook.
 
-`resolve-locale.sh` picks the first existing file, whole-file, layers never merging:
+The hook adds only the resolved locale keys. The always-on rules use `agents.mdc` with `alwaysApply`.
 
-1. `$XDG_CONFIG_HOME/rules-for-ai/LOCALE.md` (default `~/.config/rules-for-ai/LOCALE.md`)
-2. `LOCALE.default.md` — next to the hook (`.cursor/rules-for-ai/` copy) or at the clone root (user scope)
-3. Inline `en_US` for all five keys (so the resolved block is never empty)
+The hook reads the first entry in `workspace_roots`. This entry is the primary root for locale resolution in a multi-root workspace.
 
-A project-root `LOCALE.md` is not part of this chain. Project language policy belongs in that project's instructions, which override resolved keys when they state a language.
+For older input without `workspace_roots`, a copied project hook gets the root from its `.cursor/rules-for-ai/` location.
 
-Create or update the user-level file with the `hashiiiii-locale` skill — see [Getting Started → Locale](../README.md#locale) in the README.
+The scope resolver finds the Git repository. The first existing file wins as a whole:
+
+1. `<absolute-git-dir>/rules-for-ai/LOCALE.md`
+2. `<repo>/.rules-for-ai/LOCALE.md`
+3. `$XDG_CONFIG_HOME/rules-for-ai/LOCALE.md` (default `~/.config/rules-for-ai/LOCALE.md`)
+4. `LOCALE.default.md` next to the hook or at the plugin root
+5. Inline `en_US` for all five keys
+
+Layers never merge. A root-level `LOCALE.md` remains outside this chain.
+
+Project instructions override the resolved keys when they state a language. Use `hashiiiii-locale` to create or update any locale scope.
 
 ## Pull request template check
 

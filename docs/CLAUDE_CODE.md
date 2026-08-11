@@ -68,6 +68,7 @@ Claude Code loads the plugin from its plugin cache / marketplace install. The re
 | `hooks/hooks.json` | SessionStart and PreToolUse wiring |
 | `hooks/session-start-claude-code.sh` | SessionStart command |
 | `hooks/resolve-locale.sh` | Shared locale resolver |
+| `hooks/resolve-scoped-locale.sh` | Scope candidate resolver |
 | `hooks/check-pr-template.sh` | Shared PR template check |
 | `hooks/pr-template-check-claude-code.sh` | PreToolUse envelope over the shared check |
 | `skills/*` | Including `hashiiiii-locale` |
@@ -81,12 +82,16 @@ Each session, the SessionStart hook (`hooks/session-start-claude-code.sh`) print
 1. The full contents of `AGENTS.md`
 2. A `## Locale (resolved)` block with the five keys
 
-Resolution is delegated to `hooks/resolve-locale.sh`. The first existing file wins as a whole; layers never merge:
+The hook reads `cwd` from the SessionStart input. It uses `CLAUDE_PROJECT_DIR` when the input has no usable `cwd`.
 
-1. `$XDG_CONFIG_HOME/rules-for-ai/LOCALE.md` (default `~/.config/rules-for-ai/LOCALE.md`)
-2. `$CLAUDE_PLUGIN_ROOT/LOCALE.default.md`
-3. Inline `en_US` for all five keys (so the resolved block is never empty)
+The scope resolver finds the Git repository from that directory. The first existing file wins as a whole:
 
-A project-root `LOCALE.md` is ignored. Project language policy belongs in that project's `CLAUDE.md` / `AGENTS.md`, which override resolved keys when they state a language.
+1. `<absolute-git-dir>/rules-for-ai/LOCALE.md`
+2. `<repo>/.rules-for-ai/LOCALE.md`
+3. `$XDG_CONFIG_HOME/rules-for-ai/LOCALE.md` (default `~/.config/rules-for-ai/LOCALE.md`)
+4. `$CLAUDE_PLUGIN_ROOT/LOCALE.default.md`
+5. Inline `en_US` for all five keys
 
-Create or update the user-level file with the `hashiiiii-locale` skill — see [Getting Started → Locale](../README.md#locale) in the README.
+Layers never merge. A root-level `LOCALE.md` remains outside this chain.
+
+Project instructions in `CLAUDE.md` or `AGENTS.md` override the resolved keys. Use `hashiiiii-locale` to create or update any locale scope.
