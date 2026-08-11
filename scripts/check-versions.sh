@@ -13,11 +13,14 @@ extract_bump_version() {
 }
 
 claude=$(extract_version .claude-plugin/plugin.json)
+codex=$(extract_version .codex-plugin/plugin.json)
 cursor=$(extract_version .cursor-plugin/plugin.json)
 bump=$(extract_bump_version .bumpversion.toml)
 
-if [ -z "$claude" ] || [ "$claude" != "$cursor" ] || [ "$claude" != "$bump" ]; then
-    printf 'version mismatch: claude=%s cursor=%s bump=%s\n' "$claude" "$cursor" "$bump" >&2
+if [ -z "$claude" ] || [ "$claude" != "$codex" ] || [ "$claude" != "$cursor" ] \
+    || [ "$claude" != "$bump" ]; then
+    printf 'version mismatch: claude=%s codex=%s cursor=%s bump=%s\n' \
+        "$claude" "$codex" "$cursor" "$bump" >&2
     exit 1
 fi
 

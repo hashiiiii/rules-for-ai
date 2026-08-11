@@ -1,0 +1,20 @@
+{
+  "name": "hashiiiii",
+  "interface": {
+    "displayName": "hashiiiii"
+  },
+  "plugins": [
+    {
+      "name": "rules-for-ai",
+      "source": {
+        "source": "url",
+        "url": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

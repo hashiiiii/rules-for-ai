@@ -6,10 +6,11 @@ failures=0
 root=$(mktemp -d)
 trap 'rm -rf "$root"' EXIT
 
-mkdir -p "$root/scripts" "$root/.claude-plugin" "$root/.cursor-plugin"
+mkdir -p "$root/scripts" "$root/.claude-plugin" "$root/.codex-plugin" "$root/.cursor-plugin"
 cp "$REPO/scripts/check-versions.sh" "$root/scripts/check-versions.sh"
 cp "$REPO/.bumpversion.toml" "$root/.bumpversion.toml"
 cp "$REPO/.claude-plugin/plugin.json" "$root/.claude-plugin/plugin.json"
+cp "$REPO/.codex-plugin/plugin.json" "$root/.codex-plugin/plugin.json"
 cp "$REPO/.cursor-plugin/plugin.json" "$root/.cursor-plugin/plugin.json"
 
 out=$(cd "$root" && sh scripts/check-versions.sh 2>&1)
@@ -37,7 +38,7 @@ else
 fi
 
 case "$out" in
-    *"claude=$version cursor=$version bump=9.9.9"*)
+    *"claude=$version codex=$version cursor=$version bump=9.9.9"*)
         printf 'PASS: mismatch output shows all version values\n'
         ;;
     *)

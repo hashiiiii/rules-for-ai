@@ -2,7 +2,7 @@
 
 Rules for AI supplies portable rules and skills for AI coding agents.
 
-Write the rules one time. Then use the same rules with Claude Code and Cursor through an installable plugin.
+Write the rules one time. Then use the same rules with Claude Code, Codex, and Cursor.
 
 The plugin manages language preferences for issues, pull requests, comments, logs, and test logs. A project can override the preferences of a user.
 
@@ -10,7 +10,7 @@ Use the plugin without changes. You can also fork it and add your own rules.
 
 ## Getting Started
 
-[rules-for-ai.sh](./rules-for-ai.sh) installs, updates, and removes the plugin. Select a platform: **claude** or **cursor**. Then select a scope.
+[rules-for-ai.sh](./rules-for-ai.sh) installs, updates, and removes the rules and skills. Select **claude**, **codex**, or **cursor**. Then select a scope.
 
 ### Scopes
 
@@ -35,14 +35,14 @@ flowchart LR
 ### Without cloning
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/hashiiiii/rules-for-ai/main/rules-for-ai.sh | sh -s -- <install|uninstall> <claude|cursor> <user|project|local> [path/to/repo]
+curl -fsSL https://raw.githubusercontent.com/hashiiiii/rules-for-ai/main/rules-for-ai.sh | sh -s -- <install|uninstall> <claude|codex|cursor> <user|project|local> [path/to/repo]
 # e.g. curl -fsSL https://raw.githubusercontent.com/hashiiiii/rules-for-ai/main/rules-for-ai.sh | sh -s -- install claude user
 ```
 
 ### From a clone
 
 ```bash
-./rules-for-ai.sh <install|uninstall> <claude|cursor> <user|project|local> [path/to/repo]
+./rules-for-ai.sh <install|uninstall> <claude|codex|cursor> <user|project|local> [path/to/repo]
 # e.g. ./rules-for-ai.sh install cursor project path/to/repo
 ```
 
@@ -106,11 +106,14 @@ The locale layers do not merge during resolution.
 
 During a partial update, omitted keys use the selected scope, then lower-priority scopes.
 
-Both platforms use the same resolver. A session hook adds the resolved keys to the context.
+Claude Code, Codex plugins, and Cursor use the same resolver. A session hook adds the resolved keys to the context.
+
+Codex reads the same process from `AGENTS.md`. It reads the selected locale file when resolved keys are absent.
 
 ## Platform details
 
 - [Claude Code](./docs/CLAUDE_CODE.md): file paths, SessionStart input, and locale resolution
+- [Codex](./docs/CODEX.md): file paths, native plugin use, and instruction ownership
 - [Cursor](./docs/CURSOR.md): files for each scope, `hooks.json`, and locale context
 
 ## Updates
@@ -131,7 +134,8 @@ Find each reference with this command:
 grep -rl 'hashiiiii-' .
 ```
 
-Set `REPO` in [rules-for-ai.sh](./rules-for-ai.sh). Then set `repository` in [.claude-plugin/plugin.json](./.claude-plugin/plugin.json).
+Set `REPO` in [rules-for-ai.sh](./rules-for-ai.sh).
+Then set `repository` in the Claude Code and Codex plugin manifests.
 
 ## Releasing (maintainers)
 
@@ -141,7 +145,7 @@ Create releases from the Actions tab. Do not create local tags.
 2. Keep `main` selected.
 3. Enter the version as `X.Y.Z` without a `v` prefix.
 
-The workflow updates `version` in both plugin manifests. Then it creates the commit, tag, and GitHub release.
+The workflow updates `version` in all plugin manifests. Then it creates the commit, tag, and GitHub release.
 
 The commit uses a GitHub App as its author. Complete this setup one time:
 

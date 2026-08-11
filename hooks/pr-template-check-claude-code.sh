@@ -1,10 +1,10 @@
 #!/bin/sh
-# This PreToolUse hook supports the rules-for-ai plugin in Claude Code.
+# This PreToolUse hook supports the rules-for-ai plugin in Claude Code and Codex.
 #
 # This script is an envelope for the shared check-pr-template.sh script.
 # The shared script reads the PreToolUse payload from stdin.
 # Exit 0 permits the command. Exit 2 blocks it and writes the reason to stderr.
-# This behavior implements the Claude Code block contract.
+# This behavior implements the shared Claude Code and Codex block contract.
 # Any other status permits the command because the shared script cannot evaluate it.
 set -u
 

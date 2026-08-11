@@ -55,6 +55,7 @@ EOF
 }
 EOF
     printf -- '---\nalwaysApply: true\n---\n# AGENTS fixture\n' > "$src/rules/agents.mdc"
+    printf '# AGENTS fixture\n' > "$src/AGENTS.md"
     printf '# git skill fixture\n' > "$src/skills/hashiiiii-git/SKILL.md"
     printf '# issues skill fixture\n' > "$src/skills/hashiiiii-issues/SKILL.md"
     printf '# locale skill fixture\n' > "$src/skills/hashiiiii-locale/SKILL.md"

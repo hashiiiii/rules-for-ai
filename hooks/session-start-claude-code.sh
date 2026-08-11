@@ -1,12 +1,12 @@
 #!/bin/sh
-# This SessionStart hook supports the rules-for-ai plugin in Claude Code.
+# This SessionStart hook supports the rules-for-ai plugin in Claude Code and Codex.
 #
 # It adds the always-on rules and locale keys to the session context.
 # The sibling scope resolver uses the first existing LOCALE file:
 #   1. <absolute-git-dir>/rules-for-ai/LOCALE.md (local)
 #   2. <repo>/.rules-for-ai/LOCALE.md            (project)
 #   3. $XDG_CONFIG_HOME/rules-for-ai/LOCALE.md   (user)
-#   4. $CLAUDE_PLUGIN_ROOT/LOCALE.default.md     (bundled)
+#   4. $CLAUDE_PLUGIN_ROOT/LOCALE.default.md     (bundled and Codex-compatible)
 #   5. inline en_US values
 #
 # The hashiiiii-locale skill writes LOCALE files.

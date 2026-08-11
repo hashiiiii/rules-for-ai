@@ -1,0 +1,28 @@
+{
+  "name": "rules-for-ai",
+  "version": "2.4.2",
+  "description": "Portable rules and skills for AI coding agents",
+  "author": {
+    "name": "hashiiiii",
+    "url": "https://github.com/hashiiiii"
+  },
+  "homepage": "https://github.com/hashiiiii/rules-for-ai",
+  "repository": "https://github.com/hashiiiii/rules-for-ai",
+  "license": "MIT",
+  "keywords": ["coding agents", "git", "github", "locale", "rules", "skills"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Rules for AI",
+    "shortDescription": "Portable rules and skills for coding agents",
+    "longDescription": "Use shared development rules, Git and GitHub workflows, image guidance, and locale preferences with AI coding agents.",
+    "developerName": "hashiiiii",
+    "category": "Developer Tools",
+    "capabilities": ["Interactive", "Read", "Write"],
+    "websiteURL": "https://github.com/hashiiiii/rules-for-ai",
+    "defaultPrompt": [
+      "Apply my development rules to this repository.",
+      "Create a Git branch and commit for this change.",
+      "Create a pull request for my current branch."
+    ]
+  }
+}

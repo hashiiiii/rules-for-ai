@@ -17,8 +17,9 @@ jobs:
         run: for f in tests/*.test.sh; do sh "$f" || exit 1; done
       - name: e2e tests
         run: |
-          npm install -g @anthropic-ai/claude-code
+          npm install -g @anthropic-ai/claude-code @openai/codex
           RULES_FOR_AI_E2E=1 sh tests/rules-for-ai-claude-e2e.sh
+          RULES_FOR_AI_E2E=1 sh tests/rules-for-ai-codex-plugin-e2e.sh
       - name: always-on rule drift check
         # Cursor requires front matter in rules/agents.mdc.
         # Remove the front matter and compare the remaining body with AGENTS.md.

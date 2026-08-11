@@ -39,7 +39,7 @@ case "$input" in
 esac
 
 # Use the template from the repository that runs the agent command.
-# Both platforms put that repository in the payload `cwd` field.
+# Claude Code, Codex, and Cursor put that repository in the payload `cwd` field.
 # The process directory is the fallback because Claude Code runs hooks from the project directory.
 # Cursor user hooks run from ~/.cursor. If the payload field is present, use it.
 # Machine-written paths use quotes. Therefore, an awk match does not require jq.

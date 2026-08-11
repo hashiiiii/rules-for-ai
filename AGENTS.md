@@ -20,7 +20,11 @@
   1. `<absolute-git-dir>/rules-for-ai/LOCALE.md`
   2. `<repo>/.rules-for-ai/LOCALE.md`
   3. `~/.config/rules-for-ai/LOCALE.md`
-  4. Bundled `LOCALE.default.md`
+  4. Bundled `LOCALE.default.md` in one of these locations:
+     - `$CODEX_HOME/rules-for-ai/` for Codex user installations
+     - `<repo>/.agents/rules-for-ai/` for Codex project and local installations
+     - `<repo>/.cursor/rules-for-ai/` for Cursor project and local installations
+     - The plugin root for other installations
 - Get `<absolute-git-dir>` with `git rev-parse --absolute-git-dir`
 - If no locale file exists, use `en_US` for all keys
 

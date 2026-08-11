@@ -1,9 +1,9 @@
 #!/bin/sh
 # rules-for-ai.sh installs, updates, or removes rules-for-ai.
-# It supports Claude Code and Cursor at user, project, or local scope.
+# It supports Claude Code, Codex, and Cursor at user, project, or local scope.
 #
 # Usage:
-#   ./rules-for-ai.sh <install|uninstall> <claude|cursor> <user|project|local> [target-dir]
+#   ./rules-for-ai.sh <install|uninstall> <claude|codex|cursor> <user|project|local> [target-dir]
 #
 # Scopes:
 #   user     all projects on this machine
@@ -33,7 +33,7 @@ CURSOR_SUPPORT_FILES='resolve-locale.sh resolve-scoped-locale.sh session-start-c
 usage() {
     # An explicit help request writes to stdout and exits 0.
     # All other calls use the error path, stderr, and exit 1.
-    _u="usage: $0 <install|uninstall> <claude|cursor> <user|project|local> [target-dir]"
+    _u="usage: $0 <install|uninstall> <claude|codex|cursor> <user|project|local> [target-dir]"
     if [ "${1:-}" = help ]; then
         printf '%s\n' "$_u"
         exit 0
@@ -66,7 +66,7 @@ SCOPE=$2
 TARGET=${3:-.}
 
 case "$PLATFORM" in
-    claude|cursor) ;;
+    claude|codex|cursor) ;;
     *) usage ;;
 esac
 case "$SCOPE" in
@@ -127,6 +127,168 @@ managed_paths() {
     for skill_dir in "$ROOT"/skills/*/; do
         printf '.cursor/skills/%s\n' "$(basename "$skill_dir")"
     done
+}
+
+# The ownership copy records the exact rule that the installer last wrote.
+# Thus, an update or removal does not overwrite a rule that the user changed.
+install_owned_rule() {
+    rule=$1
+    ownership_copy=$2
+    mkdir -p "$(dirname -- "$rule")" "$(dirname -- "$ownership_copy")"
+    if [ ! -e "$rule" ]; then
+        cp "$ROOT/AGENTS.md" "$rule"
+        cp "$ROOT/AGENTS.md" "$ownership_copy"
+    elif [ -f "$ownership_copy" ] && cmp -s "$rule" "$ownership_copy"; then
+        cp "$ROOT/AGENTS.md" "$rule"
+        cp "$ROOT/AGENTS.md" "$ownership_copy"
+    else
+        printf 'warning: %s already exists; merge rules from %s manually\n' \
+            "$rule" "$ROOT/AGENTS.md" >&2
+    fi
+}
+
+skill_directories_match() {
+    [ -d "$1" ] && [ -d "$2" ] && diff -qr "$1" "$2" > /dev/null 2>&1
+}
+
+install_owned_skills() {
+    destination=$1
+    ownership_root=$2
+    mkdir -p "$destination" "$ownership_root"
+    for skill_dir in "$ROOT"/skills/*/; do
+        skill=$(basename "$skill_dir")
+        installed="$destination/$skill"
+        ownership_copy="$ownership_root/$skill"
+        if [ ! -e "$installed" ]; then
+            cp -R "${skill_dir%/}" "$installed"
+            cp -R "${skill_dir%/}" "$ownership_copy"
+        elif skill_directories_match "$installed" "$ownership_copy"; then
+            rm -rf "$installed" "$ownership_copy"
+            cp -R "${skill_dir%/}" "$installed"
+            cp -R "${skill_dir%/}" "$ownership_copy"
+        else
+            printf 'warning: %s already exists; the installer did not replace it\n' "$installed" >&2
+        fi
+    done
+}
+
+remove_owned_skills() {
+    destination=$1
+    ownership_root=$2
+    for skill_dir in "$ROOT"/skills/*/; do
+        skill=$(basename "$skill_dir")
+        installed="$destination/$skill"
+        ownership_copy="$ownership_root/$skill"
+        if [ -d "$ownership_copy" ]; then
+            if skill_directories_match "$installed" "$ownership_copy"; then
+                rm -rf "$installed"
+            elif [ -e "$installed" ]; then
+                printf 'warning: %s was modified; the installer did not remove it\n' "$installed" >&2
+            fi
+            rm -rf "$ownership_copy"
+        fi
+    done
+}
+
+remove_owned_rule() {
+    rule=$1
+    ownership_copy=$2
+    if [ -f "$ownership_copy" ]; then
+        if cmp -s "$rule" "$ownership_copy"; then
+            rm -f "$rule"
+        elif [ -e "$rule" ]; then
+            printf 'warning: %s was modified; the installer did not remove it\n' "$rule" >&2
+        fi
+        rm -f "$ownership_copy"
+    fi
+}
+
+codex_home() {
+    if [ -n "${CODEX_HOME:-}" ]; then
+        printf '%s' "$CODEX_HOME"
+    else
+        printf '%s/.codex' "${HOME:?HOME is required for Codex user scope}"
+    fi
+}
+
+codex_user_skills() {
+    printf '%s/.agents/skills' "${HOME:?HOME is required for Codex user scope}"
+}
+
+codex_managed_paths() {
+    printf '.agents/rules-for-ai\n'
+    for skill_dir in "$ROOT"/skills/*/; do
+        printf '.agents/skills/%s\n' "$(basename "$skill_dir")"
+    done
+}
+
+codex_user_install() {
+    home_dir=$(codex_home)
+    support_dir="$home_dir/rules-for-ai"
+    install_owned_rule "$home_dir/AGENTS.md" "$support_dir/AGENTS.md"
+    cp "$ROOT/LOCALE.default.md" "$support_dir/LOCALE.default.md"
+    install_owned_skills "$(codex_user_skills)" "$support_dir/skills"
+    printf 'installed Codex rules and skills for this user -- restart Codex to load them\n'
+}
+
+codex_user_uninstall() {
+    home_dir=$(codex_home)
+    support_dir="$home_dir/rules-for-ai"
+    remove_owned_rule "$home_dir/AGENTS.md" "$support_dir/AGENTS.md"
+    skills_dir=$(codex_user_skills)
+    remove_owned_skills "$skills_dir" "$support_dir/skills"
+    rm -rf "$support_dir"
+    rmdir "$skills_dir" "$(dirname -- "$skills_dir")" "$home_dir" 2> /dev/null || :
+    printf 'removed Codex rules and skills for this user -- restart Codex to unload them\n'
+}
+
+codex_project_install() {
+    support_dir="$TARGET/.agents/rules-for-ai"
+    install_owned_rule "$TARGET/AGENTS.md" "$support_dir/AGENTS.md"
+    mkdir -p "$support_dir"
+    cp "$ROOT/LOCALE.default.md" "$support_dir/LOCALE.default.md"
+    install_owned_skills "$TARGET/.agents/skills" "$support_dir/skills"
+    if [ "$SCOPE" = local ]; then
+        exclude=$(exclude_file)
+        mkdir -p "$(dirname -- "$exclude")"
+        [ -f "$exclude" ] || : > "$exclude"
+        {
+            [ -f "$support_dir/AGENTS.md" ] && printf '/AGENTS.md\n'
+            codex_managed_paths
+        } | while IFS= read -r path; do
+            tracked_path=${path#/}
+            if git -C "$TARGET" ls-files --error-unmatch "$tracked_path" > /dev/null 2>&1; then
+                printf 'warning: %s is already tracked; local scope cannot hide it -- use project scope\n' "$path" >&2
+            fi
+            grep -qxF "$path" "$exclude" || printf '%s\n' "$path" >> "$exclude"
+        done
+    fi
+    printf 'installed Codex rules and skills into %s (%s scope)\n' "$TARGET" "$SCOPE"
+}
+
+codex_project_uninstall() {
+    support_dir="$TARGET/.agents/rules-for-ai"
+    had_ownership_copy=0
+    [ -f "$support_dir/AGENTS.md" ] && had_ownership_copy=1
+    remove_owned_rule "$TARGET/AGENTS.md" "$support_dir/AGENTS.md"
+    remove_owned_skills "$TARGET/.agents/skills" "$support_dir/skills"
+    rm -rf "$support_dir"
+    if [ "$SCOPE" = local ]; then
+        exclude=$(exclude_file)
+        if [ -f "$exclude" ]; then
+            patterns=$(mktemp)
+            kept=$(mktemp)
+            {
+                [ "$had_ownership_copy" -eq 1 ] && printf '/AGENTS.md\n'
+                codex_managed_paths
+            } > "$patterns"
+            grep -vxF -f "$patterns" "$exclude" > "$kept" || :
+            mv "$kept" "$exclude"
+            rm -f "$patterns"
+        fi
+    fi
+    rmdir "$TARGET/.agents/skills" "$TARGET/.agents" 2> /dev/null || :
+    printf 'removed Codex rules and skills from %s (%s scope)\n' "$TARGET" "$SCOPE"
 }
 
 # --- cells -----------------------------------------------------------------
@@ -331,14 +493,25 @@ cursor_project_uninstall() {
 
 # --- dispatch --------------------------------------------------------------
 
-if [ "$PLATFORM" = claude ]; then
-    [ "$SCOPE" = user ] || resolve_target
-    if [ "$ACTION" = install ]; then claude_install; else claude_uninstall; fi
-else
-    if [ "$SCOPE" = user ]; then
-        if [ "$ACTION" = install ]; then cursor_user_install; else cursor_user_uninstall; fi
-    else
-        resolve_target
-        if [ "$ACTION" = install ]; then cursor_project_install; else cursor_project_uninstall; fi
-    fi
-fi
+case "$PLATFORM" in
+    claude)
+        [ "$SCOPE" = user ] || resolve_target
+        if [ "$ACTION" = install ]; then claude_install; else claude_uninstall; fi
+        ;;
+    codex)
+        if [ "$SCOPE" = user ]; then
+            if [ "$ACTION" = install ]; then codex_user_install; else codex_user_uninstall; fi
+        else
+            resolve_target
+            if [ "$ACTION" = install ]; then codex_project_install; else codex_project_uninstall; fi
+        fi
+        ;;
+    cursor)
+        if [ "$SCOPE" = user ]; then
+            if [ "$ACTION" = install ]; then cursor_user_install; else cursor_user_uninstall; fi
+        else
+            resolve_target
+            if [ "$ACTION" = install ]; then cursor_project_install; else cursor_project_uninstall; fi
+        fi
+        ;;
+esac

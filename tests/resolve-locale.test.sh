@@ -1,7 +1,7 @@
 #!/bin/sh
 # These tests cover hooks/resolve-locale.sh.
 #
-# The Claude and Cursor session-start envelopes use the same locale resolver.
+# The Claude Code, Codex, and Cursor session hooks use the same locale resolver.
 # The first existing candidate wins as a whole.
 # If no candidate exists, the resolver uses inline en_US values.
 # Each case runs the real script with real files in a temporary directory.
