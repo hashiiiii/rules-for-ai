@@ -1,19 +1,26 @@
 #!/bin/sh
-# Verify the two plugin manifests carry the same version (lockstep).
-# Optional: scripts/check-versions.sh vX.Y.Z — also verify tag matches.
+# To compare a tag, run scripts/check-versions.sh vX.Y.Z.
 set -eu
 
-# Minimal JSON "version" extraction; the manifests are flat objects we
-# own, so a sed pull of the first "version" value is sufficient.
+# The manifests are flat JSON objects that this repository controls.
+# Thus, sed can read the first "version" value without a JSON parser.
 extract_version() {
     sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$1" | head -n 1
 }
 
-claude=$(extract_version .claude-plugin/plugin.json)
-cursor=$(extract_version .cursor-plugin/plugin.json)
+extract_bump_version() {
+    sed -n 's/^current_version[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "$1" | head -n 1
+}
 
-if [ -z "$claude" ] || [ "$claude" != "$cursor" ]; then
-    printf 'version mismatch: claude=%s cursor=%s\n' "$claude" "$cursor" >&2
+claude=$(extract_version .claude-plugin/plugin.json)
+codex=$(extract_version .codex-plugin/plugin.json)
+cursor=$(extract_version .cursor-plugin/plugin.json)
+bump=$(extract_bump_version .bumpversion.toml)
+
+if [ -z "$claude" ] || [ "$claude" != "$codex" ] || [ "$claude" != "$cursor" ] \
+    || [ "$claude" != "$bump" ]; then
+    printf 'version mismatch: claude=%s codex=%s cursor=%s bump=%s\n' \
+        "$claude" "$codex" "$cursor" "$bump" >&2
     exit 1
 fi
 

@@ -1,12 +1,12 @@
 #!/bin/sh
-# JSON string escaper shared by the Cursor hook wrappers.
+# This JSON string escaper supports the Cursor hook wrappers.
 #
-# Reads text on stdin and writes it as the CONTENT of a JSON string on
-# stdout (no surrounding quotes): sed doubles backslashes and escapes
-# double quotes, awk joins lines with a literal \n. Input is
-# machine-written hook text (locale key=value lines, block reasons), so
-# other control characters do not occur; there is deliberately no jq or
-# python dependency.
+# It reads text from stdin. It writes the text as JSON string content to stdout.
+# The output does not include the surrounding quotes.
+# sed doubles backslashes and escapes double quotes.
+# awk joins lines with a literal \n.
+# The input is machine-written hook text, so it has no other control characters.
+# The script does not depend on jq or python.
 set -u
 
 sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' \

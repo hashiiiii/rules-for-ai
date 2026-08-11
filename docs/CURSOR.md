@@ -1,6 +1,6 @@
 # Cursor
 
-How rules-for-ai installs under Cursor, and how locale keys reach the model.
+This document explains the Cursor installation and the locale process.
 
 Install with [rules-for-ai.sh](../rules-for-ai.sh):
 
@@ -8,58 +8,83 @@ Install with [rules-for-ai.sh](../rules-for-ai.sh):
 ./rules-for-ai.sh install cursor <user|project|local> [path/to/repo]
 ```
 
-That one command is all you run. Everything below spells out what `rules-for-ai.sh` does internally, so you can audit it or reproduce it by hand.
+Run only this command. The remaining sections describe the internal actions of `rules-for-ai.sh`.
+
+Use these sections to audit or reproduce the installation.
 
 ## Scopes and artifacts
 
 ### user
 
-Clones the repo into `~/.cursor/plugins/local/rules-for-ai/` — Cursor's documented directory for locally installed plugins — so Cursor loads it through its own plugin system. Restart Cursor after install or update.
+The installer clones the repository into `~/.cursor/plugins/local/rules-for-ai/`. Cursor uses this directory for local plugins.
 
-The full plugin tree is present: rules (`rules/agents.mdc`, `alwaysApply`), every skill including `hashiiiii-locale`, and the bundled `LOCALE.default.md`.
+Restart Cursor after an installation or update.
 
-Hooks ride on `~/.cursor/hooks.json` (user-level hooks run with cwd `~/.cursor`, so the commands carry absolute paths into the clone). The file is written wholesale only when it is absent or already ours — an existing `hooks.json` belonging to another tool is never modified; install warns and prints the two entries to add manually:
+The clone contains the rules, all skills, and the bundled `LOCALE.default.md`. The rules use `rules/agents.mdc` and `alwaysApply`.
+
+The installer adds hooks through `~/.cursor/hooks.json`. User hooks run with `~/.cursor` as the current directory.
+
+Thus, the hook commands contain absolute paths to the clone. If the hooks file is absent or unchanged, the installer writes it.
+
+If another tool owns `hooks.json`, the installer does not change it. The installer prints these entries for manual addition:
 
 ```json
 { "command": "sh '~/.cursor/plugins/local/rules-for-ai/hooks/session-start-cursor.sh'" }
 { "command": "sh '~/.cursor/plugins/local/rules-for-ai/hooks/pr-template-check-cursor.sh'" }
 ```
 
-(`sessionStart` and `beforeShellExecution` respectively; the installer prints them with `$HOME` expanded.)
+The first entry is for `sessionStart`. The second entry is for `beforeShellExecution`.
 
-Teams/Enterprise can import the repo from Settings → Plugins → Import from Repo instead of using the installer; that path loads rules and skills but registers no hooks today. Cursor discovers plugin hooks from `hooks/hooks.json`, and this repo must keep that exact path in Claude Code's hook format (`claude plugin validate` parses it), so the Cursor hooks ride on the installer-written `hooks.json` files instead.
+The installer prints both entries with an expanded `$HOME` value.
+
+Teams and Enterprise users can import the repository from Settings → Plugins → Import from Repo. This method loads rules and skills.
+
+This method does not register hooks. Cursor finds plugin hooks in `hooks/hooks.json`.
+
+This repository must keep that path in the Claude Code hook format because `claude plugin validate` reads it.
+
+Thus, Cursor hooks use the `hooks.json` files that the installer writes.
 
 > [!WARNING]
-> Already enabled for Claude Code? Cursor can import it from `~/.claude/plugins/` — do not also install at **cursor** **user** scope, or the plugin may load twice.
+> If Claude Code already enables the plugin, do not install it at the Cursor **user** scope. Cursor can import `~/.claude/plugins/`.
+>
+> A second installation can load the plugin two times.
 
-Uninstall removes `~/.cursor/plugins/local/rules-for-ai/` and the `~/.cursor/hooks.json` it created (a modified or foreign file is left alone, with a warning when our entries are embedded in it). Restart Cursor to unload.
+Uninstall removes `~/.cursor/plugins/local/rules-for-ai/`. It also removes the `~/.cursor/hooks.json` file that the installer created.
+
+Uninstall does not remove a modified or foreign file. If such a file contains plugin entries, uninstall prints a warning.
+
+Restart Cursor to unload the plugin.
 
 ### project
 
-Copies files into the target repo (commit them; teammates need no install, though Cursor may ask each developer to approve the hooks):
+The installer copies these files into the target repository. Commit the files so that teammates do not need an installation.
+
+Cursor can ask each developer to approve the hooks.
 
 | Path | Source |
 |------|--------|
 | `.cursor/rules/agents.mdc` | `rules/agents.mdc` |
 | `.cursor/skills/*` | `skills/*` (every skill, `hashiiiii-locale` included) |
 | `.cursor/rules-for-ai/resolve-locale.sh` | `hooks/resolve-locale.sh` |
+| `.cursor/rules-for-ai/resolve-scoped-locale.sh` | `hooks/resolve-scoped-locale.sh` |
 | `.cursor/rules-for-ai/session-start-cursor.sh` | `hooks/session-start-cursor.sh` |
 | `.cursor/rules-for-ai/json-escape.sh` | `hooks/json-escape.sh` |
 | `.cursor/rules-for-ai/check-pr-template.sh` | `hooks/check-pr-template.sh` |
 | `.cursor/rules-for-ai/pr-template-check-cursor.sh` | `hooks/pr-template-check-cursor.sh` |
 | `.cursor/rules-for-ai/LOCALE.default.md` | `LOCALE.default.md` |
-| `.cursor/hooks.json` | Written when absent or already identical to the installer's canonical file |
+| `.cursor/hooks.json` | If the file is absent or unchanged, the installer writes it. |
 
-`hashiiiii-locale` writes the user-level `~/.config/rules-for-ai/LOCALE.md` only — never a file inside the project — so shipping it here keeps project/local installs closed to the project. Project language policy still belongs in the project's `CLAUDE.md` / `AGENTS.md`.
+`hashiiiii-locale` can write a user, project, or local locale file. The locale scope is independent of the plugin installation scope.
 
-If `.cursor/hooks.json` already exists and is not byte-identical to the installer's file, install does not overwrite it. It prints the entries to add manually:
+If `.cursor/hooks.json` differs from the installer file, install does not replace it. Install prints these entries for manual addition:
 
 ```json
 { "command": "sh .cursor/rules-for-ai/session-start-cursor.sh" }
 { "command": "sh .cursor/rules-for-ai/pr-template-check-cursor.sh" }
 ```
 
-Canonical `hooks.json` when the installer owns the file:
+If the installer owns `hooks.json`, the file has this content:
 
 ```json
 {
@@ -77,24 +102,46 @@ Canonical `hooks.json` when the installer owns the file:
 
 ### local
 
-Same files as **project**, plus entries in `.git/info/exclude` so they stay out of `git status`. `.cursor/hooks.json` is excluded only when this install created it (byte-identical to the canonical file); a team-owned `hooks.json` keeps showing up in git status.
+The **local** scope uses the same files as the **project** scope. It also adds entries to `.git/info/exclude`.
 
-If a path is already tracked, local scope cannot hide it — use project scope instead.
+Thus, these files do not occur in `git status`. If this installation created `.cursor/hooks.json`, the scope also excludes it.
+
+A team-owned `hooks.json` remains in `git status`.
+
+If Git already tracks a path, the local scope cannot hide it. Use the project scope instead.
 
 ## How locale reaches context
 
-Every scope resolves through the same hook (`session-start-cursor.sh` emits `{"additional_context":"..."}`; Cursor injects that text after the developer approves the hook). The hook adds only the resolved locale keys (`## Locale (resolved)`); always-on rules already ride on `agents.mdc` (`alwaysApply`).
+Every scope uses the same `session-start-cursor.sh` hook. After approval, Cursor adds the `additional_context` output to the model context.
 
-`resolve-locale.sh` picks the first existing file, whole-file, layers never merging:
+The hook adds only the resolved locale keys. The always-on rules use `agents.mdc` with `alwaysApply`.
 
-1. `$XDG_CONFIG_HOME/rules-for-ai/LOCALE.md` (default `~/.config/rules-for-ai/LOCALE.md`)
-2. `LOCALE.default.md` — next to the hook (`.cursor/rules-for-ai/` copy) or at the clone root (user scope)
-3. Inline `en_US` for all five keys (so the resolved block is never empty)
+The hook reads the first entry in `workspace_roots`. This entry is the primary root for locale resolution in a multi-root workspace.
 
-A project-root `LOCALE.md` is not part of this chain. Project language policy belongs in that project's instructions, which override resolved keys when they state a language.
+For older input without `workspace_roots`, a copied project hook gets the root from its `.cursor/rules-for-ai/` location.
 
-Create or update the user-level file with the `hashiiiii-locale` skill — see [Getting Started → Locale](../README.md#locale) in the README.
+The scope resolver finds the Git repository. The first existing file wins as a whole:
+
+1. `<absolute-git-dir>/rules-for-ai/LOCALE.md`
+2. `<repo>/.rules-for-ai/LOCALE.md`
+3. `$XDG_CONFIG_HOME/rules-for-ai/LOCALE.md` (default `~/.config/rules-for-ai/LOCALE.md`)
+4. `LOCALE.default.md` next to the hook or at the plugin root
+5. Inline `en_US` for all five keys
+
+The locale layers do not merge. A root-level `LOCALE.md` is not part of this order.
+
+If project instructions specify a language, they take precedence over the resolved keys.
+
+Use `hashiiiii-locale` to create or update a locale scope.
 
 ## Pull request template check
 
-`beforeShellExecution` runs `pr-template-check-cursor.sh`, the Cursor envelope over the same `check-pr-template.sh` that backs the Claude Code PreToolUse hook. An inline `gh pr create` / `gh pr edit` body missing a template heading is denied with the reason in `agent_message`; everything else — including bodies the check cannot read (`--body-file`, `--fill`) — is allowed. The check locates the repository pull request template through the payload's `cwd`, so it also works from user-level hooks (which run in `~/.cursor`).
+`beforeShellExecution` runs `pr-template-check-cursor.sh`. This script is the Cursor envelope for `check-pr-template.sh`.
+
+The Claude Code PreToolUse hook uses the same check. If a template heading is absent, the check rejects the inline body.
+
+The `agent_message` value contains the reason. The check permits all other bodies.
+
+This permission includes bodies that use `--body-file` or `--fill`, because the check cannot read them.
+
+The check uses the payload `cwd` to find the pull request template. Thus, the check also works from user hooks in `~/.cursor`.

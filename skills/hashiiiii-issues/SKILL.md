@@ -1,33 +1,39 @@
 ---
 name: hashiiiii-issues
-description: Use when creating or editing GitHub issues. Structures issue bodies with Background, Problem, Scope, Design, Acceptance criteria, and Notes.
+description: Use this skill to create or edit GitHub issues with a consistent body structure.
 ---
 
 # Issue Conventions
 
-Every issue body uses the same headings in the same order.
+Use the same headings and order in every issue body.
 
 ## Locale
 
-Before drafting an issue:
+Before you draft an issue, resolve its language:
 
-1. Project instructions (`CLAUDE.md` / `AGENTS.md`) override resolved locale keys; follow them when they state a language for issues
-2. Otherwise use the resolved locale keys if they are already in context (plugin path)
-3. Otherwise read `~/.config/rules-for-ai/LOCALE.md`
-4. If missing, read the bundled `LOCALE.default.md`
-5. Write the issue **title and body** in the language given by the `issues` key
+1. If project instructions specify an issue language, use that language.
+2. If project instructions do not specify a language, use the resolved `issues` key from the context.
+3. If the context has no resolved keys, read the first existing locale file.
+4. Use this file order: local, project, user, and bundled `LOCALE.default.md`.
+5. Use `<absolute-git-dir>/rules-for-ai/LOCALE.md` for the local file.
+6. Use `<repo>/.rules-for-ai/LOCALE.md` for the project file.
+7. Use `${XDG_CONFIG_HOME:-${HOME:-}/.config}/rules-for-ai/LOCALE.md` for the user file.
+8. If no locale file exists, use `en_US`.
+9. Use the `issues` language for the issue title and body.
 
-Section headings (Background, Problem, ...) are always English — the template structure never changes. When `issues` is `ja_JP`, keep the English headings and write the prose under each heading in Japanese.
+Always write the section headings in English. Do not change the template structure.
+
+If `issues` is `ja_JP`, keep the English headings. Write the text below each heading in Japanese.
 
 ## When to Use
 
 - Before `gh issue create`
-- Before editing an issue body
-- When the user asks to draft an issue
+- Before you edit an issue body
+- If the user asks you to draft an issue
 
 ## Issue Body Template
 
-Use exactly these headings in this order:
+Use these exact headings in this order:
 
 ```markdown
 ## Background
@@ -51,15 +57,15 @@ Use exactly these headings in this order:
 
 | Section | Purpose |
 |---------|---------|
-| Background | Why this work exists — context, motivation, prior decisions |
-| Problem | What is wrong or missing today — concrete symptoms or gaps |
-| Scope / In scope | In-scope deliverables |
-| Scope / Out of scope | Explicit out-of-scope items |
-| Design | Approach, alternatives considered, key decisions |
-| Acceptance criteria | Verifiable checklist for closing or approving the work |
-| Notes | Links, dependencies, open questions, follow-ups |
+| Background | Explain the context, reason, and earlier decisions. |
+| Problem | Describe current defects or missing behavior. |
+| Scope / In scope | List the required deliverables. |
+| Scope / Out of scope | List the excluded items. |
+| Design | Describe the method, alternatives, and important decisions. |
+| Acceptance criteria | Give an objective checklist for approval or closure. |
+| Notes | Add links, dependencies, open questions, and later work. |
 
-`Acceptance criteria` uses `- [ ]` checkboxes. Each item must be objectively verifiable.
+Use `- [ ]` checkboxes in `Acceptance criteria`. Each item must have an objective result.
 
 ## Creating an Issue
 
@@ -91,7 +97,7 @@ EOF
 
 | Mistake | Fix |
 |---------|-----|
-| Missing Out of scope | Always list explicit out-of-scope items |
-| Vague Acceptance criteria | Use verifiable checkboxes |
-| Design mixed into Problem | Current state in Problem, solution in Design |
-| Skipping Background | State why the work matters before the problem |
+| Missing Out of scope | Always list the excluded items. |
+| Vague Acceptance criteria | Use checkboxes with objective results. |
+| Design information in Problem | Put the current state in Problem. Put the solution in Design. |
+| Missing Background | Explain the reason for the work before the problem. |

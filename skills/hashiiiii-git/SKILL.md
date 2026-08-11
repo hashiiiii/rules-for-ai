@@ -1,52 +1,54 @@
 ---
 name: hashiiiii-git
-description: Use when naming a git branch or writing a commit message.
+description: Use this skill to name a Git branch or write a commit message.
 ---
 
 # Git Conventions
 
-One `type` vocabulary for both the **branch name** and **commit subject**. Pick the type once.
+Use the same `type` for the **branch name** and the **commit subject**. Select the type one time.
 
 ## When to Use
 
-- Before `git switch -c` / `git checkout -b`
+- Before `git switch -c` or `git checkout -b`
 - Before `git commit`
 
-Not for branching strategy, squash/rebase policy, or release tagging.
+This skill does not define branch strategy, squash policy, rebase policy, or release tags.
 
 ## Branch
 
 `<type>/<short-english-kebab>`
 
-English, kebab-case, terse. No issue numbers, extra prefixes, personal names, or Japanese.
+Use short English words in kebab-case. Do not use issue numbers, additional prefixes, personal names, or Japanese text.
 
 Examples: `feat/yaml-parser`, `fix/nested-override-diff`, `docs/cli-usage`
 
 ## Commit
 
-`<type>: <subject>` — one line only, no body.
+Use this format on one line: `<type>: <subject>`
 
-English, imperative, lowercase first word, no trailing period, ≤ 50 characters.
+Write the subject in English and use the imperative form. Start with a lowercase word.
+
+Do not add a final period. Use 50 characters or fewer.
 
 Example: `feat: add YAML parser for .prefab files`
 
 ## Types
 
-| type | use when |
+| Type | Use |
 |------|----------|
-| `feat` | new feature or capability |
-| `fix` | bug fix |
-| `docs` | documentation only |
-| `style` | formatting / whitespace, no behavior change |
-| `refactor` | restructuring without behavior change |
-| `perf` | performance improvement |
-| `test` | adding or fixing tests |
-| `build` | build system or dependencies |
-| `ci` | CI configuration |
-| `chore` | misc maintenance (e.g. `.gitignore`) |
-| `revert` | reverting a prior commit |
+| `feat` | Add a feature or capability. |
+| `fix` | Correct a defect. |
+| `docs` | Change documentation only. |
+| `style` | Change formatting or whitespace without behavior changes. |
+| `refactor` | Change code structure without behavior changes. |
+| `perf` | Improve performance. |
+| `test` | Add or correct tests. |
+| `build` | Change the build system or dependencies. |
+| `ci` | Change the CI files. |
+| `chore` | Do maintenance, such as a `.gitignore` change. |
+| `revert` | Revert an earlier commit. |
 
-Pick the closest type. Do not invent new ones.
+Select the closest type. Do not create a new type.
 
 ## Example
 
@@ -59,8 +61,8 @@ git commit -m "feat: add YAML parser for .prefab files"
 
 | Mistake | Fix |
 |---------|-----|
-| Body or bullets under the subject | One line only |
-| Japanese subject | English, imperative, lowercase first word |
-| Subject > 50 characters | Trim to ≤ 50 |
-| Branch like `feature/…`, `bugfix/…`, `john/…`, or Japanese | `<type>/<english-kebab>` from the table |
-| New type | Use one of the 11 types above |
+| Body or bullets below the subject | Use one line only. |
+| Japanese subject | Use English and the imperative form. Start with a lowercase word. |
+| Subject with more than 50 characters | Use 50 characters or fewer. |
+| Branch such as `feature/…`, `bugfix/…`, `john/…`, or Japanese text | Use `<type>/<english-kebab>` with a type from the table. |
+| New type | Use one of the 11 types in the table. |

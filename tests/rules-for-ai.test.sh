@@ -1,120 +1,29 @@
 #!/bin/sh
-# Tests for rules-for-ai.sh.
+# These tests cover rules-for-ai.sh.
 #
-# Each case builds a real rules-for-ai-shaped source repo and a real
-# target repo under a temp root, then runs the installer against them.
-# No mocks or stubs; the installer copies real files and runs real git.
+# Each case creates real source and target repositories in a temporary directory.
+# Then it runs the installer with those repositories.
+# The tests do not use mocks or stubs.
+# The installer copies real files and runs real Git commands.
 #
-# Coverage matrix -- every {platform} x {scope} cell is guaranteed:
+# Coverage matrix for the Cursor installer cells:
 #
 #   cursor  project  case 2  .cursor/rules + skills + hooks placed
 #   cursor  local    case 3  case 2 files + .git/info/exclude entries
 #   cursor  user     case 5  ~/.cursor/plugins/local/<plugin> clone
-#                            + ~/.cursor/hooks.json (case 10: foreign
+#                            + ~/.cursor/hooks.json (case 9: foreign
 #                            hooks.json is never touched)
-#   claude  project  case 8  .claude/settings.json enables the plugin
-#   claude  local    case 8  .claude/settings.local.json enables it
-#   claude  user     case 8  ~/.claude/settings.json enables it
 #
-# The source fixture uses distinctive names (rfa-test / rfa-mkt) so the
-# assertions prove the installer derives names from the manifests
-# instead of hard-coding them.
-#
-# The claude cells shell out to the real `claude` CLI. That end-to-end
-# case writes to the machine's real plugin cache, so it is opt-in:
-# RULES_FOR_AI_E2E=1 plus `claude` on PATH (CI sets both).
+# The source fixture uses the distinct names rfa-test and rfa-mkt.
+# Thus, the assertions prove that the installer reads names from the manifests.
 set -u
 
 REPO="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
 failures=0
+# shellcheck source=tests/rules-for-ai-test-lib.sh
+. "$REPO/tests/rules-for-ai-test-lib.sh"
 
-# assert_contains <haystack> <needle> <case description>
-assert_contains() {
-    case "$1" in
-        *"$2"*) printf 'PASS: %s\n' "$3" ;;
-        *) printf 'FAIL: %s (missing: %s)\n' "$3" "$2"; failures=$((failures + 1)) ;;
-    esac
-}
-
-# assert_not_contains <haystack> <needle> <case description>
-assert_not_contains() {
-    case "$1" in
-        *"$2"*) printf 'FAIL: %s (unexpected: %s)\n' "$3" "$2"; failures=$((failures + 1)) ;;
-        *) printf 'PASS: %s\n' "$3" ;;
-    esac
-}
-
-# assert_file <path> <case description>
-assert_file() {
-    if [ -e "$1" ]; then
-        printf 'PASS: %s\n' "$2"
-    else
-        printf 'FAIL: %s (missing: %s)\n' "$2" "$1"; failures=$((failures + 1))
-    fi
-}
-
-# assert_no_file <path> <case description>
-assert_no_file() {
-    if [ -e "$1" ]; then
-        printf 'FAIL: %s (still exists: %s)\n' "$2" "$1"; failures=$((failures + 1))
-    else
-        printf 'PASS: %s\n' "$2"
-    fi
-}
-
-# git with a throwaway identity so commits work on bare CI machines.
-git_q() { git -c user.email=test@test.invalid -c user.name=test "$@"; }
-
-# new_source_repo: minimal rules-for-ai-shaped repo with the real
-# rules-for-ai.sh copied in, committed so it can be cloned. Prints its path.
-new_source_repo() {
-    src=$(mktemp -d)
-    mkdir -p "$src/.claude-plugin" "$src/rules" \
-        "$src/skills/hashiiiii-git" "$src/skills/hashiiiii-issues" \
-        "$src/skills/hashiiiii-locale"
-    cat > "$src/.claude-plugin/plugin.json" <<'EOF'
-{
-  "name": "rfa-test",
-  "version": "0.0.1",
-  "description": "fixture"
-}
-EOF
-    cat > "$src/.claude-plugin/marketplace.json" <<'EOF'
-{
-  "name": "rfa-mkt",
-  "owner": { "name": "fixture" },
-  "plugins": [{ "name": "rfa-test", "source": "./" }]
-}
-EOF
-    printf -- '---\nalwaysApply: true\n---\n# AGENTS fixture\n' > "$src/rules/agents.mdc"
-    printf '# git skill fixture\n' > "$src/skills/hashiiiii-git/SKILL.md"
-    printf '# issues skill fixture\n' > "$src/skills/hashiiiii-issues/SKILL.md"
-    printf '# locale skill fixture\n' > "$src/skills/hashiiiii-locale/SKILL.md"
-    # A distinctive tag proves the installed session hook reads the
-    # copied default, not the resolver's inline en_US.
-    printf 'issues=xx_XX\npull-requests=xx_XX\ncomments=xx_XX\nlogs=xx_XX\ntest-logs=xx_XX\n' \
-        > "$src/LOCALE.default.md"
-    cp "$REPO/rules-for-ai.sh" "$src/rules-for-ai.sh"
-    mkdir -p "$src/hooks"
-    cp "$REPO/hooks/resolve-locale.sh" "$src/hooks/resolve-locale.sh"
-    cp "$REPO/hooks/session-start-cursor.sh" "$src/hooks/session-start-cursor.sh"
-    cp "$REPO/hooks/json-escape.sh" "$src/hooks/json-escape.sh"
-    cp "$REPO/hooks/check-pr-template.sh" "$src/hooks/check-pr-template.sh"
-    cp "$REPO/hooks/pr-template-check-cursor.sh" "$src/hooks/pr-template-check-cursor.sh"
-    git_q -C "$src" init --quiet
-    git_q -C "$src" add -A
-    git_q -C "$src" commit --quiet -m fixture
-    printf '%s' "$src"
-}
-
-# new_target_repo: empty git repo standing in for a user project.
-new_target_repo() {
-    tgt=$(mktemp -d)
-    git_q -C "$tgt" init --quiet
-    printf '%s' "$tgt"
-}
-
-# Case 1: argument validation fails fast with a non-zero exit.
+# Case 1 makes sure that invalid arguments cause an immediate nonzero exit.
 src=$(new_source_repo)
 if sh "$src/rules-for-ai.sh" > /dev/null 2>&1; then
     printf 'FAIL: case 1: no arguments must fail\n'; failures=$((failures + 1))
@@ -138,7 +47,7 @@ else
 fi
 out=$(sh "$src/rules-for-ai.sh" install cursor user /tmp 2>&1) && :
 assert_contains "$out" 'target-dir does not apply' 'case 1: user scope rejects target-dir'
-# help is an explicit request: usage to stdout, exit 0.
+# An explicit help request writes usage to stdout and exits 0.
 out=$(sh "$src/rules-for-ai.sh" help) && rc=0 || rc=$?
 assert_contains "$out" 'usage:' 'case 1: help prints usage'
 if [ "${rc:-1}" -eq 0 ]; then
@@ -148,9 +57,9 @@ else
 fi
 rm -rf "$src"
 
-# Case 2: cursor project install / update / uninstall. An unmanaged
-# file sits next to the managed ones to prove the installer never
-# touches anything it did not create.
+# Case 2 covers Cursor project installation, update, and removal.
+# An unmanaged file is next to the managed files.
+# This file proves that the installer does not change files that it did not create.
 src=$(new_source_repo)
 tgt=$(new_target_repo)
 mkdir -p "$tgt/.cursor/rules"
@@ -161,6 +70,7 @@ assert_file "$tgt/.cursor/skills/hashiiiii-git/SKILL.md" 'case 2: git skill copi
 assert_file "$tgt/.cursor/skills/hashiiiii-issues/SKILL.md" 'case 2: issues skill copied'
 assert_file "$tgt/.cursor/skills/hashiiiii-locale/SKILL.md" 'case 2: locale skill copied'
 assert_file "$tgt/.cursor/rules-for-ai/resolve-locale.sh" 'case 2: resolver copied'
+assert_file "$tgt/.cursor/rules-for-ai/resolve-scoped-locale.sh" 'case 2: scope resolver copied'
 assert_file "$tgt/.cursor/rules-for-ai/session-start-cursor.sh" 'case 2: cursor session hook copied'
 assert_file "$tgt/.cursor/rules-for-ai/json-escape.sh" 'case 2: json escaper copied'
 assert_file "$tgt/.cursor/rules-for-ai/check-pr-template.sh" 'case 2: pr check core copied'
@@ -168,9 +78,9 @@ assert_file "$tgt/.cursor/rules-for-ai/pr-template-check-cursor.sh" 'case 2: cur
 assert_file "$tgt/.cursor/rules-for-ai/LOCALE.default.md" 'case 2: locale default copied'
 assert_contains "$(cat "$tgt/.cursor/hooks.json")" 'session-start-cursor.sh' 'case 2: hooks.json wires sessionStart'
 assert_contains "$(cat "$tgt/.cursor/hooks.json")" 'pr-template-check-cursor.sh' 'case 2: hooks.json wires beforeShellExecution'
-# The installed hooks must work exactly as Cursor invokes them: cwd is
-# the project root and siblings are found via dirname "$0". An isolated
-# HOME means no user LOCALE.md, so the copied LOCALE.default.md wins.
+# The installed hooks must work with the Cursor invocation method.
+# The project root is the current directory, and dirname "$0" finds sibling files.
+# An isolated HOME has no user LOCALE.md. Thus, the copied LOCALE.default.md wins.
 hook_home=$(mktemp -d)
 out=$(cd "$tgt" && printf '{}' | HOME="$hook_home" sh .cursor/rules-for-ai/session-start-cursor.sh)
 assert_contains "$out" 'issues=xx_XX' 'case 2: installed session hook resolves the copied default'
@@ -178,7 +88,7 @@ out=$(cd "$tgt" && printf '{"command":"git status","cwd":"%s"}' "$tgt" \
     | HOME="$hook_home" sh .cursor/rules-for-ai/pr-template-check-cursor.sh)
 assert_contains "$out" '"permission":"allow"' 'case 2: installed pr hook allows a non-PR command'
 rm -rf "$hook_home"
-# Re-run is the update path: a changed source file must overwrite.
+# A second installation updates files. Thus, it must replace a changed source file.
 printf 'changed\n' > "$src/rules/agents.mdc"
 out=$(sh "$src/rules-for-ai.sh" install cursor project "$tgt" 2>&1)
 assert_not_contains "$out" 'already exists' 'case 2: re-run keeps owning hooks.json'
@@ -191,8 +101,8 @@ assert_no_file "$tgt/.cursor/rules-for-ai" 'case 2: uninstall removes the hook d
 assert_no_file "$tgt/.cursor/hooks.json" 'case 2: uninstall removes the hooks.json it created'
 rm -rf "$src" "$tgt"
 
-# Case 3: cursor local = project files + .git/info/exclude entries,
-# deduplicated on re-run and removed again on uninstall.
+# Case 3 covers Cursor local files and .git/info/exclude entries.
+# A second installation does not duplicate entries. Uninstall removes the entries.
 src=$(new_source_repo)
 tgt=$(new_target_repo)
 sh "$src/rules-for-ai.sh" install cursor local "$tgt" > /dev/null
@@ -216,8 +126,8 @@ assert_not_contains "$(cat "$exclude")" '.cursor/hooks.json' 'case 3: uninstall 
 assert_no_file "$tgt/.cursor" 'case 3: uninstall removes files'
 rm -rf "$src" "$tgt"
 
-# Case 4: local scope cannot hide an already-tracked file; the installer
-# must warn and point at project scope instead.
+# Case 4 makes sure that local scope cannot hide a tracked file.
+# The installer must warn the user and identify project scope as the alternative.
 src=$(new_source_repo)
 tgt=$(new_target_repo)
 sh "$src/rules-for-ai.sh" install cursor project "$tgt" > /dev/null
@@ -227,10 +137,10 @@ out=$(sh "$src/rules-for-ai.sh" install cursor local "$tgt" 2>&1)
 assert_contains "$out" 'already tracked' 'case 4: tracked file warning'
 rm -rf "$src" "$tgt"
 
-# Case 5: cursor user clones under a fixture HOME, wires the user-level
-# hooks.json, pulls on re-run, and removes both on uninstall. The
-# rfa-test directory name proves the plugin name came from the fixture
-# manifest, not a hard-coded string.
+# Case 5 covers the Cursor user scope with a temporary HOME.
+# Install clones the repository and writes the user hooks.json.
+# A second installation pulls updates. Uninstall removes the clone and hooks file.
+# The rfa-test directory name proves that the plugin name comes from the fixture manifest.
 src=$(new_source_repo)
 home=$(mktemp -d)
 HOME="$home" RULES_FOR_AI_SOURCE="$src" sh "$src/rules-for-ai.sh" install cursor user > /dev/null
@@ -240,13 +150,13 @@ hooks="$home/.cursor/hooks.json"
 assert_file "$hooks" 'case 5: user hooks.json written when absent'
 assert_contains "$(cat "$hooks")" "$dest/hooks/session-start-cursor.sh" 'case 5: sessionStart carries an absolute clone path'
 assert_contains "$(cat "$hooks")" "$dest/hooks/pr-template-check-cursor.sh" 'case 5: beforeShellExecution carries an absolute clone path'
-# The wired hooks must work exactly as Cursor invokes user-level hooks:
-# cwd is ~/.cursor, siblings and the clone-root LOCALE.default.md are
-# found relative to the script itself.
+# The configured hooks must work with the Cursor user-hook invocation method.
+# The current directory is ~/.cursor.
+# The script location supplies sibling files and the clone-root LOCALE.default.md.
 out=$(cd "$home/.cursor" && printf '{}' | HOME="$home" sh "$dest/hooks/session-start-cursor.sh")
 assert_contains "$out" 'issues=xx_XX' 'case 5: wired session hook resolves the clone default'
-# Update path: a new commit in the source must arrive via pull, and a
-# re-run must keep owning the hooks.json without warning.
+# A second installation must pull a new source commit.
+# It must retain ownership of hooks.json without a warning.
 printf 'v2\n' >> "$src/rules/agents.mdc"
 git_q -C "$src" commit --quiet -am 'v2'
 out=$(HOME="$home" RULES_FOR_AI_SOURCE="$src" sh "$src/rules-for-ai.sh" install cursor user 2>&1)
@@ -257,9 +167,9 @@ assert_no_file "$dest" 'case 5: uninstall removes the clone'
 assert_no_file "$hooks" 'case 5: uninstall removes the hooks.json it created'
 rm -rf "$src" "$home"
 
-# Case 6: curl mode. The script runs from a bare directory (as if piped
-# from curl), self-fetches the repo from RULES_FOR_AI_SOURCE into
-# TMPDIR, installs, and cleans the temp clone up on exit.
+# Case 6 covers curl mode.
+# The script runs from a bare directory and gets the repository from RULES_FOR_AI_SOURCE.
+# It clones the repository into TMPDIR. Then it installs and removes the temporary clone.
 src=$(new_source_repo)
 tgt=$(new_target_repo)
 outside=$(mktemp -d)
@@ -268,88 +178,60 @@ work="$outside/tmpwork"
 mkdir "$work"
 TMPDIR="$work" RULES_FOR_AI_SOURCE="$src" sh "$outside/rules-for-ai.sh" install cursor project "$tgt" > /dev/null
 assert_file "$tgt/.cursor/rules/agents.mdc" 'case 6: curl mode installs'
-if [ -z "$(ls -A "$work")" ]; then
+# macOS can create an xcrun_db file in TMPDIR.
+# Only a directory can be the temporary clone that the installer must remove.
+if [ -z "$(find "$work" -mindepth 1 -maxdepth 1 -type d -print -quit)" ]; then
     printf 'PASS: case 6: temp clone cleaned up on exit\n'
 else
     printf 'FAIL: case 6: temp clone left behind in %s\n' "$work"; failures=$((failures + 1))
 fi
 rm -rf "$src" "$tgt" "$outside"
 
-# Case 7: the installer must refuse to target its own repo (the
-# run-from-clone footgun).
+# Case 7 makes sure that the installer rejects its source repository as the target.
 src=$(new_source_repo)
 out=$(sh "$src/rules-for-ai.sh" install cursor project "$src" 2>&1) && :
 assert_contains "$out" 'itself' 'case 7: refuses to target the source repo'
 rm -rf "$src"
 
-# Case 8: claude cells at every scope, end to end against the real
-# `claude` CLI. Each scope writes a different settings file; the asserts
-# pin the plugin to the file its scope must use. This writes to the real
-# plugin cache under $HOME, so it is opt-in: RULES_FOR_AI_E2E=1 plus
-# `claude` on PATH (CI sets both).
-if [ "${RULES_FOR_AI_E2E:-}" = 1 ] && command -v claude > /dev/null 2>&1; then
-    src=$(new_source_repo)
-    tgt=$(new_target_repo)
-    # project scope -> the repo's .claude/settings.json (committed).
-    RULES_FOR_AI_SOURCE="$src" sh "$src/rules-for-ai.sh" install claude project "$tgt" > /dev/null
-    settings="$tgt/.claude/settings.json"
-    assert_file "$settings" 'case 8: project settings written'
-    assert_contains "$(cat "$settings")" '"rfa-test@rfa-mkt": true' 'case 8: project scope enables plugin in settings.json'
-    RULES_FOR_AI_SOURCE="$src" sh "$src/rules-for-ai.sh" uninstall claude project "$tgt" > /dev/null
-    assert_not_contains "$(cat "$settings")" '"rfa-test@rfa-mkt": true' 'case 8: uninstall disables plugin at project scope'
-    # local scope -> the repo's .claude/settings.local.json (gitignored).
-    RULES_FOR_AI_SOURCE="$src" sh "$src/rules-for-ai.sh" install claude local "$tgt" > /dev/null
-    assert_contains "$(cat "$tgt/.claude/settings.local.json")" '"rfa-test@rfa-mkt": true' 'case 8: local scope enables plugin in settings.local.json'
-    RULES_FOR_AI_SOURCE="$src" sh "$src/rules-for-ai.sh" uninstall claude local "$tgt" > /dev/null
-    # user scope -> ~/.claude/settings.json. It is HOME-based, not
-    # repo-based, so a fixture HOME isolates the machine's real config.
-    home=$(mktemp -d)
-    HOME="$home" RULES_FOR_AI_SOURCE="$src" sh "$src/rules-for-ai.sh" install claude user > /dev/null
-    assert_contains "$(cat "$home/.claude/settings.json")" '"rfa-test@rfa-mkt": true' 'case 8: user scope enables plugin in ~/.claude/settings.json'
-    HOME="$home" RULES_FOR_AI_SOURCE="$src" sh "$src/rules-for-ai.sh" uninstall claude user > /dev/null
-    assert_not_contains "$(cat "$home/.claude/settings.json")" '"rfa-test@rfa-mkt": true' 'case 8: uninstall disables plugin at user scope'
-    rm -rf "$src" "$tgt" "$home"
-else
-    printf 'SKIP: case 8: claude e2e (set RULES_FOR_AI_E2E=1 with claude on PATH)\n'
-fi
-
-# Case 9: a pre-existing .cursor/hooks.json is never modified -- it may
-# belong to the team. Install warns and prints the entry to add
-# manually; uninstall leaves the file alone.
+# Case 8 makes sure that install does not change an existing .cursor/hooks.json.
+# The file can belong to the team.
+# Install prints a warning and the entry for manual addition.
+# Uninstall does not change the file.
 src=$(new_source_repo)
 tgt=$(new_target_repo)
 mkdir -p "$tgt/.cursor"
 printf '{ "version": 1, "hooks": {} }\n' > "$tgt/.cursor/hooks.json"
 out=$(sh "$src/rules-for-ai.sh" install cursor project "$tgt" 2>&1)
-assert_contains "$out" 'already exists' 'case 9: install warns on a foreign hooks.json'
-assert_contains "$out" 'session-start-cursor.sh' 'case 9: warning shows the entry to add'
-assert_contains "$(cat "$tgt/.cursor/hooks.json")" '"hooks": {}' 'case 9: foreign hooks.json untouched'
+assert_contains "$out" 'already exists' 'case 8: install warns on a foreign hooks.json'
+assert_contains "$out" 'session-start-cursor.sh' 'case 8: warning shows the entry to add'
+assert_contains "$(cat "$tgt/.cursor/hooks.json")" '"hooks": {}' 'case 8: foreign hooks.json untouched'
 out=$(sh "$src/rules-for-ai.sh" uninstall cursor project "$tgt" 2>&1)
-assert_file "$tgt/.cursor/hooks.json" 'case 9: uninstall leaves the foreign hooks.json'
-# When a developer pasted our entry into their own hooks.json, the file
-# is not byte-identical to ours, so uninstall must not delete it -- it
-# warns to remove the entry manually instead.
+assert_file "$tgt/.cursor/hooks.json" 'case 8: uninstall leaves the foreign hooks.json'
+# A developer can add this plugin entry to a separate hooks.json.
+# Such a file does not match the installer file, so uninstall must not remove it.
+# Instead, uninstall tells the user to remove the entry manually.
 printf '{ "version": 1, "hooks": { "sessionStart": [ { "command": "sh .cursor/rules-for-ai/session-start-cursor.sh" } ], "afterEdit": [] } }\n' > "$tgt/.cursor/hooks.json"
 sh "$src/rules-for-ai.sh" install cursor project "$tgt" > /dev/null 2>&1
 out=$(sh "$src/rules-for-ai.sh" uninstall cursor project "$tgt" 2>&1)
-assert_contains "$out" 'manually' 'case 9: uninstall warns when our entry is embedded elsewhere'
-assert_file "$tgt/.cursor/hooks.json" 'case 9: embedded-entry hooks.json preserved'
+assert_contains "$out" 'manually' 'case 8: uninstall warns when our entry is embedded elsewhere'
+assert_file "$tgt/.cursor/hooks.json" 'case 8: embedded-entry hooks.json preserved'
 rm -rf "$src" "$tgt"
 
-# Case 10: a pre-existing ~/.cursor/hooks.json (another tool may own
-# it) is never modified at user scope -- install warns with the entries
-# to add manually, and uninstall leaves the file alone.
+# Case 9 makes sure that user scope does not change an existing ~/.cursor/hooks.json.
+# Another tool can own the file.
+# Install prints a warning and the entries for manual addition.
+# Uninstall does not change the file.
 src=$(new_source_repo)
 home=$(mktemp -d)
 mkdir -p "$home/.cursor"
 printf '{ "version": 1, "hooks": { "sessionStart": [ { "command": "herdr" } ] } }\n' > "$home/.cursor/hooks.json"
 out=$(HOME="$home" RULES_FOR_AI_SOURCE="$src" sh "$src/rules-for-ai.sh" install cursor user 2>&1)
-assert_contains "$out" 'already exists' 'case 10: install warns on a foreign user hooks.json'
-assert_contains "$out" 'session-start-cursor.sh' 'case 10: warning shows the entries to add'
-assert_contains "$(cat "$home/.cursor/hooks.json")" 'herdr' 'case 10: foreign user hooks.json untouched'
+assert_contains "$out" 'already exists' 'case 9: install warns on a foreign user hooks.json'
+assert_contains "$out" 'session-start-cursor.sh' 'case 9: warning shows the entries to add'
+assert_contains "$(cat "$home/.cursor/hooks.json")" 'herdr' 'case 9: foreign user hooks.json untouched'
 HOME="$home" RULES_FOR_AI_SOURCE="$src" sh "$src/rules-for-ai.sh" uninstall cursor user > /dev/null 2>&1
-assert_file "$home/.cursor/hooks.json" 'case 10: uninstall leaves the foreign user hooks.json'
-assert_contains "$(cat "$home/.cursor/hooks.json")" 'herdr' 'case 10: foreign content survives uninstall'
+assert_file "$home/.cursor/hooks.json" 'case 9: uninstall leaves the foreign user hooks.json'
+assert_contains "$(cat "$home/.cursor/hooks.json")" 'herdr' 'case 9: foreign content survives uninstall'
 rm -rf "$src" "$home"
 
 if [ "$failures" -gt 0 ]; then

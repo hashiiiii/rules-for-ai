@@ -1,17 +1,16 @@
 #!/bin/sh
-# beforeShellExecution hook for Cursor installs.
+# This beforeShellExecution hook supports Cursor installations.
 #
-# Thin envelope over the shared check-pr-template.sh, which reads the
-# hook payload on stdin and decides. Emits {"permission":"allow"} to
-# let the command run, or {"permission":"deny","agent_message":...}
-# with the reason so the agent rewrites the pull request body. Any core
-# status other than the block code fails open, and the wrapper always
-# exits 0: this hook must never break a shell command it could not
-# actually judge.
+# This script is an envelope for the shared check-pr-template.sh script.
+# The shared script reads the hook payload from stdin.
+# The envelope emits {"permission":"allow"} to permit the command.
+# It emits {"permission":"deny","agent_message":...} to block the command.
+# The message tells the agent why it must rewrite the pull request body.
+# A status other than the block code permits the command.
+# The envelope always exits 0 because it must not stop an unevaluated command.
 #
-# The installer copies this script and its siblings check-pr-template.sh
-# and json-escape.sh into <repo>/.cursor/rules-for-ai/, so it must stay
-# self-contained: dirname "$0" sibling lookups only, no jq.
+# The installer copies this script and its sibling scripts into <repo>/.cursor/rules-for-ai/.
+# Thus, use only dirname "$0" sibling lookups. Do not use jq.
 set -u
 
 HOOK_DIR=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
