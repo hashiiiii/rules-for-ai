@@ -20,6 +20,7 @@ Keep the requested audience, tone, format, and length.
 - Start with the useful point. Give each sentence one main idea and each paragraph one topic.
 - Use familiar words and complete grammar. If the reader needs help with a technical term, explain it.
 - Use verbs for actions. Break long noun chains into phrases with prepositions.
+- Do not invent compounds with hyphens to shorten explanations. Use verbs or prepositions, such as "data serialized as text" instead of "text-serialized data". Keep established terms and hyphens needed to prevent misreading.
 - If the actor is known, use active voice. Systems can act. Do not invent a person to supply a subject.
 - For instructions, give one action per sentence.
 - In technical text, limit instructions to 20 words per sentence and explanations to 25. Count each code span as one word.
