@@ -118,7 +118,7 @@ Codex reads the same process from `AGENTS.md`. It reads the selected locale file
 
 ## Writing
 
-Use these skills to draft, edit, or review prose:
+The agent rules require the matching skill for every draft, edit, and review:
 
 | Language | Skill |
 | --- | --- |
