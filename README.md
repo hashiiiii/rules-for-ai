@@ -116,6 +116,23 @@ Codex reads the same process from `AGENTS.md`. It reads the selected locale file
 - [Codex](./docs/CODEX.md): file paths, native plugin use, and instruction ownership
 - [Cursor](./docs/CURSOR.md): files for each scope, `hooks.json`, and locale context
 
+## Writing
+
+The agent rules require the matching skill for every draft, edit, and review:
+
+| Language | Skill |
+| --- | --- |
+| English | [hashiiiii-write-en](./skills/hashiiiii-write-en/SKILL.md) |
+| Japanese | [hashiiiii-write-ja](./skills/hashiiiii-write-ja/SKILL.md) |
+
+Each skill drafts simple text, then revises its language and structure. It preserves facts, uncertainty, and technical names.
+Both skills work without other writing skills or tools.
+
+```text
+Use hashiiiii-write-en to write a short release note from these facts: ...
+Use hashiiiii-write-ja to edit this Japanese message: ...
+```
+
 ## Updates
 
 Run the same install command or curl command again. For Claude Code, you can also run `/plugin marketplace update hashiiiii`.

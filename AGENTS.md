@@ -28,6 +28,11 @@
 - Get `<absolute-git-dir>` with `git rev-parse --absolute-git-dir`
 - If no locale file exists, use `en_US` for all keys
 
+## Writing
+
+- Before you write, edit, or review English prose, always read and apply the `hashiiiii-write-en` skill.
+- Before you write, edit, or review Japanese prose, always read and apply the `hashiiiii-write-ja` skill.
+
 ## Git
 
 - Use the `hashiiiii-git` skill for Git operations
