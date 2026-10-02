@@ -48,7 +48,7 @@ curl -fsSL https://raw.githubusercontent.com/hashiiiii/rules-for-ai/main/rules-f
 
 Use `path/to/repo` only with **project** and **local** scopes. If you omit the path, the command uses the current directory.
 
-Run install again to update the plugin. Uninstall removes only the files that install created.
+Run install again to update the plugin. Uninstall removes the rules-for-ai installation for the selected scope.
 
 See [Platform details](#platform-details) for the installed files and the locale process.
 

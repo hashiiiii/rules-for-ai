@@ -18,15 +18,19 @@ Restart Codex after installation. Codex reads its instructions when a session st
 | **project** | `<repo>/AGENTS.md` | `<repo>/.agents/skills/` | Commit the installed files for your team. |
 | **local** | `<repo>/AGENTS.md` | `<repo>/.agents/skills/` | Git excludes the installed files through `.git/info/exclude`. |
 
-The installer keeps ownership copies of `AGENTS.md` and each installed skill.
-When the active content matches its ownership copy, the installer can replace or remove the file.
+The installer keeps an ownership copy of `AGENTS.md`.
+When the active rule matches its ownership copy, the installer can replace or remove it.
+
+Install replaces each skill supplied by rules-for-ai, including local edits, without keeping comparison copies.
+Install also removes skill comparison copies left by earlier installers.
+For project scope, use Git to track changes to installed skills.
 
 If `AGENTS.md` already has other content, the installer does not change it.
 It prints the source path so you can merge the rules manually.
 
 The user support directory is `$CODEX_HOME/rules-for-ai/`.
 The project and local support directory is `<repo>/.agents/rules-for-ai/`.
-Each support directory contains the ownership copies and `LOCALE.default.md`.
+Each support directory contains the `AGENTS.md` ownership copy, when installed, and `LOCALE.default.md`.
 
 ## Native plugin
 
@@ -68,7 +72,8 @@ A nested `AGENTS.md` can add rules or override earlier rules.
 ./rules-for-ai.sh uninstall codex <user|project|local> [path/to/repo]
 ```
 
-The command removes only installer-owned files.
+The command removes skills supplied by rules-for-ai, including local edits, and the support directory.
+Skills with other names remain installed.
 If the active `AGENTS.md` changed after installation, the command keeps it and prints a warning.
 
 To remove only the native plugin, run:

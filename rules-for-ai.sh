@@ -20,7 +20,7 @@
 # The script installs from the clone and removes it before exit.
 #
 # Run install again to update each cell.
-# Uninstall removes only the files that install created.
+# Uninstall removes the rules-for-ai installation for the selected scope.
 set -u
 
 # For a fork, set this value to the fork URL. See Fork and customize in README.md.
@@ -147,46 +147,22 @@ install_owned_rule() {
     fi
 }
 
-skill_directories_match() {
-    [ -d "$1" ] && [ -d "$2" ] && diff -qr "$1" "$2" > /dev/null 2>&1
-}
-
-install_owned_skills() {
+install_skills() {
     destination=$1
-    ownership_root=$2
-    mkdir -p "$destination" "$ownership_root"
+    mkdir -p "$destination"
     for skill_dir in "$ROOT"/skills/*/; do
         skill=$(basename "$skill_dir")
         installed="$destination/$skill"
-        ownership_copy="$ownership_root/$skill"
-        if [ ! -e "$installed" ]; then
-            cp -R "${skill_dir%/}" "$installed"
-            cp -R "${skill_dir%/}" "$ownership_copy"
-        elif skill_directories_match "$installed" "$ownership_copy"; then
-            rm -rf "$installed" "$ownership_copy"
-            cp -R "${skill_dir%/}" "$installed"
-            cp -R "${skill_dir%/}" "$ownership_copy"
-        else
-            printf 'warning: %s already exists; the installer did not replace it\n' "$installed" >&2
-        fi
+        rm -rf "$installed"
+        cp -R "${skill_dir%/}" "$installed"
     done
 }
 
-remove_owned_skills() {
+remove_skills() {
     destination=$1
-    ownership_root=$2
     for skill_dir in "$ROOT"/skills/*/; do
         skill=$(basename "$skill_dir")
-        installed="$destination/$skill"
-        ownership_copy="$ownership_root/$skill"
-        if [ -d "$ownership_copy" ]; then
-            if skill_directories_match "$installed" "$ownership_copy"; then
-                rm -rf "$installed"
-            elif [ -e "$installed" ]; then
-                printf 'warning: %s was modified; the installer did not remove it\n' "$installed" >&2
-            fi
-            rm -rf "$ownership_copy"
-        fi
+        rm -rf "${destination:?}/$skill"
     done
 }
 
@@ -227,7 +203,9 @@ codex_user_install() {
     support_dir="$home_dir/rules-for-ai"
     install_owned_rule "$home_dir/AGENTS.md" "$support_dir/AGENTS.md"
     cp "$ROOT/LOCALE.default.md" "$support_dir/LOCALE.default.md"
-    install_owned_skills "$(codex_user_skills)" "$support_dir/skills"
+    install_skills "$(codex_user_skills)"
+    # Earlier installers stored duplicate skills here for content comparison.
+    rm -rf "$support_dir/skills"
     printf 'installed Codex rules and skills for this user -- restart Codex to load them\n'
 }
 
@@ -236,7 +214,7 @@ codex_user_uninstall() {
     support_dir="$home_dir/rules-for-ai"
     remove_owned_rule "$home_dir/AGENTS.md" "$support_dir/AGENTS.md"
     skills_dir=$(codex_user_skills)
-    remove_owned_skills "$skills_dir" "$support_dir/skills"
+    remove_skills "$skills_dir"
     rm -rf "$support_dir"
     rmdir "$skills_dir" "$(dirname -- "$skills_dir")" "$home_dir" 2> /dev/null || :
     printf 'removed Codex rules and skills for this user -- restart Codex to unload them\n'
@@ -247,7 +225,9 @@ codex_project_install() {
     install_owned_rule "$TARGET/AGENTS.md" "$support_dir/AGENTS.md"
     mkdir -p "$support_dir"
     cp "$ROOT/LOCALE.default.md" "$support_dir/LOCALE.default.md"
-    install_owned_skills "$TARGET/.agents/skills" "$support_dir/skills"
+    install_skills "$TARGET/.agents/skills"
+    # Earlier installers stored duplicate skills here for content comparison.
+    rm -rf "$support_dir/skills"
     if [ "$SCOPE" = local ]; then
         exclude=$(exclude_file)
         mkdir -p "$(dirname -- "$exclude")"
@@ -271,7 +251,7 @@ codex_project_uninstall() {
     had_ownership_copy=0
     [ -f "$support_dir/AGENTS.md" ] && had_ownership_copy=1
     remove_owned_rule "$TARGET/AGENTS.md" "$support_dir/AGENTS.md"
-    remove_owned_skills "$TARGET/.agents/skills" "$support_dir/skills"
+    remove_skills "$TARGET/.agents/skills"
     rm -rf "$support_dir"
     if [ "$SCOPE" = local ]; then
         exclude=$(exclude_file)

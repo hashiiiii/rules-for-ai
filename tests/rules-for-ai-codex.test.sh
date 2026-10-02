@@ -11,7 +11,7 @@ failures=0
 . "$REPO/tests/rules-for-ai-test-lib.sh"
 
 # Case 1 covers user installation, update, and removal with a custom CODEX_HOME.
-# An unmanaged skill proves that removal only changes installer-owned paths.
+# A skill with another name must remain available after removal.
 src=$(new_source_repo)
 home=$(mktemp -d)
 codex_home="$home/codex-home"
@@ -22,12 +22,20 @@ assert_file "$codex_home/AGENTS.md" 'case 1: user rule installed'
 assert_file "$codex_home/rules-for-ai/AGENTS.md" 'case 1: user ownership copy installed'
 assert_file "$codex_home/rules-for-ai/LOCALE.default.md" 'case 1: user locale default installed'
 assert_file "$home/.agents/skills/hashiiiii-git/SKILL.md" 'case 1: user Git skill installed'
+assert_no_file "$codex_home/rules-for-ai/skills" 'case 1: user skills have no comparison copies'
+# User installations also need to discard copies left by earlier installers.
+mkdir -p "$codex_home/rules-for-ai/skills"
+cp -R "$home/.agents/skills/hashiiiii-git" "$codex_home/rules-for-ai/skills/"
+# Replacement must discard files that the new skill no longer contains.
+printf '# obsolete resource\n' > "$home/.agents/skills/hashiiiii-git/obsolete.md"
 printf '# AGENTS fixture v2\n' > "$src/AGENTS.md"
 printf '# Git skill fixture v2\n' > "$src/skills/hashiiiii-git/SKILL.md"
 HOME="$home" CODEX_HOME="$codex_home" sh "$src/rules-for-ai.sh" install codex user > /dev/null
 assert_contains "$(cat "$codex_home/AGENTS.md")" 'fixture v2' 'case 1: user rule updated'
 assert_contains "$(cat "$home/.agents/skills/hashiiiii-git/SKILL.md")" 'fixture v2' \
     'case 1: user Git skill updated'
+assert_no_file "$home/.agents/skills/hashiiiii-git/obsolete.md" 'case 1: obsolete skill resource removed'
+assert_no_file "$codex_home/rules-for-ai/skills" 'case 1: legacy user skill copies removed on update'
 HOME="$home" CODEX_HOME="$codex_home" sh "$src/rules-for-ai.sh" uninstall codex user > /dev/null
 assert_no_file "$codex_home/AGENTS.md" 'case 1: user rule removed'
 assert_no_file "$codex_home/rules-for-ai" 'case 1: user support directory removed'
@@ -46,9 +54,14 @@ assert_file "$tgt/AGENTS.md" 'case 2: project rule installed'
 assert_file "$tgt/.agents/rules-for-ai/AGENTS.md" 'case 2: project ownership copy installed'
 assert_file "$tgt/.agents/rules-for-ai/LOCALE.default.md" 'case 2: project locale default installed'
 assert_file "$tgt/.agents/skills/hashiiiii-issues/SKILL.md" 'case 2: project issue skill installed'
+assert_no_file "$tgt/.agents/rules-for-ai/skills" 'case 2: project skills have no comparison copies'
+# Old installations must lose their duplicate skills when installed again.
+mkdir -p "$tgt/.agents/rules-for-ai/skills"
+cp -R "$tgt/.agents/skills/hashiiiii-issues" "$tgt/.agents/rules-for-ai/skills/"
 printf '# AGENTS fixture v2\n' > "$src/AGENTS.md"
 sh "$src/rules-for-ai.sh" install codex project "$tgt" > /dev/null
 assert_contains "$(cat "$tgt/AGENTS.md")" 'fixture v2' 'case 2: project rule updated'
+assert_no_file "$tgt/.agents/rules-for-ai/skills" 'case 2: legacy skill copies removed on update'
 sh "$src/rules-for-ai.sh" uninstall codex project "$tgt" > /dev/null
 assert_no_file "$tgt/AGENTS.md" 'case 2: project rule removed'
 assert_no_file "$tgt/.agents/rules-for-ai" 'case 2: project support directory removed'
@@ -108,8 +121,8 @@ assert_file "$home/.codex/AGENTS.md" 'case 5: modified user rule survives uninst
 assert_contains "$(cat "$home/.codex/AGENTS.md")" 'Personal addition' 'case 5: user addition preserved'
 rm -rf "$src" "$home"
 
-# Case 6 proves that matching content does not imply installer ownership.
-# A foreign rule and a foreign same-name skill must survive every operation.
+# Rule ownership remains separate from skill replacement.
+# A same-name skill must update even when it has no comparison copy.
 src=$(new_source_repo)
 home=$(mktemp -d)
 mkdir -p "$home/.codex" "$home/.agents/skills/hashiiiii-git"
@@ -118,23 +131,24 @@ printf '# personal Git skill\n' > "$home/.agents/skills/hashiiiii-git/SKILL.md"
 out=$(HOME="$home" sh "$src/rules-for-ai.sh" install codex user 2>&1)
 assert_contains "$out" 'already exists' 'case 6: matching foreign rule causes a warning'
 assert_no_file "$home/.codex/rules-for-ai/AGENTS.md" 'case 6: matching foreign rule is not claimed'
-assert_contains "$(cat "$home/.agents/skills/hashiiiii-git/SKILL.md")" 'personal Git skill' \
-    'case 6: foreign same-name skill is not overwritten'
+assert_contains "$(cat "$home/.agents/skills/hashiiiii-git/SKILL.md")" 'git skill fixture' \
+    'case 6: existing same-name skill is replaced'
 HOME="$home" sh "$src/rules-for-ai.sh" uninstall codex user > /dev/null 2>&1
 assert_file "$home/.codex/AGENTS.md" 'case 6: matching foreign rule survives uninstall'
-assert_file "$home/.agents/skills/hashiiiii-git/SKILL.md" 'case 6: foreign same-name skill survives uninstall'
+assert_no_file "$home/.agents/skills/hashiiiii-git" 'case 6: same-name skill is removed without a comparison copy'
 rm -rf "$src" "$home"
 
-# Case 7 proves that removal preserves a managed skill after a user changes it.
+# Edited skills must not block updates or removal; Git retains their history.
 src=$(new_source_repo)
 home=$(mktemp -d)
 HOME="$home" sh "$src/rules-for-ai.sh" install codex user > /dev/null
 printf '\n# Personal skill addition\n' >> "$home/.agents/skills/hashiiiii-git/SKILL.md"
-out=$(HOME="$home" sh "$src/rules-for-ai.sh" uninstall codex user 2>&1)
-assert_contains "$out" 'was modified' 'case 7: modified skill causes a warning'
-assert_file "$home/.agents/skills/hashiiiii-git/SKILL.md" 'case 7: modified skill survives uninstall'
-assert_contains "$(cat "$home/.agents/skills/hashiiiii-git/SKILL.md")" 'Personal skill addition' \
-    'case 7: personal skill addition is preserved'
+HOME="$home" sh "$src/rules-for-ai.sh" install codex user > /dev/null
+assert_not_contains "$(cat "$home/.agents/skills/hashiiiii-git/SKILL.md")" 'Personal skill addition' \
+    'case 7: edited skill is replaced on update'
+printf '\n# Personal skill addition\n' >> "$home/.agents/skills/hashiiiii-git/SKILL.md"
+HOME="$home" sh "$src/rules-for-ai.sh" uninstall codex user > /dev/null
+assert_no_file "$home/.agents/skills/hashiiiii-git" 'case 7: edited skill is removed on uninstall'
 rm -rf "$src" "$home"
 
 if [ "$failures" -gt 0 ]; then
