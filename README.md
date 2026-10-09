@@ -120,18 +120,33 @@ Codex reads the same process from `AGENTS.md`. It reads the selected locale file
 
 The agent rules require the matching skill for every draft, edit, and review:
 
-| Language | Skill |
-| --- | --- |
-| English | [hashiiiii-write-en](./skills/hashiiiii-write-en/SKILL.md) |
-| Japanese | [hashiiiii-write-ja](./skills/hashiiiii-write-ja/SKILL.md) |
+| Language | Skill | Bundled workflow |
+| --- | --- | --- |
+| English | [hashiiiii-write-en](./skills/hashiiiii-write-en/SKILL.md) | [Humanizer](https://github.com/blader/humanizer) |
+| Japanese | [hashiiiii-write-ja](./skills/hashiiiii-write-ja/SKILL.md) | [natural-japanese](https://github.com/coji/natural-japanese) |
 
-Each skill drafts simple text, then revises its language and structure. It preserves facts, uncertainty, and technical names.
-Both skills work without other writing skills or tools.
+Both skills read their bundled instructions and preserve facts, uncertainty, scope, and technical strings.
+No separate writing-skill installation is required. The public names and agent-rule references stay the same.
+English uses Humanizer's embedded mode, returning the final text. Reviews return findings and proposed changes.
+Japanese uses natural-japanese's writing, inspection, and revision workflow. It supports quick, full, and score modes.
+
+Japanese script checks require [uv](https://docs.astral.sh/uv/getting-started/installation/).
+`uv run` resolves the scripts' Python dependencies, including SudachiPy and its dictionary, on first use.
+Without `uv`, the skill uses the bundled manual checklist; score mode returns qualitative findings without a numerical score.
+Experimental semantic checks have separate, heavier dependencies and remain opt-in.
 
 ```text
 Use hashiiiii-write-en to write a short release note from these facts: ...
 Use hashiiiii-write-ja to edit this Japanese message: ...
 ```
+
+The bundles contain fixed upstream revisions and their MIT licenses:
+
+- [Humanizer source](./skills/hashiiiii-write-en/vendor/humanizer/UPSTREAM.md)
+- [natural-japanese source](./skills/hashiiiii-write-ja/vendor/natural-japanese/UPSTREAM.md)
+
+To update a bundle, select an upstream commit and follow its source record.
+Run the installation tests and apply each changed writing skill to a real draft before submitting the update.
 
 ## Updates
 

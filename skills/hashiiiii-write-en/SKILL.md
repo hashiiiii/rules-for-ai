@@ -5,42 +5,29 @@ description: Use when you write, edit, or review English prose, including docume
 
 # English Writing
 
-Write a simple draft. Then revise its language and structure.
-Keep the requested audience, tone, format, and length.
+Use the bundled Humanizer for English drafts, edits, and reviews.
 
-## Meaning
+## Workflow
 
-- Preserve facts, quantities, conditions, exceptions, uncertainty, and requirement strength. Do not turn a limited observation into a general claim.
-- Do not invent causes, sources, opinions, or personal experience.
-- Keep code, commands, identifiers, paths, URLs, quotations, and product names exact unless the task requires their change.
-- Use one term per meaning. Do not merge distinct concepts to reduce vocabulary.
+1. Read [Humanizer's instructions](vendor/humanizer/INSTRUCTIONS.md).
+2. Follow its steps to mark patterns, draft a rewrite, check the draft, and write the final version.
+3. For new text, draft from the supplied facts before applying those steps.
+4. Use embedded mode. Keep intermediate drafts and pattern notes internal unless the user asks for them.
 
-## Draft
+## Constraints
 
-- Start with the useful point. Give each sentence one main idea and each paragraph one topic.
-- Use familiar words and complete grammar. If the reader needs help with a technical term, explain it.
-- Use verbs for actions. Break long noun chains into phrases with prepositions.
-- Do not invent compounds with hyphens to shorten explanations. Use verbs or prepositions, such as "data serialized as text" instead of "text-serialized data". Keep established terms and hyphens needed to prevent misreading.
-- If the actor is known, use active voice. Systems can act. Do not invent a person to supply a subject.
-- For instructions, give one action per sentence.
-- In technical text, limit instructions to 20 words per sentence and explanations to 25. Count each code span as one word.
+These constraints and the output rules below take precedence over the bundled instructions.
 
-## Revise
+- Preserve facts, quantities, conditions, exceptions, uncertainty, timing, scope, and requirement strength.
+- Keep supported claims even when they contain phrases flagged by Humanizer.
+- Do not invent actors, causes, sources, opinions, reactions, or personal experience. Request missing information or use the supplied facts.
+- Keep code, commands, identifiers, paths, URLs, quotations, and product names exact unless the task requires changes.
+- Preserve the requested reader, tone, format, and length. Use the same term for the same meaning.
+- In technical text, keep instructions within 20 words per sentence and explanations within 25. Count each code span as one word.
 
-- Delete empty emphasis and stock phrases such as "seamlessly", "game-changing", and "it is worth noting".
-- Replace vague praise with supplied facts. If there is no fact to retain, delete the praise.
-- State the point directly. Remove decorative contrasts, rhetorical questions, repeated conclusions, and em dashes from prose.
-- Keep comparisons, qualifications, and courtesy that serve the reader.
-- If headings or lists help navigation or comparison, use them. Do not force three items, equal paragraphs, or punchy endings.
+## Output
 
-## Check
-
-Before delivery:
-
-1. Compare each claim with the source. Check who acts, what they act on, quantities, timing, exceptions, uncertainty, requirement strength, and exact technical text.
-2. Compare scope words such as "one", "some", "all", and "only". Correct any change in their meaning. Do not infer links between nearby facts.
-3. Check the longest sentences, terms, repeated patterns, and requested length. Correct each defect.
-
-For an edit, change only passages that break these rules or the user's requirements.
+Compare each claim with the source before delivery. Correct changes to scope, meaning, and technical text.
+For edits, change only passages that break these rules or the user's requirements.
 Return the finished text unless the user requests an explanation.
-For a review, report each problem passage, its reason, and a proposed correction. Do not rewrite the whole text unless requested.
+For reviews, report each problem passage, its reason, and a proposed correction. Rewrite the full text only when requested.
