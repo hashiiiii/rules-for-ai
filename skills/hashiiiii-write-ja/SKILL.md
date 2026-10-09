@@ -35,3 +35,4 @@ description: Use when you write, edit, or review Japanese prose, including docum
 説明を求められなければ、完成した文章だけを返す。
 レビューでは、問題箇所、理由、修正案を返す。依頼がなければ全文を書き直さない。
 診断では同梱した診断の形式で結果を返し、文章を書き換えない。
+診断で lint を実行できない場合は、数値のスコアを出さず、未実施の検査と手動確認の所見を返す。

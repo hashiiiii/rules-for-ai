@@ -132,7 +132,8 @@ Japanese uses natural-japanese's writing, inspection, and revision workflow. It 
 
 Japanese script checks require [uv](https://docs.astral.sh/uv/getting-started/installation/).
 `uv run` resolves the scripts' Python dependencies, including SudachiPy and its dictionary, on first use.
-Without `uv`, the skill uses the bundled manual checklist. Experimental semantic checks have separate, heavier dependencies and remain opt-in.
+Without `uv`, the skill uses the bundled manual checklist; score mode returns qualitative findings without a numerical score.
+Experimental semantic checks have separate, heavier dependencies and remain opt-in.
 
 ```text
 Use hashiiiii-write-en to write a short release note from these facts: ...
