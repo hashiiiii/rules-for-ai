@@ -148,6 +148,16 @@ The bundles contain fixed upstream revisions and their MIT licenses:
 To update a bundle, select an upstream commit and follow its source record.
 Run the installation tests and apply each changed writing skill to a real draft before submitting the update.
 
+## Pull request explanations
+
+Use [hashiiiii-explain-pr](./skills/hashiiiii-explain-pr/SKILL.md) to explain a PR across languages and tools.
+It describes the purpose, explains each change by meaning, and links official documentation.
+Related issues are optional. Without one, it uses the PR body, commits, and surrounding code, with inferences marked.
+
+```text
+Use hashiiiii-explain-pr to explain <pull-request-url>.
+```
+
 ## Updates
 
 Run the same install command or curl command again. For Claude Code, you can also run `/plugin marketplace update hashiiiii`.
