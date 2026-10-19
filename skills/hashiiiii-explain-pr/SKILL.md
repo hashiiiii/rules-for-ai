@@ -26,7 +26,9 @@ Describe the background, problem, and goal in about ten lines. Use fewer lines w
 
 ### Changes by meaning
 
-Give each independent setting, expression, branch, or test case its own entry. Keep multiline constructs together.
+Give each independent changed statement, setting, condition, or test case its own entry.
+Keep a single expression spanning several lines together. Split function bodies into independent statements and branches.
+For example, three added test cases require three entries.
 Cover every change within the requested scope, including tests and documentation.
 Group repeated equivalent edits and list their affected locations.
 
