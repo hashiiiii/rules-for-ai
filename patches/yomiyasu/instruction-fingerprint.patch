@@ -1,0 +1,12 @@
+diff --git a/scripts/yomiyasu_check.py b/scripts/yomiyasu_check.py
+--- a/scripts/yomiyasu_check.py
++++ b/scripts/yomiyasu_check.py
+@@ -966,7 +966,7 @@
+ def _skill_info() -> dict:
+     """scripts の1つ上に SKILL.md があるときだけ埋める（リポジトリのルートの scripts から動かすと found は偽）。"""
+     skill_dir = str(Path(_HERE).parent)
+-    path = str(Path(skill_dir, 'SKILL.md'))
++    path = str(Path(skill_dir, 'INSTRUCTIONS.md'))
+     try:
+         with Path(path).open('rb') as handle:
+             data = handle.read()

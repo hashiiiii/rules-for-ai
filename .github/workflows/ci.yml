@@ -9,15 +9,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v4
       - name: shellcheck
         run: find . -name '*.sh' -exec shellcheck {} +
       - name: unit tests
         # The `|| exit 1` clause preserves an early failure.
         # Without this clause, the last suite can hide that failure.
         run: for f in tests/*.test.sh; do sh "$f" || exit 1; done
+      - name: upstream bundle reproducibility
+        run: python3 scripts/sync-upstreams.py --check
       - name: e2e tests
         run: |
-          npm install -g @anthropic-ai/claude-code @openai/codex
           RULES_FOR_AI_E2E=1 sh tests/rules-for-ai-claude-e2e.sh
           RULES_FOR_AI_E2E=1 sh tests/rules-for-ai-codex-plugin-e2e.sh
       - name: always-on rule drift check

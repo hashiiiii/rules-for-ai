@@ -143,8 +143,8 @@ The bundles contain fixed upstream revisions and their MIT licenses:
 - [Humanizer source](./skills/hashiiiii-write-en/vendor/humanizer/UPSTREAM.md)
 - [yomiyasu source](./skills/hashiiiii-write-ja/vendor/yomiyasu/UPSTREAM.md)
 
-To update a bundle, select an upstream commit and follow its source record.
-Run the installation tests and apply each changed writing skill to a real draft before submitting the update.
+Bundle versions, commit digests, copied paths, and local patches are declared in [upstreams.json](./upstreams.json).
+See [dependency maintenance](./docs/DEPENDENCIES.md) for updates and regeneration.
 
 ## Pull request explanations
 

@@ -1,16 +1,17 @@
 # Upstream source
 
 - Repository: https://github.com/nanaism/yomiyasu
+- Release: `v3.1.0`
 - Commit: `db78b9bc5e868549b517a037df7a4d1c93edac23`
-- Source directory: `skills/yomiyasu/`
-- License: [MIT](LICENSE)
-- Unicode data license: [Unicode License V3](UNICODE-LICENSE.txt)
+- Source directory: `skills/yomiyasu`
+- Included paths: `.`
 
-`SKILL.md` is copied as `INSTRUCTIONS.md` so the bundle exposes only `hashiiiii-write-ja`.
-References to upstream `SKILL.md` mean `INSTRUCTIONS.md` in this directory.
-The scripts, references, assets, and licenses are copied from that revision.
-In `scripts/yomiyasu_check.py`, the instruction fingerprint reads `INSTRUCTIONS.md` instead of `SKILL.md`.
-All other upstream content is unchanged.
+`SKILL.md` is renamed to `INSTRUCTIONS.md` to expose only the wrapper's skill name.
+Upstream licenses are retained in this directory.
 
-To update, replace the bundle from a selected upstream commit and repeat the filename adaptation.
-Update the commit above, then run the installation tests and a real draft through `run` and `verify`.
+## Local patches
+
+- `patches/yomiyasu/instruction-fingerprint.patch`
+
+Update `upstreams.json`, then run `python3 scripts/sync-upstreams.py` from the repository root.
+This file is generated. Do not edit the bundle directly.

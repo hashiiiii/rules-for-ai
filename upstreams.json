@@ -1,0 +1,31 @@
+{
+  "bundles": [
+    {
+      "name": "yomiyasu",
+      "repository": "https://github.com/nanaism/yomiyasu",
+      "version": "v3.1.0",
+      "revision": "db78b9bc5e868549b517a037df7a4d1c93edac23",
+      "source": "skills/yomiyasu",
+      "destination": "skills/hashiiiii-write-ja/vendor/yomiyasu",
+      "include": [
+        "."
+      ],
+      "patches": [
+        "patches/yomiyasu/instruction-fingerprint.patch"
+      ]
+    },
+    {
+      "name": "humanizer",
+      "repository": "https://github.com/blader/humanizer",
+      "version": "v3.1.0",
+      "revision": "225a6f39ac85f76ee48dbad772ea4abe4ed6c9d8",
+      "source": ".",
+      "destination": "skills/hashiiiii-write-en/vendor/humanizer",
+      "include": [
+        "SKILL.md",
+        "LICENSE"
+      ],
+      "patches": []
+    }
+  ]
+}

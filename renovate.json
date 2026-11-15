@@ -1,0 +1,60 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "customManagers:githubActionsVersions"
+  ],
+  "enabledManagers": [
+    "github-actions",
+    "mise",
+    "custom.jsonata",
+    "custom.regex"
+  ],
+  "ignorePaths": [
+    "skills/**/vendor/**"
+  ],
+  "branchPrefix": "chore/deps-",
+  "commitMessagePrefix": "chore:",
+  "dependencyDashboard": {
+    "enabled": false
+  },
+  "automerge": false,
+  "minimumReleaseAge": "7 days",
+  "minimumReleaseAgeBehaviour": "timestamp-required",
+  "internalChecksFilter": "strict",
+  "customManagers": [
+    {
+      "customType": "jsonata",
+      "fileFormat": "json",
+      "managerFilePatterns": [
+        "/^upstreams\\.json$/"
+      ],
+      "matchStrings": [
+        "bundles.{ 'depName': $substringAfter(repository, 'https://github.com/'), 'currentValue': version, 'currentDigest': revision }"
+      ],
+      "datasourceTemplate": "github-tags"
+    }
+  ],
+  "packageRules": [
+    {
+      "matchManagers": [
+        "custom.jsonata"
+      ],
+      "pinDigests": true,
+      "postUpgradeTasks": {
+        "commands": [
+          "python3 scripts/sync-upstreams.py"
+        ],
+        "fileFilters": [
+          "skills/**/vendor/**"
+        ],
+        "executionMode": "branch",
+        "installTools": {
+          "python": {}
+        }
+      },
+      "constraints": {
+        "python": ">=3.9"
+      }
+    }
+  ]
+}
