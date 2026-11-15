@@ -8,8 +8,7 @@
 # The envelope must always exit 0.
 # Cursor permits the command after invalid JSON or a hook crash.
 # These tests do not depend on that behavior.
-# If python3 is available, it parses the JSON.
-# The tests can use python3, but the hook cannot use it.
+# jq checks the JSON round-trip without adding a parser dependency to the hook.
 set -u
 
 REPO="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
@@ -68,19 +67,10 @@ assert_exit0 'case 2: hook exits 0 on deny'
 assert_contains "$out" '"permission":"deny"' 'case 2: incomplete body denied'
 assert_contains "$out" '"agent_message":"' 'case 2: deny carries agent_message'
 assert_contains "$out" 'Testing' 'case 2: agent_message names the missing section'
-if command -v python3 > /dev/null 2>&1; then
-    if printf '%s' "$out" | python3 -c '
-import json, sys
-d = json.load(sys.stdin)
-assert d["permission"] == "deny", d
-assert "## Testing" in d["agent_message"], d
-'; then
-        printf 'PASS: case 2: deny envelope parses as JSON and round-trips\n'
-    else
-        printf 'FAIL: case 2: invalid JSON envelope\n'; failures=$((failures + 1))
-    fi
+if printf '%s' "$out" | jq -e '.permission == "deny" and (.agent_message | contains("## Testing"))' > /dev/null; then
+    printf 'PASS: case 2: deny envelope parses as JSON and round-trips\n'
 else
-    printf 'SKIP: case 2 JSON round-trip (python3 not on PATH)\n'
+    printf 'FAIL: case 2: invalid JSON envelope\n'; failures=$((failures + 1))
 fi
 rm -rf "$work"
 

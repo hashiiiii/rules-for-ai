@@ -16,7 +16,7 @@ for platform in codex cursor; do
         cursor) skills="$target/.cursor/skills" ;;
     esac
 
-    for bundle in 'ja natural-japanese' 'en humanizer'; do
+    for bundle in 'ja yomiyasu' 'en humanizer'; do
         language=${bundle%% *}
         upstream=${bundle#* }
         skill="$skills/hashiiiii-write-$language"
@@ -36,5 +36,26 @@ for platform in codex cursor; do
         fi
         printf 'PASS: %s installs the complete %s bundle with one entrypoint\n' "$platform" "$language"
     done
+    # Exercise installed paths because renaming the upstream manifest affects its fingerprint.
+    vendor="$skills/hashiiiii-write-ja/vendor/yomiyasu"
+    printf '%s\n' '設定を変更する事ができます。' > "$target/source.txt"
+    printf '%s\n' '設定を変更できます。' > "$target/final.txt"
+    (
+        cd "$target"
+        python3 "$vendor/scripts/yomiyasu_check.py" run --source "$target/source.txt" \
+            --final "$target/final.txt" --state-dir "$target/state" --json > "$target/run.json"
+        python3 "$vendor/scripts/yomiyasu_check.py" verify --final "$target/final.txt" \
+            --state-dir "$target/state" > /dev/null
+    )
+    # Upstream reports instruction drift as a finding without changing the exit status.
+    printf '\n' >> "$vendor/INSTRUCTIONS.md"
+    (cd "$target" && python3 "$vendor/scripts/yomiyasu_check.py" verify \
+        --final "$target/final.txt" --state-dir "$target/state" --json > "$target/verify.json")
+    if ! grep -q 'skill_changed' "$target/verify.json"; then
+        printf 'FAIL: %s ignores changed bundled instructions\n' "$platform" >&2
+        exit 1
+    fi
+    printf 'PASS: %s runs and verifies the installed Japanese bundle\n' "$platform"
+
 done
 printf 'all tests passed\n'

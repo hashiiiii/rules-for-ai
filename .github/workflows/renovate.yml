@@ -1,0 +1,56 @@
+name: dependency updates
+on:
+  schedule:
+    # Monday at 06:00 in Asia/Tokyo.
+    - cron: '0 21 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dependency-updates
+  cancel-in-progress: false
+
+jobs:
+  renovate:
+    if: github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/create-github-app-token@v3
+        id: app-token
+        with:
+          client-id: ${{ secrets.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+          permission-workflows: write
+      - name: resolve bot identity
+        uses: actions/github-script@v9
+        id: bot
+        env:
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            const username = `${process.env.APP_SLUG}[bot]`;
+            const { data: { id } } = await github.rest.users.getByUsername({ username });
+            core.setOutput('username', username);
+            core.setOutput('author', `${username} <${id}+${username}@users.noreply.github.com>`);
+      - uses: renovatebot/github-action@v46.3.13
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          renovate-version: ${{ env.RENOVATE_VERSION }}
+        env:
+          # renovate: datasource=docker depName=ghcr.io/renovatebot/renovate
+          RENOVATE_VERSION: 44.239.1
+          RENOVATE_REPOSITORIES: ${{ github.repository }}
+          RENOVATE_USERNAME: ${{ steps.bot.outputs.username }}
+          RENOVATE_GIT_AUTHOR: ${{ steps.bot.outputs.author }}
+          RENOVATE_ONBOARDING: 'false'
+          RENOVATE_REQUIRE_CONFIG: required
+          # Only this repository's deterministic bundle generator may run after an update.
+          RENOVATE_ALLOWED_COMMANDS: '["^sh scripts/sync-upstreams[.]sh$"]'
