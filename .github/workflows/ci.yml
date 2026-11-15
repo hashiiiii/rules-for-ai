@@ -17,7 +17,7 @@ jobs:
         # Without this clause, the last suite can hide that failure.
         run: for f in tests/*.test.sh; do sh "$f" || exit 1; done
       - name: upstream bundle reproducibility
-        run: python3 scripts/sync-upstreams.py --check
+        run: sh scripts/sync-upstreams.sh --check
       - name: e2e tests
         run: |
           RULES_FOR_AI_E2E=1 sh tests/rules-for-ai-claude-e2e.sh

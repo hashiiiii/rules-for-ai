@@ -29,14 +29,17 @@ jobs:
           permission-pull-requests: write
           permission-workflows: write
       - name: resolve bot identity
+        uses: actions/github-script@v9
         id: bot
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
           APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
-        run: |
-          user_id=$(gh api "/users/${APP_SLUG}[bot]" --jq .id)
-          echo "username=${APP_SLUG}[bot]" >> "$GITHUB_OUTPUT"
-          echo "author=${APP_SLUG}[bot] <${user_id}+${APP_SLUG}[bot]@users.noreply.github.com>" >> "$GITHUB_OUTPUT"
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            const username = `${process.env.APP_SLUG}[bot]`;
+            const { data: { id } } = await github.rest.users.getByUsername({ username });
+            core.setOutput('username', username);
+            core.setOutput('author', `${username} <${id}+${username}@users.noreply.github.com>`);
       - uses: renovatebot/github-action@v46.3.13
         with:
           token: ${{ steps.app-token.outputs.token }}
@@ -49,6 +52,5 @@ jobs:
           RENOVATE_GIT_AUTHOR: ${{ steps.bot.outputs.author }}
           RENOVATE_ONBOARDING: 'false'
           RENOVATE_REQUIRE_CONFIG: required
-          RENOVATE_BINARY_SOURCE: install
           # Only this repository's deterministic bundle generator may run after an update.
-          RENOVATE_ALLOWED_COMMANDS: '["^python3 scripts/sync-upstreams[.]py$"]'
+          RENOVATE_ALLOWED_COMMANDS: '["^sh scripts/sync-upstreams[.]sh$"]'

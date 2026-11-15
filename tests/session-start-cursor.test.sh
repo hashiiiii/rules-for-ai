@@ -9,8 +9,7 @@
 # Each case copies the real scripts into a real layout in a temporary directory.
 # The tests run the copies to prevent the repository default from hiding the test layer.
 # The hook must write one {"additional_context": ...} JSON line to stdout.
-# If python3 is available, it parses the JSON.
-# The tests can use python3, but the hook cannot use it.
+# jq checks the JSON round-trip without adding a parser dependency to the hook.
 set -u
 
 REPO="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
@@ -112,21 +111,11 @@ EOF
 out=$(run_hook "$root/bare" "$root")
 assert_contains "$out" '\"quoted\"' 'case 5: double quotes escaped'
 assert_contains "$out" 'back\\slash' 'case 5: backslash escaped'
-if command -v python3 > /dev/null 2>&1; then
-    if printf '%s' "$out" | python3 -c '
-import json, sys
-d = json.load(sys.stdin)
-body = d["additional_context"]
-assert "\"quoted\"" in body, body
-assert "back\\slash" in body, body
-assert body.startswith("## Locale (resolved)"), body
-'; then
-        printf 'PASS: case 5: envelope parses as JSON and round-trips\n'
-    else
-        printf 'FAIL: case 5: invalid JSON envelope\n'; failures=$((failures + 1))
-    fi
+if printf '%s' "$out" | jq -e '.additional_context |
+    contains("\"quoted\"") and contains("back\\slash") and startswith("## Locale (resolved)")' > /dev/null; then
+    printf 'PASS: case 5: envelope parses as JSON and round-trips\n'
 else
-    printf 'SKIP: case 5 JSON round-trip (python3 not on PATH)\n'
+    printf 'FAIL: case 5: invalid JSON envelope\n'; failures=$((failures + 1))
 fi
 rm -rf "$root"
 

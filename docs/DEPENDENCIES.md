@@ -12,11 +12,11 @@ The checked-in bundles are generated output. Users install these files without f
 To regenerate or verify all bundles, run these commands from the repository root:
 
 ```sh
-python3 scripts/sync-upstreams.py
-python3 scripts/sync-upstreams.py --check
+sh scripts/sync-upstreams.sh
+sh scripts/sync-upstreams.sh --check
 ```
 
-Both commands require Git, network access to the upstream repositories, and Python 3.9 or later.
+Both commands require a POSIX shell, Git, jq, and network access to the upstream repositories.
 The generator fetches each release tag and verifies its commit before copying files.
 It applies patches in staging, renames `SKILL.md` to `INSTRUCTIONS.md`, and generates `UPSTREAM.md`.
 All bundles are prepared before any existing bundle is replaced. Failed fetches, commit mismatches, or incompatible patches leave existing output unchanged.
@@ -35,8 +35,8 @@ For manual updates, change the tag and commit together, regenerate, then run the
 
 The self-hosted Renovate workflow reuses the release workflow's `APP_CLIENT_ID` and `APP_PRIVATE_KEY` secrets.
 The App needs repository Contents and Pull requests write permissions, plus Workflows write permission to update Actions references.
-Renovate installs Python 3.9 or later before regenerating bundles.
-Repository configuration permits one post-upgrade command: `python3 scripts/sync-upstreams.py`.
+Repository configuration permits one post-upgrade command: `sh scripts/sync-upstreams.sh`.
+The dependency workflow uses `actions/github-script` to resolve the bot identity.
 No dependency updater runs on untrusted pull-request events.
 
 The workflow starts after merging its definition into the default branch.
@@ -45,7 +45,8 @@ Do not also enable hosted Renovate or Dependabot for the same dependencies.
 
 ## Environment tools
 
-CI installs the pinned Node.js, ShellCheck, Claude Code, and Codex versions from `mise.toml`.
+CI installs the pinned Node.js, ShellCheck, jq, Claude Code, and Codex versions from `mise.toml`.
 The release workflow also uses the pinned `bump-my-version` tool.
-Git, Python 3, and GitHub CLI come from the runner environment.
+Git and GitHub CLI come from the runner environment.
+The upstream yomiyasu checks use Python 3. Custom maintenance scripts and tests use shell.
 The image skill requires `rsvg-convert` on the machine performing image work; it is not bundled or installed by this repository.
