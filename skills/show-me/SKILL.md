@@ -9,4 +9,3 @@ Read the bundled [Show-me instructions](vendor/show-me/INSTRUCTIONS.md) and foll
 Use the smallest visual that explains the point, with concise supporting text.
 
 When opening an HTML artifact, use the host's available file opener or browser tool.
-The upstream `Bash(open ...)` example is a macOS command, not a requirement for other platforms.

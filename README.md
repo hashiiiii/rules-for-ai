@@ -1,219 +1,90 @@
 # Rules for AI
 
-Rules for AI supplies portable rules and skills for AI coding agents.
+Shared rules and skills for Claude Code, Codex, and Cursor.
 
-Write the rules one time. Then use the same rules with Claude Code, Codex, and Cursor.
+## Install
 
-The plugin manages language preferences for issues, pull requests, comments, logs, and test logs. A project can override the preferences of a user.
+Choose a platform (`claude`, `codex`, or `cursor`) and a scope:
 
-Use the plugin without changes. You can also fork it and add your own rules.
+| Scope | Use |
+| --- | --- |
+| `user` | All your projects on this machine |
+| `project` | One repository, shared through Git |
+| `local` | One repository, with installed files excluded from Git |
 
-## Getting Started
+For example, install for your Codex user:
 
-[rules-for-ai.sh](./rules-for-ai.sh) installs, updates, and removes the rules and skills. Select **claude**, **codex**, or **cursor**. Then select a scope.
-
-### Scopes
-
-
-| Scope       | Meaning                                 |
-| ----------- | --------------------------------------- |
-| **user**    | Use the plugin in every project on this machine.     |
-| **project** | Share the plugin with your team through Git.         |
-| **local**   | Use the plugin in one repository without committed files.  |
-
-
-```mermaid
-flowchart LR
-  Q{Who shares this?}
-  Q -->|Only me| L[local]
-  Q -->|My team| P[project]
-  Q -->|All my projects| U[user]
+```sh
+curl -fsSL https://raw.githubusercontent.com/hashiiiii/rules-for-ai/main/rules-for-ai.sh | sh -s -- install codex user
 ```
 
+From a checkout, use the installer directly:
 
-
-### Without cloning
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/hashiiiii/rules-for-ai/main/rules-for-ai.sh | sh -s -- <install|uninstall> <claude|codex|cursor> <user|project|local> [path/to/repo]
-# e.g. curl -fsSL https://raw.githubusercontent.com/hashiiiii/rules-for-ai/main/rules-for-ai.sh | sh -s -- install claude user
-```
-
-### From a clone
-
-```bash
+```sh
 ./rules-for-ai.sh <install|uninstall> <claude|codex|cursor> <user|project|local> [path/to/repo]
-# e.g. ./rules-for-ai.sh install cursor project path/to/repo
 ```
 
-Use `path/to/repo` only with **project** and **local** scopes. If you omit the path, the command uses the current directory.
+The path applies to `project` and `local`; it defaults to the current directory.
+The target must be a Git repository other than this checkout.
+Run the same install command to update. Use `uninstall` with the same platform and scope to remove the installation.
 
-Run install again to update the plugin. Uninstall removes the rules-for-ai installation for the selected scope.
+| Platform | Installation |
+| --- | --- |
+| Claude Code | Requires the `claude` CLI. Uses its plugin manager and scope settings. Teammates must trust the repository to load a project installation. |
+| Codex | Copies `AGENTS.md` and skills to `$CODEX_HOME` (default `~/.codex`) and `~/.agents/skills/` for user scope, or to the repository root and `.agents/skills/` for project and local scopes. Restart Codex afterward. |
+| Cursor | Uses `~/.cursor/plugins/local/rules-for-ai/` for user scope or `.cursor/` for project and local scopes. Restart Cursor afterward. |
 
-See [Platform details](#platform-details) for the installed files and the locale process.
+Codex keeps an existing or modified `AGENTS.md` and prints a path for manual merging.
+Codex and Cursor replace bundled skills on installation and remove them on uninstallation, including local edits.
+Cursor keeps a modified or existing foreign `hooks.json` and prints the entries to add or remove manually.
+If Cursor already imports this plugin from Claude Code, skip a second user installation.
+Local scope cannot hide files already tracked by Git; use project scope for those files.
 
-### Locale
+### Codex Native Plugin
 
-The plugin installation scope and the locale scope are independent. The `hashiiiii-locale` skill supports three locale scopes:
+To load rules and skills through Codex's plugin system, use:
 
-| Scope | Path | Sharing behavior |
-| --- | --- | --- |
-| **user** | `~/.config/rules-for-ai/LOCALE.md` | Use the locale in all projects for this user. |
-| **project** | `<repo>/.rules-for-ai/LOCALE.md` | Commit the locale for team use. |
-| **local** | `<absolute-git-dir>/rules-for-ai/LOCALE.md` | Use the locale in one Git worktree, outside `git status`. |
-
-The user path uses `$XDG_CONFIG_HOME`. The command `git rev-parse --absolute-git-dir` supplies the local path.
-
-If you do not specify a scope, the skill asks you to select `user`, `project`, or `local`.
-
-The skill does not infer the locale scope from the plugin installation scope.
-
-Each locale file contains all five keys. Each key uses a POSIX-style tag, such as `ja_JP` or `en_US`:
-
-
-| Key             | Artifact          |
-| --------------- | ----------------- |
-| `issues`        | Issues            |
-| `pull-requests` | Pull requests     |
-| `comments`      | Code comments     |
-| `logs`          | Log messages      |
-| `test-logs`     | Test log messages |
-
-
-To set one tag for all artifacts, give the skill a scope and a tag:
-
-```text
-local ja_JP
+```sh
+codex plugin marketplace add hashiiiii/rules-for-ai
+codex plugin add rules-for-ai@hashiiiii
 ```
 
-To set each artifact separately, use this format:
+Approve the plugin hooks when prompted. Remove it with `codex plugin remove rules-for-ai@hashiiiii`.
 
-```text
-project issues=ja_JP pull-requests=ja_JP comments=ja_JP logs=en_US test-logs=en_US
-```
+## Locale
 
-The plugin resolves the effective language in this order:
+Use `hashiiiii-locale` with a scope and locale tag, for example `local ja_JP`.
+To set languages separately, use `project issues=ja_JP pull-requests=ja_JP comments=ja_JP logs=en_US test-logs=en_US`.
 
-1. **Project instructions**: A repository can specify a language in `CLAUDE.md` or `AGENTS.md`.
-2. **Resolved keys**: If project instructions do not specify a language, the first existing locale file wins as a whole:
-   1. Local locale file
-   2. Project locale file
-   3. User locale file
-   4. Bundled [LOCALE.default.md](./LOCALE.default.md)
-   5. Inline `en_US` values
+| Scope | Locale file |
+| --- | --- |
+| `user` | `$XDG_CONFIG_HOME/rules-for-ai/LOCALE.md` (default `~/.config/rules-for-ai/LOCALE.md`) |
+| `project` | `<repo>/.rules-for-ai/LOCALE.md` |
+| `local` | `<absolute-git-dir>/rules-for-ai/LOCALE.md` |
 
-The locale layers do not merge during resolution.
+Get the local Git directory with `git rev-parse --absolute-git-dir`.
+Locale scope is independent of installation scope.
+Project instructions take precedence; otherwise, the first existing local, project, user, or bundled locale file wins as a whole. The default is `en_US`.
 
-During a partial update, omitted keys use the selected scope, then lower-priority scopes.
+## Skills
 
-Claude Code, Codex plugins, and Cursor use the same resolver. A session hook adds the resolved keys to the context.
+| Skill | Task |
+| --- | --- |
+| [hashiiiii-git](skills/hashiiiii-git/SKILL.md) | Name branches and write commit messages |
+| [hashiiiii-issues](skills/hashiiiii-issues/SKILL.md) | Create and edit GitHub issues |
+| [hashiiiii-pull-request](skills/hashiiiii-pull-request/SKILL.md) | Create and edit pull requests |
+| [hashiiiii-explain-pr](skills/hashiiiii-explain-pr/SKILL.md) | Explain a pull request from its diff and related code |
+| [hashiiiii-locale](skills/hashiiiii-locale/SKILL.md) | Set language preferences |
+| [hashiiiii-write-en](skills/hashiiiii-write-en/SKILL.md) | Write and review English; requires Node.js 20+ and npm 8.3+ |
+| [hashiiiii-write-ja](skills/hashiiiii-write-ja/SKILL.md) | Write and review Japanese; requires Python 3 |
+| [hashiiiii-zig](skills/hashiiiii-zig/SKILL.md) | Write and test Zig code |
+| [hashiiiii-images](skills/hashiiiii-images/SKILL.md) | Create image assets; SVG conversion requires `rsvg-convert` |
+| [hallmark](skills/hallmark/SKILL.md) | Design, audit, redesign, and study interfaces |
+| [show-me](skills/show-me/SKILL.md) | Explain code and workflows visually |
 
-Codex reads the same process from `AGENTS.md`. It reads the selected locale file when resolved keys are absent.
-
-## Platform details
-
-- [Claude Code](./docs/CLAUDE_CODE.md): file paths, SessionStart input, and locale resolution
-- [Codex](./docs/CODEX.md): file paths, native plugin use, and instruction ownership
-- [Cursor](./docs/CURSOR.md): files for each scope, `hooks.json`, and locale context
-
-## Writing
-
-The agent rules require the matching skill for every draft, edit, and review:
-
-| Language | Skill | Writing checks |
-| --- | --- | --- |
-| English | [hashiiiii-write-en](./skills/hashiiiii-write-en/SKILL.md) | [Harper](https://github.com/Automattic/harper) |
-| Japanese | [hashiiiii-write-ja](./skills/hashiiiii-write-ja/SKILL.md) | [yomiyasu](https://github.com/nanaism/yomiyasu) |
-
-Both skills preserve facts, uncertainty, scope, and technical strings. The public names and agent-rule references stay the same.
-English uses Harper to check grammar, spelling, and word usage, alongside the agent's review of meaning and sentence flow.
-Its checker requires Node.js 20 or later. First use installs the locked npm dependencies in a shared user cache.
-After setup, checks run offline without sending drafts to an external service or writing to the project.
-See the skill's [runtime setup](./skills/hashiiiii-write-en/DEPENDENCIES.md) for commands and supported dialects.
-Reviews return findings and proposed changes.
-Japanese uses yomiyasu's drafting, revision, and meaning-preservation checks.
-Its bundled checks require Python 3 and use only the standard library.
-They compare the source or supplied material with the final draft and verify the recorded draft before delivery.
-When a required runtime or check is unavailable, either skill reviews manually and reports which checks could not run.
-
-```text
-Use hashiiiii-write-en to write a short release note from these facts: ...
-Use hashiiiii-write-ja to edit this Japanese message: ...
-```
-
-The writing dependencies have fixed versions and retain their upstream licenses:
-
-- [Harper runtime and selection](./skills/hashiiiii-write-en/DEPENDENCIES.md), with npm integrity hashes in its lockfile
-- [yomiyasu source](./skills/hashiiiii-write-ja/vendor/yomiyasu/UPSTREAM.md)
-
-Bundled source versions, commit digests, copied paths, and local patches are declared in [upstreams.json](./upstreams.json).
-Runtime packages are declared in the English skill's `package.json` and `package-lock.json`.
-See [dependency maintenance](./docs/DEPENDENCIES.md) for updates and regeneration.
-
-## Portable skills
-
-The plugin also distributes these skills under their existing names:
-
-| Skill | Purpose | Source |
-| --- | --- | --- |
-| [hallmark](./skills/hallmark/SKILL.md) | Design, audit, redesign, and study interfaces | [Nutlope/hallmark](https://github.com/Nutlope/hallmark) |
-| [show-me](./skills/show-me/SKILL.md) | Explain code, flow, and structure visually | [HumanLayer skills](https://github.com/humanlayer/skills) |
-
-Their instructions, licenses, and required resources are bundled with the plugin.
-`upstreams.json` pins their source commits; local changes remain reproducible patches.
-These implementations belong here. Dotfiles owns plugin enabling, machine configuration, and OS package installation.
-For SVG rendering on macOS, install librsvg through the dotfiles Brewfile or the host package manager.
-
-## Pull request explanations
-
-Use [hashiiiii-explain-pr](./skills/hashiiiii-explain-pr/SKILL.md) to explain a PR across languages and tools.
-It describes the purpose, explains each change by meaning, and links official documentation.
-Related issues are optional. Without one, it uses the PR body, commits, and surrounding code, with inferences marked.
-
-```text
-Use hashiiiii-explain-pr to explain <pull-request-url>.
-```
-
-## Updates
-
-Run the same install command or curl command again. For Claude Code, you can also run `/plugin marketplace update hashiiiii`.
-
-## Fork and customize
-
-Fork the repository. Then edit [AGENTS.md](./AGENTS.md) and [skills/](./skills/).
-
-Install the plugin from your fork instead of `hashiiiii/rules-for-ai`.
-
-First-party skills use the `hashiiiii-` prefix. Replace this prefix with your prefix when forking.
-Imported skills keep their existing public names.
-
-Find each reference with this command:
-
-```bash
-grep -rl 'hashiiiii-' .
-```
-
-Set `REPO` in [rules-for-ai.sh](./rules-for-ai.sh).
-Then set `repository` in the Claude Code and Codex plugin manifests.
-
-## Releasing (maintainers)
-
-Create releases from the Actions tab. Do not create local tags.
-
-1. Open **Actions → release → Run workflow**.
-2. Keep `main` selected.
-3. Enter the version as `X.Y.Z` without a `v` prefix.
-
-The workflow updates `version` in all plugin manifests. Then it creates the commit, tag, and GitHub release.
-
-The commit uses a GitHub App as its author. Complete this setup one time:
-
-1. Install the App in this repository.
-2. Add the `APP_CLIENT_ID` and `APP_PRIVATE_KEY` secrets.
-3. Add the App to the bypass actors for the `main` ruleset.
-
-This bypass lets the App push the release commit without a pull request.
+[AGENTS.md](AGENTS.md) defines the shared rules, including required writing skills.
+See [maintenance](docs/MAINTENANCE.md) for checks, dependencies, and releases.
 
 ## License
 
-[MIT](LICENSE.md)
+[MIT](LICENSE.md). Bundled dependencies retain their own licenses.
