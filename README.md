@@ -24,8 +24,8 @@ From a checkout, use the installer directly:
 ./rules-for-ai.sh <install|uninstall> <claude|codex|cursor> <user|project|local> [path/to/repo]
 ```
 
-The path applies to `project` and `local`; it defaults to the current directory.
-The target must be a Git repository other than this checkout.
+The path applies to `project` and `local`; it defaults to the current directory.  
+The target must be a Git repository other than this checkout.  
 Run the same install command to update. Use `uninstall` with the same platform and scope to remove the installation.
 
 | Platform | Installation |
@@ -34,10 +34,10 @@ Run the same install command to update. Use `uninstall` with the same platform a
 | Codex | Copies `AGENTS.md` and skills to `$CODEX_HOME` (default `~/.codex`) and `~/.agents/skills/` for user scope, or to the repository root and `.agents/skills/` for project and local scopes. Restart Codex afterward. |
 | Cursor | Uses `~/.cursor/plugins/local/rules-for-ai/` for user scope or `.cursor/` for project and local scopes. Restart Cursor afterward. |
 
-Codex keeps an existing or modified `AGENTS.md` and prints a path for manual merging.
-Codex and Cursor replace bundled skills on installation and remove them on uninstallation, including local edits.
-Cursor keeps a modified or existing foreign `hooks.json` and prints the entries to add or remove manually.
-If Cursor already imports this plugin from Claude Code, skip a second user installation.
+Codex keeps an existing or modified `AGENTS.md` and prints a path for manual merging.  
+Codex and Cursor replace bundled skills on installation and remove them on uninstallation, including local edits.  
+Cursor keeps a modified or existing foreign `hooks.json` and prints the entries to add or remove manually.  
+If Cursor already imports this plugin from Claude Code, skip a second user installation.  
 Local scope cannot hide files already tracked by Git; use project scope for those files.
 
 ### Codex Native Plugin
@@ -53,7 +53,7 @@ Approve the plugin hooks when prompted. Remove it with `codex plugin remove rule
 
 ## Locale
 
-Use `hashiiiii-locale` with a scope and locale tag, for example `local ja_JP`.
+Use `hashiiiii-locale` with a scope and locale tag, for example `local ja_JP`.  
 To set languages separately, use `project issues=ja_JP pull-requests=ja_JP comments=ja_JP logs=en_US test-logs=en_US`.
 
 | Scope | Locale file |
@@ -62,8 +62,8 @@ To set languages separately, use `project issues=ja_JP pull-requests=ja_JP comme
 | `project` | `<repo>/.rules-for-ai/LOCALE.md` |
 | `local` | `<absolute-git-dir>/rules-for-ai/LOCALE.md` |
 
-Get the local Git directory with `git rev-parse --absolute-git-dir`.
-Locale scope is independent of installation scope.
+Get the local Git directory with `git rev-parse --absolute-git-dir`.  
+Locale scope is independent of installation scope.  
 Project instructions take precedence; otherwise, the first existing local, project, user, or bundled locale file wins as a whole. The default is `en_US`.
 
 ## Skills
@@ -82,7 +82,7 @@ Project instructions take precedence; otherwise, the first existing local, proje
 | [hallmark](skills/hallmark/SKILL.md) | Design, audit, redesign, and study interfaces |
 | [show-me](skills/show-me/SKILL.md) | Explain code and workflows visually |
 
-[AGENTS.md](AGENTS.md) defines the shared rules, including required writing skills.
+[AGENTS.md](AGENTS.md) defines the shared rules, including required writing skills.  
 See [maintenance](docs/MAINTENANCE.md) for checks, dependencies, and releases.
 
 ## License
