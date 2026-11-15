@@ -23,7 +23,7 @@
 # Uninstall removes the rules-for-ai installation for the selected scope.
 set -u
 
-# For a fork, set this value to the fork URL. See Fork and customize in README.md.
+# Default source for remote installations.
 REPO="https://github.com/hashiiiii/rules-for-ai"
 
 # Cursor project and local cells copy these hook scripts into the target repository.

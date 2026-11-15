@@ -16,11 +16,11 @@ Write for the reader's task. Use the pinned [Harper](https://writewithharper.com
 5. Review each diagnostic in context. Apply a suggestion only when it improves the text and preserves the source's meaning. Quoted logs, identifiers, and deliberate wording can legitimately trigger findings.
 6. Compare the draft with the source, then read it as a whole. Check grammar, flow, repetition, missing conditions, and changes to certainty or timing. Rerun the checker after edits; deliver the exact checked text.
 
-The checker requires Node.js 20 or later and npm 8.3 or later. On first use, run `node <skill-dir>/scripts/check.mjs setup`.
-Setup uses npm to install the locked packages without lifecycle scripts in a user-owned cache, outside the project and skill directory.
+The checker requires Node.js 20 or later and npm 8.3 or later. On first use, run `node <skill-dir>/scripts/check.mjs setup`.  
+Setup uses npm to install the locked packages without lifecycle scripts in a user-owned cache, outside the project and skill directory.  
 Checks then run offline; the draft is never sent to an external service. See [runtime dependencies](DEPENDENCIES.md) for cache and update details.
 
-Check chat prose through a temporary file. Remove only temporary files created for this task.
+Check chat prose through a temporary file. Remove only temporary files created for this task.  
 If Node.js, npm, installation, or checking is unavailable, review manually and state which check could not run and why.
 
 ## Constraints
@@ -34,7 +34,7 @@ If Node.js, npm, installation, or checking is unavailable, review manually and s
 
 ## Output
 
-For edits, change only passages that break these rules or the user's requirements.
-Return the finished text unless the user requests an explanation. Keep drafts and diagnostic notes internal.
-For reviews, report each problem passage, its reason, and a proposed correction. Rewrite the full text only when requested.
+For edits, change only passages that break these rules or the user's requirements.  
+Return the finished text unless the user requests an explanation. Keep drafts and diagnostic notes internal.  
+For reviews, report each problem passage, its reason, and a proposed correction. Rewrite the full text only when requested.  
 Harper reports suggestions, not a quality score or proof of factual accuracy. Never claim a check ran when it did not.
