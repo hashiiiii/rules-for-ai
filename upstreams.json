@@ -15,15 +15,47 @@
       ]
     },
     {
-      "name": "humanizer",
-      "repository": "https://github.com/blader/humanizer",
-      "version": "v3.1.0",
-      "revision": "225a6f39ac85f76ee48dbad772ea4abe4ed6c9d8",
-      "source": ".",
-      "destination": "skills/hashiiiii-write-en/vendor/humanizer",
+      "name": "hallmark",
+      "repository": "https://github.com/Nutlope/hallmark",
+      "ref": "main",
+      "revision": "aeb42fb354ff4efa36ab475773a082315a3af2ce",
+      "source": "skills/hallmark",
+      "destination": "skills/hallmark/vendor/hallmark",
       "include": [
-        "SKILL.md",
-        "LICENSE"
+        "."
+      ],
+      "resources": [
+        {
+          "source": "LICENSE",
+          "destination": "LICENSE"
+        },
+        {
+          "source": "site/css/tokens.css",
+          "destination": "site/css/tokens.css"
+        }
+      ],
+      "patches": [
+        "patches/hallmark/preserve-local-guidance.patch",
+        "patches/hallmark/grid-theme.patch",
+        "patches/hallmark/bundled-references.patch",
+        "patches/hallmark/catalog-grid.patch"
+      ]
+    },
+    {
+      "name": "show-me",
+      "repository": "https://github.com/humanlayer/skills",
+      "ref": "main",
+      "revision": "6ab9013a10c28f5046f7f999549cd5328a0b30d7",
+      "source": "plugins/show-me/skills/show-me",
+      "destination": "skills/show-me/vendor/show-me",
+      "include": [
+        "."
+      ],
+      "resources": [
+        {
+          "source": "LICENSE",
+          "destination": "LICENSE"
+        }
       ],
       "patches": []
     }

@@ -13,5 +13,5 @@ Upstream licenses are retained in this directory.
 
 - `patches/yomiyasu/instruction-fingerprint.patch`
 
-Update `upstreams.json`, then run `sh scripts/sync-upstreams.sh` from the repository root.
+To review an upstream update, change the pinned release or commit in `upstreams.json`, then run `sh scripts/sync-upstreams.sh` from the repository root.
 This file is generated. Do not edit the bundle directly.

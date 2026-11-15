@@ -27,6 +27,11 @@ assert_contains "$out" "\"version\": \"$version\"" 'plugin install reads the man
 installed=$(printf '%s\n' "$out" | sed -n 's/.*"installedPath": "\([^"]*\)".*/\1/p')
 assert_file "$installed/skills/hashiiiii-git/SKILL.md" 'installed plugin contains the Git skill'
 assert_file "$installed/hooks/hooks.json" 'installed plugin contains the shared hooks'
+# Native plugin packaging must retain resources beyond the public instruction files.
+assert_file "$installed/skills/hashiiiii-write-en/scripts/check.mjs" 'installed plugin contains the English checker'
+assert_file "$installed/skills/hashiiiii-write-en/package-lock.json" 'installed plugin contains the English runtime lock'
+assert_file "$installed/skills/hallmark/vendor/hallmark/INSTRUCTIONS.md" 'installed plugin contains the Hallmark bundle'
+assert_file "$installed/skills/show-me/vendor/show-me/INSTRUCTIONS.md" 'installed plugin contains the Show-me bundle'
 
 CODEX_HOME="$codex_home" codex plugin remove rules-for-ai@hashiiiii --json > /dev/null
 out=$(CODEX_HOME="$codex_home" codex plugin list)

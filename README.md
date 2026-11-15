@@ -120,31 +120,49 @@ Codex reads the same process from `AGENTS.md`. It reads the selected locale file
 
 The agent rules require the matching skill for every draft, edit, and review:
 
-| Language | Skill | Bundled workflow |
+| Language | Skill | Writing checks |
 | --- | --- | --- |
-| English | [hashiiiii-write-en](./skills/hashiiiii-write-en/SKILL.md) | [Humanizer](https://github.com/blader/humanizer) |
+| English | [hashiiiii-write-en](./skills/hashiiiii-write-en/SKILL.md) | [Harper](https://github.com/Automattic/harper) |
 | Japanese | [hashiiiii-write-ja](./skills/hashiiiii-write-ja/SKILL.md) | [yomiyasu](https://github.com/nanaism/yomiyasu) |
 
-Both skills read their bundled instructions and preserve facts, uncertainty, scope, and technical strings.
-No separate writing-skill installation is required. The public names and agent-rule references stay the same.
-English uses Humanizer's embedded mode, returning the final text. Reviews return findings and proposed changes.
+Both skills preserve facts, uncertainty, scope, and technical strings. The public names and agent-rule references stay the same.
+English uses Harper to check grammar, spelling, and word usage, alongside the agent's review of meaning and sentence flow.
+Its checker requires Node.js 20 or later. First use installs the locked npm dependencies in a shared user cache.
+After setup, checks run offline without sending drafts to an external service or writing to the project.
+See the skill's [runtime setup](./skills/hashiiiii-write-en/DEPENDENCIES.md) for commands and supported dialects.
+Reviews return findings and proposed changes.
 Japanese uses yomiyasu's drafting, revision, and meaning-preservation checks.
 Its bundled checks require Python 3 and use only the standard library.
 They compare the source or supplied material with the final draft and verify the recorded draft before delivery.
-Without Python 3, the skill reviews manually and reports which checks could not run.
+When a required runtime or check is unavailable, either skill reviews manually and reports which checks could not run.
 
 ```text
 Use hashiiiii-write-en to write a short release note from these facts: ...
 Use hashiiiii-write-ja to edit this Japanese message: ...
 ```
 
-The bundles contain fixed upstream revisions and their MIT licenses:
+The writing dependencies have fixed versions and retain their upstream licenses:
 
-- [Humanizer source](./skills/hashiiiii-write-en/vendor/humanizer/UPSTREAM.md)
+- [Harper runtime and selection](./skills/hashiiiii-write-en/DEPENDENCIES.md), with npm integrity hashes in its lockfile
 - [yomiyasu source](./skills/hashiiiii-write-ja/vendor/yomiyasu/UPSTREAM.md)
 
-Bundle versions, commit digests, copied paths, and local patches are declared in [upstreams.json](./upstreams.json).
+Bundled source versions, commit digests, copied paths, and local patches are declared in [upstreams.json](./upstreams.json).
+Runtime packages are declared in the English skill's `package.json` and `package-lock.json`.
 See [dependency maintenance](./docs/DEPENDENCIES.md) for updates and regeneration.
+
+## Portable skills
+
+The plugin also distributes these skills under their existing names:
+
+| Skill | Purpose | Source |
+| --- | --- | --- |
+| [hallmark](./skills/hallmark/SKILL.md) | Design, audit, redesign, and study interfaces | [Nutlope/hallmark](https://github.com/Nutlope/hallmark) |
+| [show-me](./skills/show-me/SKILL.md) | Explain code, flow, and structure visually | [HumanLayer skills](https://github.com/humanlayer/skills) |
+
+Their instructions, licenses, and required resources are bundled with the plugin.
+`upstreams.json` pins their source commits; local changes remain reproducible patches.
+These implementations belong here. Dotfiles owns plugin enabling, machine configuration, and OS package installation.
+For SVG rendering on macOS, install librsvg through the dotfiles Brewfile or the host package manager.
 
 ## Pull request explanations
 
@@ -166,7 +184,8 @@ Fork the repository. Then edit [AGENTS.md](./AGENTS.md) and [skills/](./skills/)
 
 Install the plugin from your fork instead of `hashiiiii/rules-for-ai`.
 
-Skills use the `hashiiiii-` prefix. Replace this prefix with your prefix.
+First-party skills use the `hashiiiii-` prefix. Replace this prefix with your prefix when forking.
+Imported skills keep their existing public names.
 
 Find each reference with this command:
 
