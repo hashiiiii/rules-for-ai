@@ -16,14 +16,15 @@ for platform in codex cursor; do
         cursor) skills="$target/.cursor/skills" ;;
     esac
 
-    for bundle in 'ja yomiyasu' 'en humanizer'; do
-        language=${bundle%% *}
-        upstream=${bundle#* }
+    for language in ja en; do
         skill="$skills/hashiiiii-write-$language"
-        vendor="$skill/vendor/$upstream"
-        for resource in INSTRUCTIONS.md LICENSE UPSTREAM.md; do
-            if [ ! -f "$vendor/$resource" ]; then
-                printf 'FAIL: %s %s bundle is missing %s\n' "$platform" "$language" "$resource" >&2
+        case "$language" in
+            ja) resources='vendor/yomiyasu/INSTRUCTIONS.md vendor/yomiyasu/LICENSE vendor/yomiyasu/UPSTREAM.md' ;;
+            en) resources='package.json package-lock.json scripts/check.mjs DEPENDENCIES.md' ;;
+        esac
+        for resource in $resources; do
+            if [ ! -f "$skill/$resource" ]; then
+                printf 'FAIL: %s %s skill is missing %s\n' "$platform" "$language" "$resource" >&2
                 exit 1
             fi
         done

@@ -1,0 +1,2 @@
+# Unified patches encode empty context lines with a space.
+patches/**/*.patch -whitespace

@@ -20,23 +20,62 @@ stage=$(mktemp -d)
 trap 'rm -rf "$stage"' EXIT
 manifest="$root/upstreams.json"
 
+copy_selected() {
+    source_root=$1
+    item=$2
+    copied=$3
+    label=$4
+    [ -e "$item" ] || die "missing upstream resource: $label"
+    # Selected paths must not escape through a symlinked parent or child.
+    checked=$item
+    while [ "$checked" != "$source_root" ]; do
+        [ ! -L "$checked" ] || die "symlink in selected resource: $label"
+        checked=$(dirname -- "$checked")
+    done
+    [ -z "$(find "$item" -type l -print -quit)" ] || die "symlink in selected resource: $label"
+    if [ -d "$item" ]; then
+        mkdir -p "$copied"
+        cp -pR "$item/." "$copied/"
+    else
+        mkdir -p "$(dirname -- "$copied")"
+        cp -p "$item" "$copied"
+    fi
+}
+
 # Line-oriented shell loops require paths and metadata without control characters.
 jq -e '
     def text: type == "string" and (test("[\u0000-\u001f\u007f]") | not);
     def relative: text and length > 0 and (startswith("/") | not)
         and (contains("\\") | not) and (split("/") | all(. != ".." and . != ".git"));
+    def tracked_ref: text and test("^[A-Za-z0-9][A-Za-z0-9._/-]*$")
+        and (split("/") | all(. != "" and . != "." and . != ".." and . != ".git"));
+    def selected_resource: type == "object" and
+        (.source | relative and . != ".") and
+        (.destination | relative and . != ".");
+    def resources: type == "array" and all(.[]; selected_resource) and
+        (map(.destination) | length == (unique | length));
     .bundles | type == "array" and length > 0 and
     all(.[];
         (.name | text and length > 0) and
         (.repository | text and length > 0) and
-        (.version | text and test("^v?[0-9]+\\.[0-9]+\\.[0-9]+$")) and
+        (((has("version") and (.version | text and test("^v?[0-9]+\\.[0-9]+\\.[0-9]+$")))
+          and (has("ref") | not)) or
+         ((has("ref") and (.ref | tracked_ref)) and (has("version") | not))) and
         (.revision | text and test("^[0-9a-f]{40}$")) and
         (.source | relative) and
         (.destination | text and test("^skills/[A-Za-z0-9][A-Za-z0-9._-]*/vendor/[A-Za-z0-9][A-Za-z0-9._-]*$")) and
         (.include | type == "array" and length > 0 and all(.[]; relative)) and
+        ((has("resources") | not) or (.resources | resources)) and
         (.patches | type == "array" and all(.[]; relative))) and
     (map(.destination) | length == (unique | length))
 ' "$manifest" > /dev/null || die 'invalid upstream manifest, paths, or duplicate destination'
+# Every vendored source needs a pin; otherwise a new bundle can bypass the updater.
+for directory in "$root"/skills/*/vendor/*; do
+    [ -d "$directory" ] || continue
+    destination=${directory#"$root/"}
+    jq -e --arg destination "$destination" 'any(.bundles[]; .destination == $destination)' \
+        "$manifest" > /dev/null || die "unregistered vendored source: $destination"
+done
 jq -c '.bundles[]' "$manifest" > "$stage/entries"
 : > "$stage/changed"
 number=0
@@ -45,7 +84,8 @@ while IFS= read -r bundle; do
     mkdir -p "$work/checkout" "$work/source" "$work/output"
     printf '%s\n' "$bundle" > "$work/entry.json"
     repository=$(jq -r '.repository' "$work/entry.json")
-    version=$(jq -r '.version' "$work/entry.json")
+    version=$(jq -r '.version // empty' "$work/entry.json")
+    ref=$(jq -r '.ref // empty' "$work/entry.json")
     revision=$(jq -r '.revision' "$work/entry.json")
     source=$(jq -r '.source' "$work/entry.json")
     destination=$(jq -r '.destination' "$work/entry.json")
@@ -56,7 +96,12 @@ while IFS= read -r bundle; do
     done
     printf '%s\n' "$destination" > "$work/destination"
     git -C "$work/checkout" init -q
-    git -C "$work/checkout" fetch -q --depth=1 --no-tags -- "$repository" "refs/tags/$version"
+    if [ -n "$version" ]; then
+        git -C "$work/checkout" fetch -q --depth=1 --no-tags -- "$repository" "refs/tags/$version"
+    else
+        # The moving ref belongs to Renovate; generation always fetches the immutable pin.
+        git -C "$work/checkout" fetch -q --depth=1 --no-tags -- "$repository" "$revision"
+    fi
     actual=$(git -C "$work/checkout" rev-parse 'FETCH_HEAD^{commit}')
     [ "$actual" = "$revision" ] || die "commit mismatch for $repository: expected $revision, got $actual"
     # An archive excludes Git metadata even when the selected source is the repository root.
@@ -64,37 +109,39 @@ while IFS= read -r bundle; do
     tar -xf "$work/source.tar" -C "$work/source"
     jq -r '.include[]' "$work/entry.json" > "$work/include"
     while IFS= read -r path; do
-        item="$work/source/$source/$path"
-        copied="$work/output/$path"
-        [ -e "$item" ] || die "missing upstream resource: $path"
-        # Only selected resources matter, but their parent paths must not redirect copying.
-        checked=$item
-        while [ "$checked" != "$work/source" ]; do
-            [ ! -L "$checked" ] || die "symlink in selected resource: $path"
-            checked=$(dirname -- "$checked")
-        done
-        [ -z "$(find "$item" -type l -print -quit)" ] || die "symlink in selected resource: $path"
-        if [ -d "$item" ]; then
-            mkdir -p "$copied"
-            cp -pR "$item/." "$copied/"
-        else
-            mkdir -p "$(dirname -- "$copied")"
-            cp -p "$item" "$copied"
-        fi
+        copy_selected "$work/source" "$work/source/$source/$path" "$work/output/$path" "$path"
     done < "$work/include"
+    jq -r '.resources[]? | [.source, .destination] | @tsv' "$work/entry.json" > "$work/resources"
+    resource_tab=$(printf '\t')
+    while IFS="$resource_tab" read -r path copied; do
+        copy_selected "$work/source" "$work/source/$path" "$work/output/$copied" "$path"
+    done < "$work/resources"
     jq -r '.patches[]' "$work/entry.json" > "$work/patches"
     while IFS= read -r patch; do
-        git -C "$work/output" apply --check "$root/$patch"
+        if ! git -C "$work/output" apply --check "$root/$patch" > "$work/patch-check" 2>&1; then
+            cat "$work/patch-check" >&2
+            die "patch does not apply: $patch; review the upstream changes and update the patch manually"
+        fi
         git -C "$work/output" apply "$root/$patch"
     done < "$work/patches"
     mv "$work/output/SKILL.md" "$work/output/INSTRUCTIONS.md"
     [ -z "$(find "$work/output" -iname SKILL.md -print -quit)" ] || die "nested skill manifest in $destination"
-    # Backticks in the generated Markdown must remain literal.
+    # Generated Markdown intentionally includes literal backticks.
     # shellcheck disable=SC2016
     {
-        printf '# Upstream source\n\n- Repository: %s\n- Release: `%s`\n- Commit: `%s`\n- Source directory: `%s`\n' \
-            "$repository" "$version" "$revision" "$source"
-        printf -- '- Included paths: %s\n\n' "$(jq -r '.include | map("`" + . + "`") | join(", ")' "$work/entry.json")"
+        printf '# Upstream source\n\n- Repository: %s\n' "$repository"
+        if [ -n "$version" ]; then
+            printf -- '- Release: `%s`\n' "$version"
+        else
+            printf -- '- Tracked ref: `%s`\n' "$ref"
+        fi
+        printf -- '- Commit: `%s`\n- Source directory: `%s`\n' "$revision" "$source"
+        printf -- '- Included paths: %s\n' "$(jq -r '.include | map("`" + . + "`") | join(", ")' "$work/entry.json")"
+        if [ "$(jq -r '.resources // [] | length' "$work/entry.json")" -gt 0 ]; then
+            printf '\nAdditional repository resources:\n\n'
+            jq -r '.resources[] | "- `" + .source + "` -> `" + .destination + "`"' "$work/entry.json"
+        fi
+        printf '\n'
         printf '%s\n' \
             '`SKILL.md` is renamed to `INSTRUCTIONS.md` to expose only the wrapper'"'"'s skill name.' \
             'Upstream licenses are retained in this directory.' '' '## Local patches' ''
@@ -104,7 +151,7 @@ while IFS= read -r bundle; do
             printf 'None.\n'
         fi
         printf '\n%s\n%s\n' \
-            'Update `upstreams.json`, then run `sh scripts/sync-upstreams.sh` from the repository root.' \
+            'To review an upstream update, change the pinned release or commit in `upstreams.json`, then run `sh scripts/sync-upstreams.sh` from the repository root.' \
             'This file is generated. Do not edit the bundle directly.'
     } > "$work/output/UPSTREAM.md"
     if [ -d "$root/$destination" ]; then

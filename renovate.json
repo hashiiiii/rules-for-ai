@@ -6,6 +6,7 @@
   "enabledManagers": [
     "github-actions",
     "mise",
+    "npm",
     "custom.jsonata",
     "custom.regex"
   ],
@@ -29,9 +30,21 @@
         "/^upstreams\\.json$/"
       ],
       "matchStrings": [
-        "bundles.{ 'depName': $substringAfter(repository, 'https://github.com/'), 'currentValue': version, 'currentDigest': revision }"
+        "bundles[version].{ 'depName': $substringAfter(repository, 'https://github.com/'), 'currentValue': version, 'currentDigest': revision }"
       ],
       "datasourceTemplate": "github-tags"
+    },
+    {
+      "customType": "jsonata",
+      "fileFormat": "json",
+      "managerFilePatterns": [
+        "/^upstreams\\.json$/"
+      ],
+      "matchStrings": [
+        "bundles[ref].{ 'depName': $substringAfter(repository, 'https://github.com/'), 'currentValue': ref, 'currentDigest': revision }"
+      ],
+      "datasourceTemplate": "github-digest",
+      "versioningTemplate": "exact"
     }
   ],
   "packageRules": [
