@@ -1,8 +1,0 @@
-[tools]
-node = "24.22.1"
-shellcheck = "0.11.0"
-jq = "1.8.2"
-# Claude Code needs its installer to place the platform-native binary.
-'npm:@anthropic-ai/claude-code' = { version = '2.1.258', allow_builds = ['@anthropic-ai/claude-code'] }
-'npm:@openai/codex' = '0.169.0'
-'pipx:bump-my-version' = '1.4.1'

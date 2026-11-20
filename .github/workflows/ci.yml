@@ -9,7 +9,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: jdx/mise-action@v4
       - name: shellcheck
         run: find . -name '*.sh' -exec shellcheck {} +
       - name: unit tests
@@ -19,7 +18,13 @@ jobs:
       - name: upstream bundle reproducibility
         run: sh scripts/sync-upstreams.sh --check
       - name: e2e tests
+        env:
+          # renovate: datasource=npm depName=@anthropic-ai/claude-code
+          CLAUDE_CODE_VERSION: 2.1.258
+          # renovate: datasource=npm depName=@openai/codex
+          CODEX_VERSION: 0.169.0
         run: |
+          npm install --global "@anthropic-ai/claude-code@$CLAUDE_CODE_VERSION" "@openai/codex@$CODEX_VERSION"
           RULES_FOR_AI_E2E=1 sh tests/rules-for-ai-claude-e2e.sh
           RULES_FOR_AI_E2E=1 sh tests/rules-for-ai-codex-plugin-e2e.sh
       - name: always-on rule drift check

@@ -2,12 +2,12 @@
 
 ## Checks
 
-Install the tools pinned in `mise.toml` with `mise install`, then run:
+These checks use Git, jq, Python 3, Node.js 20 or later, and npm 8.3 or later.
 
 ```sh
-mise exec -- sh -c 'for f in tests/*.test.sh; do sh "$f" || exit 1; done'
-mise exec -- sh scripts/sync-upstreams.sh --check
-mise exec -- sh scripts/check-versions.sh
+sh -c 'for f in tests/*.test.sh; do sh "$f" || exit 1; done'
+sh scripts/sync-upstreams.sh --check
+sh scripts/check-versions.sh
 ```
 
 CI also runs ShellCheck, checks that `rules/agents.mdc` matches `AGENTS.md`, and tests both Claude Code and Codex plugins.  
@@ -15,7 +15,9 @@ Edit `AGENTS.md` and synchronize `rules/agents.mdc`; `CLAUDE.md` is a symlink to
 
 ## Dependencies
 
-Renovate updates Actions, tools in `mise.toml`, bundled sources in `upstreams.json`, and the English checker's npm manifests.  
+Renovate updates GitHub Actions, the Codex and Claude Code versions in the CI workflow, and the `bump-my-version` version in the release workflow.
+It also updates bundled sources in `upstreams.json` and the English checker's npm manifests.
+
 Updates require a release timestamp and seven days of release age. Automatic merging is disabled.  
 The **dependency updates** workflow runs on Mondays at 06:00 JST or through its manual trigger.
 
@@ -23,8 +25,8 @@ The **dependency updates** workflow runs on Mondays at 06:00 JST or through its 
 Edit public skill wrappers directly. For bundled changes, edit the manifest or patches under `patches/<name>/`, then regenerate:
 
 ```sh
-mise exec -- sh scripts/sync-upstreams.sh
-mise exec -- sh scripts/sync-upstreams.sh --check
+sh scripts/sync-upstreams.sh
+sh scripts/sync-upstreams.sh --check
 ```
 
 These commands require Git, jq, and network access. Do not edit generated files under `skills/*/vendor/`.  

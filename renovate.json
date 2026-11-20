@@ -5,7 +5,6 @@
   ],
   "enabledManagers": [
     "github-actions",
-    "mise",
     "npm",
     "custom.jsonata",
     "custom.regex"
