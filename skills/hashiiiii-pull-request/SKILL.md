@@ -16,6 +16,8 @@ If there are multiple templates, use the one selected by the user or repository.
 
 Resolve the `pull-requests` language through the shared locale rules for the title and body. Preserve repository template headings. Keep default template headings in English.
 
+For UI changes, attach before-and-after screenshots to the pull request body.
+
 If no template exists, use:
 
 ```markdown
